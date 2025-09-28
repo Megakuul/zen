@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package v1.scheduler;
+
+option go_package = "github.com/megakuul/zen/pkg/api/v1/scheduler";
+
+enum EventType {
+  CHILL = 0;
+  PAUSE = 1;
+  MIN_FOCUS = 2;
+  MAX_FOCUS = 3;
+}
+
+message Event {
+  string id = 1;
+  EventType type = 2;
+  string name = 3;
+  int64 start_time = 4;
+  int64 stop_time = 5;
+  int64 timer_start_time = 6;
+  int64 timer_stop_time = 7;
+  string description = 8;
+  string music_url = 9;
+}

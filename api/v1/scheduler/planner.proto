@@ -1,0 +1,35 @@
+syntax = "proto3";
+
+package v1.scheduler;
+
+option go_package = "github.com/megakuul/zen/pkg/api/v1/scheduler";
+
+import "v1/scheduler/event.proto";
+
+message GetRequest {
+  int64 day = 1;
+}
+
+message GetResponse {
+  repeated Event events = 1;
+}
+
+message UpsertRequest {
+  Event event = 1;
+}
+
+message UpsertResponse {
+}
+
+message DeleteRequest {
+  string id = 1;
+}
+
+message DeleteResponse {
+}
+
+service PlannerService {
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc Upsert(UpsertRequest) returns (UpsertResponse) {}
+  rpc Delete(DeleteRequest) returns (DeleteResponse) {}
+}
