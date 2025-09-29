@@ -82,8 +82,9 @@ type Event struct {
 	StopTime       int64                  `protobuf:"varint,5,opt,name=stop_time,json=stopTime,proto3" json:"stop_time,omitempty"`
 	TimerStartTime int64                  `protobuf:"varint,6,opt,name=timer_start_time,json=timerStartTime,proto3" json:"timer_start_time,omitempty"`
 	TimerStopTime  int64                  `protobuf:"varint,7,opt,name=timer_stop_time,json=timerStopTime,proto3" json:"timer_stop_time,omitempty"`
-	Description    string                 `protobuf:"bytes,8,opt,name=description,proto3" json:"description,omitempty"`
-	MusicUrl       string                 `protobuf:"bytes,9,opt,name=music_url,json=musicUrl,proto3" json:"music_url,omitempty"`
+	RatingChange   float64                `protobuf:"fixed64,8,opt,name=rating_change,json=ratingChange,proto3" json:"rating_change,omitempty"`
+	Description    string                 `protobuf:"bytes,9,opt,name=description,proto3" json:"description,omitempty"`
+	MusicUrl       string                 `protobuf:"bytes,10,opt,name=music_url,json=musicUrl,proto3" json:"music_url,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -167,6 +168,13 @@ func (x *Event) GetTimerStopTime() int64 {
 	return 0
 }
 
+func (x *Event) GetRatingChange() float64 {
+	if x != nil {
+		return x.RatingChange
+	}
+	return 0
+}
+
 func (x *Event) GetDescription() string {
 	if x != nil {
 		return x.Description
@@ -185,7 +193,7 @@ var File_v1_scheduler_event_proto protoreflect.FileDescriptor
 
 const file_v1_scheduler_event_proto_rawDesc = "" +
 	"\n" +
-	"\x18v1/scheduler/event.proto\x12\fv1.scheduler\"\xa5\x02\n" +
+	"\x18v1/scheduler/event.proto\x12\fv1.scheduler\"\xca\x02\n" +
 	"\x05Event\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12+\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x17.v1.scheduler.EventTypeR\x04type\x12\x12\n" +
@@ -194,9 +202,11 @@ const file_v1_scheduler_event_proto_rawDesc = "" +
 	"start_time\x18\x04 \x01(\x03R\tstartTime\x12\x1b\n" +
 	"\tstop_time\x18\x05 \x01(\x03R\bstopTime\x12(\n" +
 	"\x10timer_start_time\x18\x06 \x01(\x03R\x0etimerStartTime\x12&\n" +
-	"\x0ftimer_stop_time\x18\a \x01(\x03R\rtimerStopTime\x12 \n" +
-	"\vdescription\x18\b \x01(\tR\vdescription\x12\x1b\n" +
-	"\tmusic_url\x18\t \x01(\tR\bmusicUrl*?\n" +
+	"\x0ftimer_stop_time\x18\a \x01(\x03R\rtimerStopTime\x12#\n" +
+	"\rrating_change\x18\b \x01(\x01R\fratingChange\x12 \n" +
+	"\vdescription\x18\t \x01(\tR\vdescription\x12\x1b\n" +
+	"\tmusic_url\x18\n" +
+	" \x01(\tR\bmusicUrl*?\n" +
 	"\tEventType\x12\t\n" +
 	"\x05CHILL\x10\x00\x12\t\n" +
 	"\x05PAUSE\x10\x01\x12\r\n" +

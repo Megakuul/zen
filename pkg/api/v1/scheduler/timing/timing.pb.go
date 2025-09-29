@@ -2,11 +2,12 @@
 // versions:
 // 	protoc-gen-go v1.36.8
 // 	protoc        (unknown)
-// source: v1/scheduler/timer.proto
+// source: v1/scheduler/timing/timing.proto
 
-package scheduler
+package timing
 
 import (
+	_ "github.com/megakuul/zen/pkg/api/v1/scheduler"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -31,7 +32,7 @@ type StartRequest struct {
 
 func (x *StartRequest) Reset() {
 	*x = StartRequest{}
-	mi := &file_v1_scheduler_timer_proto_msgTypes[0]
+	mi := &file_v1_scheduler_timing_timing_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -43,7 +44,7 @@ func (x *StartRequest) String() string {
 func (*StartRequest) ProtoMessage() {}
 
 func (x *StartRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_timer_proto_msgTypes[0]
+	mi := &file_v1_scheduler_timing_timing_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -56,7 +57,7 @@ func (x *StartRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartRequest.ProtoReflect.Descriptor instead.
 func (*StartRequest) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_timer_proto_rawDescGZIP(), []int{0}
+	return file_v1_scheduler_timing_timing_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *StartRequest) GetId() string {
@@ -81,7 +82,7 @@ type StartResponse struct {
 
 func (x *StartResponse) Reset() {
 	*x = StartResponse{}
-	mi := &file_v1_scheduler_timer_proto_msgTypes[1]
+	mi := &file_v1_scheduler_timing_timing_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -93,7 +94,7 @@ func (x *StartResponse) String() string {
 func (*StartResponse) ProtoMessage() {}
 
 func (x *StartResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_timer_proto_msgTypes[1]
+	mi := &file_v1_scheduler_timing_timing_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -106,7 +107,7 @@ func (x *StartResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartResponse.ProtoReflect.Descriptor instead.
 func (*StartResponse) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_timer_proto_rawDescGZIP(), []int{1}
+	return file_v1_scheduler_timing_timing_proto_rawDescGZIP(), []int{1}
 }
 
 type StopRequest struct {
@@ -119,7 +120,7 @@ type StopRequest struct {
 
 func (x *StopRequest) Reset() {
 	*x = StopRequest{}
-	mi := &file_v1_scheduler_timer_proto_msgTypes[2]
+	mi := &file_v1_scheduler_timing_timing_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -131,7 +132,7 @@ func (x *StopRequest) String() string {
 func (*StopRequest) ProtoMessage() {}
 
 func (x *StopRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_timer_proto_msgTypes[2]
+	mi := &file_v1_scheduler_timing_timing_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -144,7 +145,7 @@ func (x *StopRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopRequest.ProtoReflect.Descriptor instead.
 func (*StopRequest) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_timer_proto_rawDescGZIP(), []int{2}
+	return file_v1_scheduler_timing_timing_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *StopRequest) GetId() string {
@@ -169,7 +170,7 @@ type StopResponse struct {
 
 func (x *StopResponse) Reset() {
 	*x = StopResponse{}
-	mi := &file_v1_scheduler_timer_proto_msgTypes[3]
+	mi := &file_v1_scheduler_timing_timing_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -181,7 +182,7 @@ func (x *StopResponse) String() string {
 func (*StopResponse) ProtoMessage() {}
 
 func (x *StopResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_timer_proto_msgTypes[3]
+	mi := &file_v1_scheduler_timing_timing_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -194,14 +195,14 @@ func (x *StopResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StopResponse.ProtoReflect.Descriptor instead.
 func (*StopResponse) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_timer_proto_rawDescGZIP(), []int{3}
+	return file_v1_scheduler_timing_timing_proto_rawDescGZIP(), []int{3}
 }
 
-var File_v1_scheduler_timer_proto protoreflect.FileDescriptor
+var File_v1_scheduler_timing_timing_proto protoreflect.FileDescriptor
 
-const file_v1_scheduler_timer_proto_rawDesc = "" +
+const file_v1_scheduler_timing_timing_proto_rawDesc = "" +
 	"\n" +
-	"\x18v1/scheduler/timer.proto\x12\fv1.scheduler\x1a\x18v1/scheduler/event.proto\"=\n" +
+	" v1/scheduler/timing/timing.proto\x12\x13v1.scheduler.timing\x1a\x18v1/scheduler/event.proto\"=\n" +
 	"\fStartRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
 	"\n" +
@@ -210,35 +211,35 @@ const file_v1_scheduler_timer_proto_rawDesc = "" +
 	"\vStopRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
 	"\tstop_time\x18\x02 \x01(\x03R\bstopTime\"\x0e\n" +
-	"\fStopResponse2\x93\x01\n" +
-	"\fTimerService\x12B\n" +
-	"\x05Start\x12\x1a.v1.scheduler.StartRequest\x1a\x1b.v1.scheduler.StartResponse\"\x00\x12?\n" +
-	"\x04Stop\x12\x19.v1.scheduler.StopRequest\x1a\x1a.v1.scheduler.StopResponse\"\x00B.Z,github.com/megakuul/zen/pkg/api/v1/schedulerb\x06proto3"
+	"\fStopResponse2\xb0\x01\n" +
+	"\rTimingService\x12P\n" +
+	"\x05Start\x12!.v1.scheduler.timing.StartRequest\x1a\".v1.scheduler.timing.StartResponse\"\x00\x12M\n" +
+	"\x04Stop\x12 .v1.scheduler.timing.StopRequest\x1a!.v1.scheduler.timing.StopResponse\"\x00B5Z3github.com/megakuul/zen/pkg/api/v1/scheduler/timingb\x06proto3"
 
 var (
-	file_v1_scheduler_timer_proto_rawDescOnce sync.Once
-	file_v1_scheduler_timer_proto_rawDescData []byte
+	file_v1_scheduler_timing_timing_proto_rawDescOnce sync.Once
+	file_v1_scheduler_timing_timing_proto_rawDescData []byte
 )
 
-func file_v1_scheduler_timer_proto_rawDescGZIP() []byte {
-	file_v1_scheduler_timer_proto_rawDescOnce.Do(func() {
-		file_v1_scheduler_timer_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_v1_scheduler_timer_proto_rawDesc), len(file_v1_scheduler_timer_proto_rawDesc)))
+func file_v1_scheduler_timing_timing_proto_rawDescGZIP() []byte {
+	file_v1_scheduler_timing_timing_proto_rawDescOnce.Do(func() {
+		file_v1_scheduler_timing_timing_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_v1_scheduler_timing_timing_proto_rawDesc), len(file_v1_scheduler_timing_timing_proto_rawDesc)))
 	})
-	return file_v1_scheduler_timer_proto_rawDescData
+	return file_v1_scheduler_timing_timing_proto_rawDescData
 }
 
-var file_v1_scheduler_timer_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
-var file_v1_scheduler_timer_proto_goTypes = []any{
-	(*StartRequest)(nil),  // 0: v1.scheduler.StartRequest
-	(*StartResponse)(nil), // 1: v1.scheduler.StartResponse
-	(*StopRequest)(nil),   // 2: v1.scheduler.StopRequest
-	(*StopResponse)(nil),  // 3: v1.scheduler.StopResponse
+var file_v1_scheduler_timing_timing_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_v1_scheduler_timing_timing_proto_goTypes = []any{
+	(*StartRequest)(nil),  // 0: v1.scheduler.timing.StartRequest
+	(*StartResponse)(nil), // 1: v1.scheduler.timing.StartResponse
+	(*StopRequest)(nil),   // 2: v1.scheduler.timing.StopRequest
+	(*StopResponse)(nil),  // 3: v1.scheduler.timing.StopResponse
 }
-var file_v1_scheduler_timer_proto_depIdxs = []int32{
-	0, // 0: v1.scheduler.TimerService.Start:input_type -> v1.scheduler.StartRequest
-	2, // 1: v1.scheduler.TimerService.Stop:input_type -> v1.scheduler.StopRequest
-	1, // 2: v1.scheduler.TimerService.Start:output_type -> v1.scheduler.StartResponse
-	3, // 3: v1.scheduler.TimerService.Stop:output_type -> v1.scheduler.StopResponse
+var file_v1_scheduler_timing_timing_proto_depIdxs = []int32{
+	0, // 0: v1.scheduler.timing.TimingService.Start:input_type -> v1.scheduler.timing.StartRequest
+	2, // 1: v1.scheduler.timing.TimingService.Stop:input_type -> v1.scheduler.timing.StopRequest
+	1, // 2: v1.scheduler.timing.TimingService.Start:output_type -> v1.scheduler.timing.StartResponse
+	3, // 3: v1.scheduler.timing.TimingService.Stop:output_type -> v1.scheduler.timing.StopResponse
 	2, // [2:4] is the sub-list for method output_type
 	0, // [0:2] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -246,27 +247,26 @@ var file_v1_scheduler_timer_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_v1_scheduler_timer_proto_init() }
-func file_v1_scheduler_timer_proto_init() {
-	if File_v1_scheduler_timer_proto != nil {
+func init() { file_v1_scheduler_timing_timing_proto_init() }
+func file_v1_scheduler_timing_timing_proto_init() {
+	if File_v1_scheduler_timing_timing_proto != nil {
 		return
 	}
-	file_v1_scheduler_event_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_scheduler_timer_proto_rawDesc), len(file_v1_scheduler_timer_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_scheduler_timing_timing_proto_rawDesc), len(file_v1_scheduler_timing_timing_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_v1_scheduler_timer_proto_goTypes,
-		DependencyIndexes: file_v1_scheduler_timer_proto_depIdxs,
-		MessageInfos:      file_v1_scheduler_timer_proto_msgTypes,
+		GoTypes:           file_v1_scheduler_timing_timing_proto_goTypes,
+		DependencyIndexes: file_v1_scheduler_timing_timing_proto_depIdxs,
+		MessageInfos:      file_v1_scheduler_timing_timing_proto_msgTypes,
 	}.Build()
-	File_v1_scheduler_timer_proto = out.File
-	file_v1_scheduler_timer_proto_goTypes = nil
-	file_v1_scheduler_timer_proto_depIdxs = nil
+	File_v1_scheduler_timing_timing_proto = out.File
+	file_v1_scheduler_timing_timing_proto_goTypes = nil
+	file_v1_scheduler_timing_timing_proto_depIdxs = nil
 }

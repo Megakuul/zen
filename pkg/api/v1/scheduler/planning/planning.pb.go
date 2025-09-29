@@ -2,11 +2,12 @@
 // versions:
 // 	protoc-gen-go v1.36.8
 // 	protoc        (unknown)
-// source: v1/scheduler/planner.proto
+// source: v1/scheduler/planning/planning.proto
 
-package scheduler
+package planning
 
 import (
+	scheduler "github.com/megakuul/zen/pkg/api/v1/scheduler"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -30,7 +31,7 @@ type GetRequest struct {
 
 func (x *GetRequest) Reset() {
 	*x = GetRequest{}
-	mi := &file_v1_scheduler_planner_proto_msgTypes[0]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -42,7 +43,7 @@ func (x *GetRequest) String() string {
 func (*GetRequest) ProtoMessage() {}
 
 func (x *GetRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_planner_proto_msgTypes[0]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -55,7 +56,7 @@ func (x *GetRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetRequest.ProtoReflect.Descriptor instead.
 func (*GetRequest) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_planner_proto_rawDescGZIP(), []int{0}
+	return file_v1_scheduler_planning_planning_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GetRequest) GetDay() int64 {
@@ -67,14 +68,14 @@ func (x *GetRequest) GetDay() int64 {
 
 type GetResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Events        []*Event               `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
+	Events        []*scheduler.Event     `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GetResponse) Reset() {
 	*x = GetResponse{}
-	mi := &file_v1_scheduler_planner_proto_msgTypes[1]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -86,7 +87,7 @@ func (x *GetResponse) String() string {
 func (*GetResponse) ProtoMessage() {}
 
 func (x *GetResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_planner_proto_msgTypes[1]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -99,10 +100,10 @@ func (x *GetResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
 func (*GetResponse) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_planner_proto_rawDescGZIP(), []int{1}
+	return file_v1_scheduler_planning_planning_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetResponse) GetEvents() []*Event {
+func (x *GetResponse) GetEvents() []*scheduler.Event {
 	if x != nil {
 		return x.Events
 	}
@@ -111,14 +112,14 @@ func (x *GetResponse) GetEvents() []*Event {
 
 type UpsertRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Event         *Event                 `protobuf:"bytes,1,opt,name=event,proto3" json:"event,omitempty"`
+	Event         *scheduler.Event       `protobuf:"bytes,1,opt,name=event,proto3" json:"event,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *UpsertRequest) Reset() {
 	*x = UpsertRequest{}
-	mi := &file_v1_scheduler_planner_proto_msgTypes[2]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -130,7 +131,7 @@ func (x *UpsertRequest) String() string {
 func (*UpsertRequest) ProtoMessage() {}
 
 func (x *UpsertRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_planner_proto_msgTypes[2]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -143,10 +144,10 @@ func (x *UpsertRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertRequest.ProtoReflect.Descriptor instead.
 func (*UpsertRequest) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_planner_proto_rawDescGZIP(), []int{2}
+	return file_v1_scheduler_planning_planning_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *UpsertRequest) GetEvent() *Event {
+func (x *UpsertRequest) GetEvent() *scheduler.Event {
 	if x != nil {
 		return x.Event
 	}
@@ -161,7 +162,7 @@ type UpsertResponse struct {
 
 func (x *UpsertResponse) Reset() {
 	*x = UpsertResponse{}
-	mi := &file_v1_scheduler_planner_proto_msgTypes[3]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -173,7 +174,7 @@ func (x *UpsertResponse) String() string {
 func (*UpsertResponse) ProtoMessage() {}
 
 func (x *UpsertResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_planner_proto_msgTypes[3]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -186,7 +187,7 @@ func (x *UpsertResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use UpsertResponse.ProtoReflect.Descriptor instead.
 func (*UpsertResponse) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_planner_proto_rawDescGZIP(), []int{3}
+	return file_v1_scheduler_planning_planning_proto_rawDescGZIP(), []int{3}
 }
 
 type DeleteRequest struct {
@@ -198,7 +199,7 @@ type DeleteRequest struct {
 
 func (x *DeleteRequest) Reset() {
 	*x = DeleteRequest{}
-	mi := &file_v1_scheduler_planner_proto_msgTypes[4]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -210,7 +211,7 @@ func (x *DeleteRequest) String() string {
 func (*DeleteRequest) ProtoMessage() {}
 
 func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_planner_proto_msgTypes[4]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -223,7 +224,7 @@ func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRequest) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_planner_proto_rawDescGZIP(), []int{4}
+	return file_v1_scheduler_planning_planning_proto_rawDescGZIP(), []int{4}
 }
 
 func (x *DeleteRequest) GetId() string {
@@ -241,7 +242,7 @@ type DeleteResponse struct {
 
 func (x *DeleteResponse) Reset() {
 	*x = DeleteResponse{}
-	mi := &file_v1_scheduler_planner_proto_msgTypes[5]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -253,7 +254,7 @@ func (x *DeleteResponse) String() string {
 func (*DeleteResponse) ProtoMessage() {}
 
 func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_scheduler_planner_proto_msgTypes[5]
+	mi := &file_v1_scheduler_planning_planning_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -266,14 +267,14 @@ func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResponse.ProtoReflect.Descriptor instead.
 func (*DeleteResponse) Descriptor() ([]byte, []int) {
-	return file_v1_scheduler_planner_proto_rawDescGZIP(), []int{5}
+	return file_v1_scheduler_planning_planning_proto_rawDescGZIP(), []int{5}
 }
 
-var File_v1_scheduler_planner_proto protoreflect.FileDescriptor
+var File_v1_scheduler_planning_planning_proto protoreflect.FileDescriptor
 
-const file_v1_scheduler_planner_proto_rawDesc = "" +
+const file_v1_scheduler_planning_planning_proto_rawDesc = "" +
 	"\n" +
-	"\x1av1/scheduler/planner.proto\x12\fv1.scheduler\x1a\x18v1/scheduler/event.proto\"\x1e\n" +
+	"$v1/scheduler/planning/planning.proto\x12\x15v1.scheduler.planning\x1a\x18v1/scheduler/event.proto\"\x1e\n" +
 	"\n" +
 	"GetRequest\x12\x10\n" +
 	"\x03day\x18\x01 \x01(\x03R\x03day\":\n" +
@@ -284,43 +285,43 @@ const file_v1_scheduler_planner_proto_rawDesc = "" +
 	"\x0eUpsertResponse\"\x1f\n" +
 	"\rDeleteRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x10\n" +
-	"\x0eDeleteResponse2\xdc\x01\n" +
-	"\x0ePlannerService\x12<\n" +
-	"\x03Get\x12\x18.v1.scheduler.GetRequest\x1a\x19.v1.scheduler.GetResponse\"\x00\x12E\n" +
-	"\x06Upsert\x12\x1b.v1.scheduler.UpsertRequest\x1a\x1c.v1.scheduler.UpsertResponse\"\x00\x12E\n" +
-	"\x06Delete\x12\x1b.v1.scheduler.DeleteRequest\x1a\x1c.v1.scheduler.DeleteResponse\"\x00B.Z,github.com/megakuul/zen/pkg/api/v1/schedulerb\x06proto3"
+	"\x0eDeleteResponse2\x93\x02\n" +
+	"\x0fPlanningService\x12N\n" +
+	"\x03Get\x12!.v1.scheduler.planning.GetRequest\x1a\".v1.scheduler.planning.GetResponse\"\x00\x12W\n" +
+	"\x06Upsert\x12$.v1.scheduler.planning.UpsertRequest\x1a%.v1.scheduler.planning.UpsertResponse\"\x00\x12W\n" +
+	"\x06Delete\x12$.v1.scheduler.planning.DeleteRequest\x1a%.v1.scheduler.planning.DeleteResponse\"\x00B7Z5github.com/megakuul/zen/pkg/api/v1/scheduler/planningb\x06proto3"
 
 var (
-	file_v1_scheduler_planner_proto_rawDescOnce sync.Once
-	file_v1_scheduler_planner_proto_rawDescData []byte
+	file_v1_scheduler_planning_planning_proto_rawDescOnce sync.Once
+	file_v1_scheduler_planning_planning_proto_rawDescData []byte
 )
 
-func file_v1_scheduler_planner_proto_rawDescGZIP() []byte {
-	file_v1_scheduler_planner_proto_rawDescOnce.Do(func() {
-		file_v1_scheduler_planner_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_v1_scheduler_planner_proto_rawDesc), len(file_v1_scheduler_planner_proto_rawDesc)))
+func file_v1_scheduler_planning_planning_proto_rawDescGZIP() []byte {
+	file_v1_scheduler_planning_planning_proto_rawDescOnce.Do(func() {
+		file_v1_scheduler_planning_planning_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_v1_scheduler_planning_planning_proto_rawDesc), len(file_v1_scheduler_planning_planning_proto_rawDesc)))
 	})
-	return file_v1_scheduler_planner_proto_rawDescData
+	return file_v1_scheduler_planning_planning_proto_rawDescData
 }
 
-var file_v1_scheduler_planner_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
-var file_v1_scheduler_planner_proto_goTypes = []any{
-	(*GetRequest)(nil),     // 0: v1.scheduler.GetRequest
-	(*GetResponse)(nil),    // 1: v1.scheduler.GetResponse
-	(*UpsertRequest)(nil),  // 2: v1.scheduler.UpsertRequest
-	(*UpsertResponse)(nil), // 3: v1.scheduler.UpsertResponse
-	(*DeleteRequest)(nil),  // 4: v1.scheduler.DeleteRequest
-	(*DeleteResponse)(nil), // 5: v1.scheduler.DeleteResponse
-	(*Event)(nil),          // 6: v1.scheduler.Event
+var file_v1_scheduler_planning_planning_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_v1_scheduler_planning_planning_proto_goTypes = []any{
+	(*GetRequest)(nil),      // 0: v1.scheduler.planning.GetRequest
+	(*GetResponse)(nil),     // 1: v1.scheduler.planning.GetResponse
+	(*UpsertRequest)(nil),   // 2: v1.scheduler.planning.UpsertRequest
+	(*UpsertResponse)(nil),  // 3: v1.scheduler.planning.UpsertResponse
+	(*DeleteRequest)(nil),   // 4: v1.scheduler.planning.DeleteRequest
+	(*DeleteResponse)(nil),  // 5: v1.scheduler.planning.DeleteResponse
+	(*scheduler.Event)(nil), // 6: v1.scheduler.Event
 }
-var file_v1_scheduler_planner_proto_depIdxs = []int32{
-	6, // 0: v1.scheduler.GetResponse.events:type_name -> v1.scheduler.Event
-	6, // 1: v1.scheduler.UpsertRequest.event:type_name -> v1.scheduler.Event
-	0, // 2: v1.scheduler.PlannerService.Get:input_type -> v1.scheduler.GetRequest
-	2, // 3: v1.scheduler.PlannerService.Upsert:input_type -> v1.scheduler.UpsertRequest
-	4, // 4: v1.scheduler.PlannerService.Delete:input_type -> v1.scheduler.DeleteRequest
-	1, // 5: v1.scheduler.PlannerService.Get:output_type -> v1.scheduler.GetResponse
-	3, // 6: v1.scheduler.PlannerService.Upsert:output_type -> v1.scheduler.UpsertResponse
-	5, // 7: v1.scheduler.PlannerService.Delete:output_type -> v1.scheduler.DeleteResponse
+var file_v1_scheduler_planning_planning_proto_depIdxs = []int32{
+	6, // 0: v1.scheduler.planning.GetResponse.events:type_name -> v1.scheduler.Event
+	6, // 1: v1.scheduler.planning.UpsertRequest.event:type_name -> v1.scheduler.Event
+	0, // 2: v1.scheduler.planning.PlanningService.Get:input_type -> v1.scheduler.planning.GetRequest
+	2, // 3: v1.scheduler.planning.PlanningService.Upsert:input_type -> v1.scheduler.planning.UpsertRequest
+	4, // 4: v1.scheduler.planning.PlanningService.Delete:input_type -> v1.scheduler.planning.DeleteRequest
+	1, // 5: v1.scheduler.planning.PlanningService.Get:output_type -> v1.scheduler.planning.GetResponse
+	3, // 6: v1.scheduler.planning.PlanningService.Upsert:output_type -> v1.scheduler.planning.UpsertResponse
+	5, // 7: v1.scheduler.planning.PlanningService.Delete:output_type -> v1.scheduler.planning.DeleteResponse
 	5, // [5:8] is the sub-list for method output_type
 	2, // [2:5] is the sub-list for method input_type
 	2, // [2:2] is the sub-list for extension type_name
@@ -328,27 +329,26 @@ var file_v1_scheduler_planner_proto_depIdxs = []int32{
 	0, // [0:2] is the sub-list for field type_name
 }
 
-func init() { file_v1_scheduler_planner_proto_init() }
-func file_v1_scheduler_planner_proto_init() {
-	if File_v1_scheduler_planner_proto != nil {
+func init() { file_v1_scheduler_planning_planning_proto_init() }
+func file_v1_scheduler_planning_planning_proto_init() {
+	if File_v1_scheduler_planning_planning_proto != nil {
 		return
 	}
-	file_v1_scheduler_event_proto_init()
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_scheduler_planner_proto_rawDesc), len(file_v1_scheduler_planner_proto_rawDesc)),
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_scheduler_planning_planning_proto_rawDesc), len(file_v1_scheduler_planning_planning_proto_rawDesc)),
 			NumEnums:      0,
 			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},
-		GoTypes:           file_v1_scheduler_planner_proto_goTypes,
-		DependencyIndexes: file_v1_scheduler_planner_proto_depIdxs,
-		MessageInfos:      file_v1_scheduler_planner_proto_msgTypes,
+		GoTypes:           file_v1_scheduler_planning_planning_proto_goTypes,
+		DependencyIndexes: file_v1_scheduler_planning_planning_proto_depIdxs,
+		MessageInfos:      file_v1_scheduler_planning_planning_proto_msgTypes,
 	}.Build()
-	File_v1_scheduler_planner_proto = out.File
-	file_v1_scheduler_planner_proto_goTypes = nil
-	file_v1_scheduler_planner_proto_depIdxs = nil
+	File_v1_scheduler_planning_planning_proto = out.File
+	file_v1_scheduler_planning_planning_proto_goTypes = nil
+	file_v1_scheduler_planning_planning_proto_depIdxs = nil
 }

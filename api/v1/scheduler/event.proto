@@ -19,6 +19,7 @@ message Event {
   int64 stop_time = 5;
   int64 timer_start_time = 6;
   int64 timer_stop_time = 7;
-  string description = 8;
-  string music_url = 9;
+  double rating_change = 8;
+  string description = 9;
+  string music_url = 10;
 }

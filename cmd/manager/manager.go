@@ -8,10 +8,10 @@ import (
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/megakuul/zen/internal/httplambda"
-	planning "github.com/megakuul/zen/internal/server/v1/scheduler/planning"
-	timing "github.com/megakuul/zen/internal/server/v1/scheduler/timing"
-	"github.com/megakuul/zen/pkg/api/v1/scheduler/planning/planningconnect"
-	"github.com/megakuul/zen/pkg/api/v1/scheduler/timing/timingconnect"
+	"github.com/megakuul/zen/internal/server/v1/manager/leaderboard"
+	"github.com/megakuul/zen/internal/server/v1/manager/management"
+	"github.com/megakuul/zen/pkg/api/v1/manager/leaderboard/leaderboardconnect"
+	"github.com/megakuul/zen/pkg/api/v1/manager/management/managementconnect"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
@@ -31,10 +31,10 @@ func main() {
 	}
 	mux := http.NewServeMux()
 	mux.Handle(
-		planningconnect.NewPlanningServiceHandler(planning.New()),
+		managementconnect.NewManagementServiceHandler(management.New()),
 	)
 	mux.Handle(
-		timingconnect.NewTimingServiceHandler(timing.New()),
+		leaderboardconnect.NewLeaderboardServiceHandler(leaderboard.New()),
 	)
 	lambda.Start(createHandler(mux))
 }

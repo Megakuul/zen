@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package v1.scheduler;
+package v1.scheduler.timing;
 
-option go_package = "github.com/megakuul/zen/pkg/api/v1/scheduler";
+option go_package = "github.com/megakuul/zen/pkg/api/v1/scheduler/timing";
 
 import "v1/scheduler/event.proto";
 
@@ -22,7 +22,7 @@ message StopRequest {
 message StopResponse {
 }
 
-service TimerService {
+service TimingService {
   rpc Start(StartRequest) returns (StartResponse) {}
   rpc Stop(StopRequest) returns (StopResponse) {}
 }

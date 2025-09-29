@@ -1,8 +1,8 @@
 syntax = "proto3";
 
-package v1.scheduler;
+package v1.scheduler.planning;
 
-option go_package = "github.com/megakuul/zen/pkg/api/v1/scheduler";
+option go_package = "github.com/megakuul/zen/pkg/api/v1/scheduler/planning";
 
 import "v1/scheduler/event.proto";
 
@@ -28,7 +28,7 @@ message DeleteRequest {
 message DeleteResponse {
 }
 
-service PlannerService {
+service PlanningService {
   rpc Get(GetRequest) returns (GetResponse) {}
   rpc Upsert(UpsertRequest) returns (UpsertResponse) {}
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}

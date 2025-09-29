@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/scheduler/event.proto.
  */
 export const file_v1_scheduler_event: GenFile = /*@__PURE__*/
-  fileDesc("Chh2MS9zY2hlZHVsZXIvZXZlbnQucHJvdG8SDHYxLnNjaGVkdWxlciLKAQoFRXZlbnQSCgoCaWQYASABKAkSJQoEdHlwZRgCIAEoDjIXLnYxLnNjaGVkdWxlci5FdmVudFR5cGUSDAoEbmFtZRgDIAEoCRISCgpzdGFydF90aW1lGAQgASgDEhEKCXN0b3BfdGltZRgFIAEoAxIYChB0aW1lcl9zdGFydF90aW1lGAYgASgDEhcKD3RpbWVyX3N0b3BfdGltZRgHIAEoAxITCgtkZXNjcmlwdGlvbhgIIAEoCRIRCgltdXNpY191cmwYCSABKAkqPwoJRXZlbnRUeXBlEgkKBUNISUxMEAASCQoFUEFVU0UQARINCglNSU5fRk9DVVMQAhINCglNQVhfRk9DVVMQA0IuWixnaXRodWIuY29tL21lZ2FrdXVsL3plbi9wa2cvYXBpL3YxL3NjaGVkdWxlcmIGcHJvdG8z");
+  fileDesc("Chh2MS9zY2hlZHVsZXIvZXZlbnQucHJvdG8SDHYxLnNjaGVkdWxlciLhAQoFRXZlbnQSCgoCaWQYASABKAkSJQoEdHlwZRgCIAEoDjIXLnYxLnNjaGVkdWxlci5FdmVudFR5cGUSDAoEbmFtZRgDIAEoCRISCgpzdGFydF90aW1lGAQgASgDEhEKCXN0b3BfdGltZRgFIAEoAxIYChB0aW1lcl9zdGFydF90aW1lGAYgASgDEhcKD3RpbWVyX3N0b3BfdGltZRgHIAEoAxIVCg1yYXRpbmdfY2hhbmdlGAggASgBEhMKC2Rlc2NyaXB0aW9uGAkgASgJEhEKCW11c2ljX3VybBgKIAEoCSo/CglFdmVudFR5cGUSCQoFQ0hJTEwQABIJCgVQQVVTRRABEg0KCU1JTl9GT0NVUxACEg0KCU1BWF9GT0NVUxADQi5aLGdpdGh1Yi5jb20vbWVnYWt1dWwvemVuL3BrZy9hcGkvdjEvc2NoZWR1bGVyYgZwcm90bzM");
 
 /**
  * @generated from message v1.scheduler.Event
@@ -52,12 +52,17 @@ export type Event = Message<"v1.scheduler.Event"> & {
   timerStopTime: bigint;
 
   /**
-   * @generated from field: string description = 8;
+   * @generated from field: double rating_change = 8;
+   */
+  ratingChange: number;
+
+  /**
+   * @generated from field: string description = 9;
    */
   description: string;
 
   /**
-   * @generated from field: string music_url = 9;
+   * @generated from field: string music_url = 10;
    */
   musicUrl: string;
 };
