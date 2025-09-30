@@ -1,7 +1,7 @@
 <script>
   import { create } from '@bufbuild/protobuf';
   import {PlannerClient} from "$lib/client/client.svelte"
-  import { GetRequestSchema } from "$lib/sdk/v1/scheduler/planner_pb";
+  import { GetRequestSchema } from "$lib/sdk/v1/scheduler/planning/planning_pb";
 
   /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event[]}*/
   let events = $state([]);
