@@ -15,9 +15,14 @@ import (
 type Operator struct {
 	region string
 	account string
+	deleteProtection bool
 }
 
 func (o *Operator) Deploy(ctx *pulumi.Context) error {
+	tableOutputs, err := o.deployTable(ctx)
+	if err!=nil {
+		return fmt.Errorf("failed to deploy table: %v", err)
+	}
 	schedulerOutputs, err := o.deployScheduler(ctx)
 	if err!=nil {
 		return fmt.Errorf("failed to deploy scheduler: %v", err)
