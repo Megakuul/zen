@@ -35,7 +35,10 @@ func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*sto
 					"Service": "cloudfront.amazonaws.com"
 				},
 				"Action": "s3:GetObject",
-				"Resource": "%s/leaderboard/*"
+				"Resource": [
+					"%s/web/*",
+					"%s/leaderboard/*"
+				]
 			}]
 		}`, bucket.Arn),
 	})
