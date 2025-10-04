@@ -1,4 +1,4 @@
-package zen
+package deploy
 
 import (
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
@@ -10,20 +10,22 @@ import (
 
 type leaderboardInput struct {
 	CodeArchive     pulumi.Archive
+	BucketName      pulumi.StringOutput
 	BucketPolicyArn pulumi.StringOutput
 }
 
-type leaderboardOutput struct{
-	QueueArn pulumi.StringOutput
+type leaderboardOutput struct {
+	QueueName      pulumi.StringOutput
+	QueueArn       pulumi.StringOutput
 	QueuePolicyArn pulumi.StringOutput
 }
 
 func (o *Operator) deployLeaderboard(ctx *pulumi.Context, input *leaderboardInput) (*leaderboardOutput, error) {
 	queue, err := sqs.NewQueue(ctx, "leaderboard", &sqs.QueueArgs{
-		Name: pulumi.String("zen-leaderboard"),
-		Region: pulumi.String(o.region),
-		MessageRetentionSeconds: pulumi.IntPtr(1209600), // 14 days -> max
-		VisibilityTimeoutSeconds: pulumi.IntPtr(120), // this also defines the lambda timeout
+		Name:                     pulumi.String("zen-leaderboard"),
+		Region:                   pulumi.String(o.region),
+		MessageRetentionSeconds:  pulumi.IntPtr(1209600), // 14 days -> max
+		VisibilityTimeoutSeconds: pulumi.IntPtr(120),     // this also defines the lambda timeout
 	})
 	if err != nil {
 		return nil, err
@@ -116,16 +118,22 @@ func (o *Operator) deployLeaderboard(ctx *pulumi.Context, input *leaderboardInpu
 		}),
 		Role: leaderboardRole.Arn,
 		Code: input.CodeArchive,
+		Environment: lambda.FunctionEnvironmentPtr(&lambda.FunctionEnvironmentArgs{
+			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
+				"QUEUE_NAME":  queue.Name,
+				"BUCKET_NAME": input.BucketName,
+			}),
+		}),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	_, err = lambda.NewEventSourceMapping(ctx, "leaderboard", &lambda.EventSourceMappingArgs{
-		FunctionName: leaderboard.Arn,
-		EventSourceArn: queue.Arn,
-		MaximumRetryAttempts: pulumi.IntPtr(1),
-		BatchSize: pulumi.IntPtr(10),
+		FunctionName:                   leaderboard.Arn,
+		EventSourceArn:                 queue.Arn,
+		MaximumRetryAttempts:           pulumi.IntPtr(1),
+		BatchSize:                      pulumi.IntPtr(10),
 		MaximumBatchingWindowInSeconds: pulumi.IntPtr(60),
 	})
 	if err != nil {
@@ -133,7 +141,8 @@ func (o *Operator) deployLeaderboard(ctx *pulumi.Context, input *leaderboardInpu
 	}
 
 	return &leaderboardOutput{
-		QueueArn: queue.Arn,
+		QueueName:      queue.Name,
+		QueueArn:       queue.Arn,
 		QueuePolicyArn: queuePushPolicy.Arn,
 	}, nil
 }

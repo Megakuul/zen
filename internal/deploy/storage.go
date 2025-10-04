@@ -1,4 +1,4 @@
-package zen
+package deploy
 
 import (
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
@@ -10,17 +10,19 @@ type storageInput struct {
 }
 
 type storageOutput struct {
-	BucketArn pulumi.StringOutput
+	BucketName      pulumi.StringOutput
+	BucketDomain    pulumi.StringOutput
+	BucketArn       pulumi.StringOutput
 	BucketPolicyArn pulumi.StringOutput
 }
 
 func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*storageOutput, error) {
 	bucket, err := s3.NewBucket(ctx, "storage", &s3.BucketArgs{
 		BucketPrefix: pulumi.String("zen-storage-"),
-		Region: pulumi.String(o.region),
+		Region:       pulumi.String(o.region),
 		ForceDestroy: pulumi.BoolPtr(!o.deleteProtection),
 	})
-	if err!=nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -46,7 +48,7 @@ func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*sto
 		return nil, err
 	}
 
-	// for simplicity there is only one rw policy 
+	// for simplicity there is only one rw policy
 	// (there is no use for a seperate readonly policy right now)
 	bucketPolicy, err := iam.NewPolicy(ctx, "storage", &iam.PolicyArgs{
 		Name: pulumi.String("zen-storage-rw"),
@@ -65,9 +67,11 @@ func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*sto
 	if err != nil {
 		return nil, err
 	}
-	
+
 	return &storageOutput{
-		BucketArn: bucket.Arn,
+		BucketName:      bucket.Bucket,
+		BucketDomain:    bucket.BucketRegionalDomainName,
+		BucketArn:       bucket.Arn,
 		BucketPolicyArn: bucketPolicy.Arn,
 	}, nil
 }

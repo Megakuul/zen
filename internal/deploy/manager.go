@@ -1,4 +1,4 @@
-package zen
+package deploy
 
 import (
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
@@ -8,7 +8,8 @@ import (
 )
 
 type managerInput struct {
-	CodeArchive pulumi.Archive
+	CodeArchive    pulumi.Archive
+	TableName      pulumi.StringOutput
 	TablePolicyArn pulumi.StringOutput
 }
 
@@ -61,22 +62,27 @@ func (o *Operator) deployManager(ctx *pulumi.Context, input *managerInput) (*man
 		}),
 		Role: managerRole.Arn,
 		Code: input.CodeArchive,
+		Environment: lambda.FunctionEnvironmentPtr(&lambda.FunctionEnvironmentArgs{
+			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
+				"TABLE": input.TableName,
+			}),
+		}),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	managerUrl, err := lambda.NewFunctionUrl(ctx, "manager", &lambda.FunctionUrlArgs{
-		FunctionName: manager.Arn,
-		InvokeMode:   pulumi.String("BUFFERED"),
+		FunctionName:      manager.Arn,
+		InvokeMode:        pulumi.String("BUFFERED"),
 		Qualifier:         pulumi.String("$LATEST"),
 		Region:            pulumi.String(o.region),
 		AuthorizationType: pulumi.String("NONE"),
 	})
-	if err!=nil {
+	if err != nil {
 		return nil, err
 	}
 	return &managerOutput{
-		PublicUrl: managerUrl.FunctionUrl, 
+		PublicUrl: managerUrl.FunctionUrl,
 	}, nil
 }

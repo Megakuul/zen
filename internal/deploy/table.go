@@ -1,43 +1,44 @@
-package zen
+package deploy
 
 import (
-	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/dynamodb"
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-type tableInput struct { }
+type tableInput struct{}
 
 type tableOutput struct {
+	TableName      pulumi.StringOutput
 	TablePolicyArn pulumi.StringOutput
 }
 
 func (o *Operator) deployTable(ctx *pulumi.Context, input *tableInput) (*tableOutput, error) {
 	table, err := dynamodb.NewTable(ctx, "table", &dynamodb.TableArgs{
-		Name: pulumi.String("zen-table"),
-		Region: pulumi.String(o.region),
+		Name:        pulumi.String("zen-table"),
+		Region:      pulumi.String(o.region),
 		BillingMode: pulumi.String("PAY_PER_REQUEST"),
-		HashKey: pulumi.String("pk"),
-		RangeKey: pulumi.String("sk"),
+		HashKey:     pulumi.String("pk"),
+		RangeKey:    pulumi.String("sk"),
 		Attributes: dynamodb.TableAttributeArray{
 			dynamodb.TableAttributeArgs{Name: pulumi.String("pk"), Type: pulumi.String("S")},
 			dynamodb.TableAttributeArgs{Name: pulumi.String("sk"), Type: pulumi.String("S")},
 		},
 		OnDemandThroughput: dynamodb.TableOnDemandThroughputPtr(&dynamodb.TableOnDemandThroughputArgs{
 			MaxWriteRequestUnits: pulumi.IntPtr(10),
-			MaxReadRequestUnits: pulumi.IntPtr(100),
+			MaxReadRequestUnits:  pulumi.IntPtr(100),
 		}),
 		Ttl: dynamodb.TableTtlPtr(&dynamodb.TableTtlArgs{
 			AttributeName: pulumi.String("expiry"),
-			Enabled: pulumi.BoolPtr(true),
+			Enabled:       pulumi.BoolPtr(true),
 		}),
 		DeletionProtectionEnabled: pulumi.BoolPtr(o.deleteProtection),
 	})
-	if err!=nil {
+	if err != nil {
 		return nil, err
 	}
 
-	// for simplicity there is only one rw policy 
+	// for simplicity there is only one rw policy
 	// (there is no use for a seperate readonly policy right now)
 	tablePolicy, err := iam.NewPolicy(ctx, "table", &iam.PolicyArgs{
 		Name: pulumi.String("zen-table-rw"),
@@ -60,6 +61,7 @@ func (o *Operator) deployTable(ctx *pulumi.Context, input *tableInput) (*tableOu
 	}
 
 	return &tableOutput{
+		TableName:      table.Name,
 		TablePolicyArn: tablePolicy.Arn,
 	}, nil
 }

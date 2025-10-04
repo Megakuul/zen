@@ -1,15 +1,21 @@
-package zen
+package deploy
 
 import (
+	"errors"
+	"fmt"
+	"strings"
+
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws"
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/acm"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudfront"
+	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/route53"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
 type proxyInput struct {
 	SchedulerDomain pulumi.StringOutput
 	ManagerDomain   pulumi.StringOutput
-	CertificateArn  pulumi.StringOutput
-	BucketArn       pulumi.StringOutput
+	BucketDomain    pulumi.StringOutput
 }
 
 type proxyOutput struct {
@@ -17,6 +23,95 @@ type proxyOutput struct {
 }
 
 func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOutput, error) {
+	viewerCertificate := cloudfront.DistributionViewerCertificateArgs{}
+	if o.certificateArn != "" {
+		viewerCertificate = cloudfront.DistributionViewerCertificateArgs{
+			AcmCertificateArn:            pulumi.String(o.certificateArn),
+			CloudfrontDefaultCertificate: pulumi.BoolPtr(true),
+		}
+	} else if len(o.domains) > 0 {
+		validations := acm.CertificateValidationOptionArray{}
+		for _, domain := range o.domains {
+			validations = append(validations, acm.CertificateValidationOptionArgs{
+				DomainName:       pulumi.String(domain),
+				ValidationDomain: pulumi.String(domain),
+			})
+		}
+		cert, err := acm.NewCertificate(ctx, "proxy", &acm.CertificateArgs{
+			Region:                  aws.RegionUSEast1,
+			KeyAlgorithm:            pulumi.String("RSA_2048"),
+			DomainName:              pulumi.String(o.domains[0]),
+			SubjectAlternativeNames: pulumi.ToStringArray(o.domains),
+			ValidationMethod:        pulumi.String("DNS"),
+			ValidationOptions:       validations,
+		})
+		if err != nil {
+			return nil, err
+		}
+		validationFqdns := []pulumi.StringOutput{}
+		for i, domain := range o.domains {
+			var (
+				err error
+				zoneName string = domain
+				zone *route53.LookupZoneResult
+			)
+			for {
+				blocks := strings.SplitN(zoneName, ".", 2) 
+				if len(blocks) < 2 {
+					return nil, fmt.Errorf("no route53 hosted zone found for domain '%s': %v", domain, err)
+				}
+				zoneName = blocks[1]
+				if lZone, lErr := route53.LookupZone(ctx, &route53.LookupZoneArgs{
+					Name:        pulumi.StringRef(zoneName),
+					PrivateZone: pulumi.BoolRef(false),
+				}); lErr != nil {
+					err = errors.Join(err, lErr)
+				} else {
+					zone = lZone
+					break
+				}
+			}
+			validationRecord, err := route53.NewRecord(ctx, "proxy-validation", &route53.RecordArgs{
+				ZoneId: pulumi.String(zone.Id),
+				Name:   cert.DomainValidationOptions.Index(pulumi.Int(i)).ResourceRecordName().Elem(),
+				Type:   cert.DomainValidationOptions.Index(pulumi.Int(i)).ResourceRecordType().Elem(),
+				Ttl:    pulumi.Int(60),
+				Records: pulumi.StringArray{
+					cert.DomainValidationOptions.Index(pulumi.Int(i)).ResourceRecordValue().Elem(),
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+			validationFqdns = append(validationFqdns, validationRecord.Fqdn)
+
+			_, err = route53.NewRecord(ctx, "proxy-traffic", &route53.RecordArgs{
+				ZoneId: pulumi.String(zone.Id),
+				Name: pulumi.String(domain),
+				Type: pulumi.String("CNAME"),
+				Ttl:    pulumi.Int(3600),
+				Records: pulumi.StringArray{
+					pulumi.String("TODO cdn proxy cname somehow")
+				},
+			})
+			if err != nil {
+				return nil, err
+			}
+		}
+		certValidation, err := acm.NewCertificateValidation(ctx, "proxy", &acm.CertificateValidationArgs{
+			CertificateArn:        cert.Arn,
+			Region:                aws.RegionUSEast1,
+			ValidationRecordFqdns: pulumi.ToStringArrayOutput(validationFqdns),
+		})
+		if err != nil {
+			return nil, err
+		}
+		viewerCertificate = cloudfront.DistributionViewerCertificateArgs{
+			AcmCertificateArn:            certValidation.CertificateArn,
+			CloudfrontDefaultCertificate: pulumi.BoolPtr(true),
+		}
+	}
+
 	webCachePolicy, err := cloudfront.NewCachePolicy(ctx, "proxy-web", &cloudfront.CachePolicyArgs{
 		Name:       pulumi.String("zen-proxy-web"),
 		Comment:    pulumi.String("full cache policy to serve the static website assets"),
@@ -77,10 +172,10 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 	}
 
 	oac, err := cloudfront.NewOriginAccessControl(ctx, "proxy", &cloudfront.OriginAccessControlArgs{
-		Name: pulumi.String("zen-proxy-oac"),
+		Name:                          pulumi.String("zen-proxy-oac"),
 		OriginAccessControlOriginType: pulumi.String("s3"),
-		SigningBehavior: pulumi.String("always"),
-		SigningProtocol: pulumi.String("sigv4"),
+		SigningBehavior:               pulumi.String("always"),
+		SigningProtocol:               pulumi.String("sigv4"),
 	})
 	if err != nil {
 		return nil, err
@@ -93,10 +188,12 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 				OriginId:              pulumi.String("web"),
 				OriginPath:            pulumi.String("/web"),
 				OriginAccessControlId: oac.Name,
+				DomainName:            input.BucketDomain,
 			},
 			cloudfront.DistributionOriginArgs{
 				OriginId:              pulumi.String("leaderboard"),
 				OriginAccessControlId: oac.Name,
+				DomainName:            input.BucketDomain,
 			},
 			cloudfront.DistributionOriginArgs{
 				OriginId: pulumi.String("scheduler-api"),
@@ -157,10 +254,7 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 		DefaultRootObject: pulumi.String("index.html"),
 		IsIpv6Enabled:     pulumi.BoolPtr(true),
 		Aliases:           pulumi.ToStringArray(o.domains),
-		ViewerCertificate: cloudfront.DistributionViewerCertificateArgs{
-			AcmCertificateArn:            input.CertificateArn,
-			CloudfrontDefaultCertificate: pulumi.BoolPtr(true),
-		},
+		ViewerCertificate: viewerCertificate,
 	})
 	if err != nil {
 		return nil, err

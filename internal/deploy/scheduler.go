@@ -1,4 +1,4 @@
-package zen
+package deploy
 
 import (
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
@@ -8,8 +8,10 @@ import (
 )
 
 type schedulerInput struct {
-	CodeArchive pulumi.Archive
+	CodeArchive    pulumi.Archive
+	TableName      pulumi.StringOutput
 	TablePolicyArn pulumi.StringOutput
+	QueueName      pulumi.StringOutput
 	QueuePolicyArn pulumi.StringOutput
 }
 
@@ -63,22 +65,28 @@ func (o *Operator) deployScheduler(ctx *pulumi.Context, input *schedulerInput) (
 		}),
 		Role: schedulerRole.Arn,
 		Code: input.CodeArchive,
+		Environment: lambda.FunctionEnvironmentPtr(&lambda.FunctionEnvironmentArgs{
+			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
+				"TABLE": input.TableName,
+				"QUEUE": input.QueueName,
+			}),
+		}),
 	})
 	if err != nil {
 		return nil, err
 	}
 
 	schedulerUrl, err := lambda.NewFunctionUrl(ctx, "scheduler", &lambda.FunctionUrlArgs{
-		FunctionName: scheduler.Arn,
-		InvokeMode:   pulumi.String("BUFFERED"),
+		FunctionName:      scheduler.Arn,
+		InvokeMode:        pulumi.String("BUFFERED"),
 		Qualifier:         pulumi.String("$LATEST"),
 		Region:            pulumi.String(o.region),
 		AuthorizationType: pulumi.String("NONE"),
 	})
-	if err!=nil {
+	if err != nil {
 		return nil, err
 	}
 	return &schedulerOutput{
-		PublicUrl: schedulerUrl.FunctionUrl, 
+		PublicUrl: schedulerUrl.FunctionUrl,
 	}, nil
 }
