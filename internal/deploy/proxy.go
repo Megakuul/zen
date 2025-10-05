@@ -23,13 +23,20 @@ type proxyOutput struct {
 }
 
 func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOutput, error) {
-	viewerCertificate := cloudfront.DistributionViewerCertificateArgs{}
+	viewerCertificate := cloudfront.DistributionViewerCertificateArgs{
+		CloudfrontDefaultCertificate: pulumi.BoolPtr(true),
+	}
 	if o.certificateArn != "" {
 		viewerCertificate = cloudfront.DistributionViewerCertificateArgs{
-			AcmCertificateArn:            pulumi.String(o.certificateArn),
-			CloudfrontDefaultCertificate: pulumi.BoolPtr(true),
+			AcmCertificateArn:      pulumi.String(o.certificateArn),
+			MinimumProtocolVersion: pulumi.String("TLSv1.2"),
+			SslSupportMethod:       pulumi.String("sni-only"),
 		}
 	} else if len(o.domains) > 0 {
+		sans := []string{}
+		if len(o.domains) > 1 {
+			sans = o.domains[1:]
+		}
 		validations := acm.CertificateValidationOptionArray{}
 		for _, domain := range o.domains {
 			validations = append(validations, acm.CertificateValidationOptionArgs{
@@ -41,7 +48,7 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 			Region:                  aws.RegionUSEast1,
 			KeyAlgorithm:            pulumi.String("RSA_2048"),
 			DomainName:              pulumi.String(o.domains[0]),
-			SubjectAlternativeNames: pulumi.ToStringArray(o.domains),
+			SubjectAlternativeNames: pulumi.ToStringArray(sans),
 			ValidationMethod:        pulumi.String("DNS"),
 			ValidationOptions:       validations,
 		})
@@ -49,29 +56,13 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 			return nil, err
 		}
 		validationFqdns := []pulumi.StringOutput{}
+		cert.DomainValidationOptions.ApplyT(func(input acm.CertificateDomainValidationOption)) // TODO
 		for i, domain := range o.domains {
-			var (
-				err error
-				zoneName string = domain
-				zone *route53.LookupZoneResult
-			)
-			for {
-				blocks := strings.SplitN(zoneName, ".", 2) 
-				if len(blocks) < 2 {
-					return nil, fmt.Errorf("no route53 hosted zone found for domain '%s': %v", domain, err)
-				}
-				zoneName = blocks[1]
-				if lZone, lErr := route53.LookupZone(ctx, &route53.LookupZoneArgs{
-					Name:        pulumi.StringRef(zoneName),
-					PrivateZone: pulumi.BoolRef(false),
-				}); lErr != nil {
-					err = errors.Join(err, lErr)
-				} else {
-					zone = lZone
-					break
-				}
+			zone, err := lookupZone(ctx, domain)
+			if err != nil {
+				return nil, err
 			}
-			validationRecord, err := route53.NewRecord(ctx, "proxy-validation", &route53.RecordArgs{
+			validationRecord, err := route53.NewRecord(ctx, fmt.Sprintf("proxy-validation-%d", i), &route53.RecordArgs{
 				ZoneId: pulumi.String(zone.Id),
 				Name:   cert.DomainValidationOptions.Index(pulumi.Int(i)).ResourceRecordName().Elem(),
 				Type:   cert.DomainValidationOptions.Index(pulumi.Int(i)).ResourceRecordType().Elem(),
@@ -84,19 +75,6 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 				return nil, err
 			}
 			validationFqdns = append(validationFqdns, validationRecord.Fqdn)
-
-			_, err = route53.NewRecord(ctx, "proxy-traffic", &route53.RecordArgs{
-				ZoneId: pulumi.String(zone.Id),
-				Name: pulumi.String(domain),
-				Type: pulumi.String("CNAME"),
-				Ttl:    pulumi.Int(3600),
-				Records: pulumi.StringArray{
-					pulumi.String("TODO cdn proxy cname somehow")
-				},
-			})
-			if err != nil {
-				return nil, err
-			}
 		}
 		certValidation, err := acm.NewCertificateValidation(ctx, "proxy", &acm.CertificateValidationArgs{
 			CertificateArn:        cert.Arn,
@@ -107,8 +85,9 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 			return nil, err
 		}
 		viewerCertificate = cloudfront.DistributionViewerCertificateArgs{
-			AcmCertificateArn:            certValidation.CertificateArn,
-			CloudfrontDefaultCertificate: pulumi.BoolPtr(true),
+			AcmCertificateArn:      certValidation.CertificateArn,
+			MinimumProtocolVersion: pulumi.String("TLSv1.2"),
+			SslSupportMethod:       pulumi.String("sni-only"),
 		}
 	}
 
@@ -187,12 +166,12 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 			cloudfront.DistributionOriginArgs{
 				OriginId:              pulumi.String("web"),
 				OriginPath:            pulumi.String("/web"),
-				OriginAccessControlId: oac.Name,
+				OriginAccessControlId: oac.ID(),
 				DomainName:            input.BucketDomain,
 			},
 			cloudfront.DistributionOriginArgs{
 				OriginId:              pulumi.String("leaderboard"),
-				OriginAccessControlId: oac.Name,
+				OriginAccessControlId: oac.ID(),
 				DomainName:            input.BucketDomain,
 			},
 			cloudfront.DistributionOriginArgs{
@@ -220,7 +199,7 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 			Compress:             pulumi.BoolPtr(true),
 			TargetOriginId:       pulumi.String("web"),
 			ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
-			CachePolicyId:        webCachePolicy.Name,
+			CachePolicyId:        webCachePolicy.ID(),
 		},
 		OrderedCacheBehaviors: cloudfront.DistributionOrderedCacheBehaviorArray{
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
@@ -230,25 +209,25 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 				Compress:             pulumi.BoolPtr(true),
 				TargetOriginId:       pulumi.String("leaderboard"),
 				ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
-				CachePolicyId:        leaderboardCachePolicy.Name,
+				CachePolicyId:        leaderboardCachePolicy.ID(),
 			},
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
 				PathPattern:          pulumi.String("/api/scheduler"),
 				AllowedMethods:       pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST"}),
-				CachedMethods:        pulumi.ToStringArray([]string{}),
+				CachedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD"}),
 				Compress:             pulumi.BoolPtr(false),
 				TargetOriginId:       pulumi.String("scheduler-api"),
 				ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
-				CachePolicyId:        apiCachePolicy.Name,
+				CachePolicyId:        apiCachePolicy.ID(),
 			},
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
 				PathPattern:          pulumi.String("/api/manager"),
 				AllowedMethods:       pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST"}),
-				CachedMethods:        pulumi.ToStringArray([]string{}),
+				CachedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD"}),
 				Compress:             pulumi.BoolPtr(false),
 				TargetOriginId:       pulumi.String("manager-api"),
 				ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
-				CachePolicyId:        apiCachePolicy.Name,
+				CachePolicyId:        apiCachePolicy.ID(),
 			},
 		},
 		DefaultRootObject: pulumi.String("index.html"),
@@ -259,7 +238,72 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 	if err != nil {
 		return nil, err
 	}
-	return &proxyOutput{
-		ProxyDomain: proxy.DomainName,
-	}, nil
+
+	if o.certificateArn == "" {
+		return &proxyOutput{ProxyDomain: proxy.DomainName}, nil
+	}
+	// if hosted zone is in route53, records are automatically created.
+	for i, domain := range o.domains {
+		zone, err := lookupZone(ctx, domain)
+		if err != nil {
+			return nil, err
+		}
+		_, err = route53.NewRecord(ctx, fmt.Sprintf("proxy-traffic-a-%d", i), &route53.RecordArgs{
+			ZoneId: pulumi.String(zone.Id),
+			Name:   pulumi.String(domain),
+			Type:   pulumi.String("A"),
+			Aliases: route53.RecordAliasArray{
+				route53.RecordAliasArgs{
+					ZoneId: pulumi.String("Z2FDTNDATAQYW2"), // cloudfront hosted zone id
+					Name:   proxy.DomainName,
+				},
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+
+		_, err = route53.NewRecord(ctx, fmt.Sprintf("proxy-traffic-aaaa-%d", i), &route53.RecordArgs{
+			ZoneId: pulumi.String(zone.Id),
+			Name:   pulumi.String(domain),
+			Type:   pulumi.String("AAAA"),
+			Aliases: route53.RecordAliasArray{
+				route53.RecordAliasArgs{
+					ZoneId: pulumi.String("Z2FDTNDATAQYW2"), // cloudfront hosted zone id
+					Name:   proxy.DomainName,
+				},
+			},
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+	return &proxyOutput{ProxyDomain: proxy.DomainName}, nil
+}
+
+// lookupZone checks if there is a route53 zone for the provided domain.
+// It traverses each domain segment to check for a zone.
+func lookupZone(ctx *pulumi.Context, domain string) (*route53.LookupZoneResult, error) {
+	var (
+		err      error
+		zoneName string = domain
+		zone     *route53.LookupZoneResult
+	)
+	for {
+		if lZone, lErr := route53.LookupZone(ctx, &route53.LookupZoneArgs{
+			Name:        pulumi.StringRef(zoneName),
+			PrivateZone: pulumi.BoolRef(false),
+		}); lErr != nil {
+			err = errors.Join(err, lErr)
+		} else {
+			zone = lZone
+			break
+		}
+		segments := strings.Split(zoneName, ".")
+		if len(segments) < 3 { // 3 segments minimum, the tld is never a hosted zone
+			return nil, fmt.Errorf("no route53 hosted zone found for domain '%s': %v", domain, err)
+		}
+		zoneName = segments[1]
+	}
+	return zone, nil
 }
