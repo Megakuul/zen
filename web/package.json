@@ -24,6 +24,9 @@
 	},
 	"dependencies": {
 		"@connectrpc/connect": "^2.1.0",
-		"@connectrpc/connect-web": "^2.1.0"
+		"@connectrpc/connect-web": "^2.1.0",
+		"svelte-inview": "^4.0.4",
+		"svelte-motion": "^0.12.2",
+		"tailwind-merge": "^3.3.1"
 	}
 }
