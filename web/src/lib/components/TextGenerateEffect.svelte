@@ -46,13 +46,7 @@
 
 <div         
 	use:inview
-	oninview_change={(/** @type {CustomEvent<import('svelte-inview').ObserverEventDetails>} */ e) => {
-		if (e.detail.inView) {
-			animationState = "visible";
-		} else {
-			animationState = "hidden";
-		}
-	}}
+	oninview_change={() => animationState = "visible"}
 	class={className}>
 	<div class="text-2xl leading-snug tracking-wide">
 		<Motion let:motion custom={0} {variants} initial="hidden" animate={'visible'}>

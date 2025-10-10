@@ -10,3 +10,9 @@
 </svelte:head>
 
 {@render children?.()}
+
+<footer class="flex justify-center text-xs sm:text-2xl my-20">
+	<a class="font-bold" href="https://github.com/megakuul/zen">Opensource Project</a>&nbsp;
+	made with ⏳ and ❤️ by 
+		&nbsp;<a class="font-bold" href="https://github.com/megakuul">Megakuul</a>
+</footer>
