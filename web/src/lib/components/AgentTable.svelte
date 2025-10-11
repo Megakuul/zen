@@ -184,7 +184,8 @@
     </defs>
   </svg>
 
-  <div class="glass bubble w-11/12 lg:w-10/12 max-w-[1200px] translate-y-0 sm:translate-y-[-150px] text-xs sm:text-base lg:text-2xl p-4 sm:p-8" style="clip-path: url(#bubble-clip);">
+  <div use:inview oninview_enter={(/** @type {any} */ e) => {e.target?.classList.add("pull-up")}} oninview_leave={(/** @type {any} */ e) => {e.target?.classList.remove("pull-up")}} 
+    class="glass bubble w-11/12 lg:w-10/12 max-w-[1200px] translate-y-0 sm:translate-y-[-150px] text-xs sm:text-base lg:text-2xl p-4 sm:p-8" style="clip-path: url(#bubble-clip);">
     It's like this, my dear sir, you're wasting your life cutting hair, lathering faces and swapping idle chitchat.
     When you're dead, it'll be as if you'd never existed. 
     If you only had the time to lead the right kind of life, you'd be quite a different person. <a href="/getting-started" class="underline">Time is all you need, right?</a>
@@ -222,6 +223,7 @@
   }
 
   .bubble {
+    transition: all ease 1s;
     font-family: "Bebas Neue", sans-serif;
     font-weight: 400;
     font-style: normal;
@@ -252,5 +254,9 @@
       margin-left: -20px;
       margin-top: -25px;
     }
+  }
+
+  .pull-up {
+    transform: translateY(-20px);
   }
 </style>

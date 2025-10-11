@@ -9,7 +9,9 @@
 	<link rel="icon" href={favicon} />
 </svelte:head>
 
-{@render children?.()}
+<div class="flex flex-col items-center p-4 mt-10 sm:mt-24 overflow-hidden">
+	{@render children?.()}
+</div>
 
 <footer class="flex justify-center text-xs sm:text-2xl my-20">
 	<a class="font-bold" href="https://github.com/megakuul/zen">Opensource Project</a>&nbsp;
