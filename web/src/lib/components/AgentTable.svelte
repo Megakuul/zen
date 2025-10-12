@@ -190,6 +190,8 @@
     When you're dead, it'll be as if you'd never existed. 
     If you only had the time to lead the right kind of life, you'd be quite a different person. <a href="/getting-started" class="underline">Time is all you need, right?</a>
   </div>
+
+  <p class="text-xs sm:text-base text-center text-slate-200/30 translate-y-[10px] sm:translate-y-[-80px]">didn't get the joke? read <a class="underline" href="https://www.orellfuessli.ch/shop/home/artikeldetails/A1046778073">this</a></p>
 </div>
 
 <style>

@@ -25,8 +25,10 @@ type User struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
-	Streak        int64                  `protobuf:"varint,3,opt,name=streak,proto3" json:"streak,omitempty"`
-	Score         float64                `protobuf:"fixed64,4,opt,name=score,proto3" json:"score,omitempty"`
+	Email         string                 `protobuf:"bytes,3,opt,name=email,proto3" json:"email,omitempty"`
+	Phone         string                 `protobuf:"bytes,4,opt,name=phone,proto3" json:"phone,omitempty"`
+	Streak        int64                  `protobuf:"varint,5,opt,name=streak,proto3" json:"streak,omitempty"`
+	Score         float64                `protobuf:"fixed64,6,opt,name=score,proto3" json:"score,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -75,6 +77,20 @@ func (x *User) GetUsername() string {
 	return ""
 }
 
+func (x *User) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+func (x *User) GetPhone() string {
+	if x != nil {
+		return x.Phone
+	}
+	return ""
+}
+
 func (x *User) GetStreak() int64 {
 	if x != nil {
 		return x.Streak
@@ -94,12 +110,14 @@ var File_v1_manager_user_proto protoreflect.FileDescriptor
 const file_v1_manager_user_proto_rawDesc = "" +
 	"\n" +
 	"\x15v1/manager/user.proto\x12\n" +
-	"v1.manager\"`\n" +
+	"v1.manager\"\x8c\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
-	"\busername\x18\x02 \x01(\tR\busername\x12\x16\n" +
-	"\x06streak\x18\x03 \x01(\x03R\x06streak\x12\x14\n" +
-	"\x05score\x18\x04 \x01(\x01R\x05scoreB,Z*github.com/megakuul/zen/pkg/api/v1/managerb\x06proto3"
+	"\busername\x18\x02 \x01(\tR\busername\x12\x14\n" +
+	"\x05email\x18\x03 \x01(\tR\x05email\x12\x14\n" +
+	"\x05phone\x18\x04 \x01(\tR\x05phone\x12\x16\n" +
+	"\x06streak\x18\x05 \x01(\x03R\x06streak\x12\x14\n" +
+	"\x05score\x18\x06 \x01(\x01R\x05scoreB,Z*github.com/megakuul/zen/pkg/api/v1/managerb\x06proto3"
 
 var (
 	file_v1_manager_user_proto_rawDescOnce sync.Once

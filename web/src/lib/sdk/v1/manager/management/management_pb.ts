@@ -12,7 +12,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/manager/management/management.proto.
  */
 export const file_v1_manager_management_management: GenFile = /*@__PURE__*/
-  fileDesc("CiZ2MS9tYW5hZ2VyL21hbmFnZW1lbnQvbWFuYWdlbWVudC5wcm90bxIVdjEubWFuYWdlci5tYW5hZ2VtZW50IgwKCkdldFJlcXVlc3QiLQoLR2V0UmVzcG9uc2USHgoEdXNlchgBIAEoCzIQLnYxLm1hbmFnZXIuVXNlciIPCg1EZWxldGVSZXF1ZXN0IhAKDkRlbGV0ZVJlc3BvbnNlMrwBChFNYW5hZ2VtZW50U2VydmljZRJOCgNHZXQSIS52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuR2V0UmVxdWVzdBoiLnYxLm1hbmFnZXIubWFuYWdlbWVudC5HZXRSZXNwb25zZSIAElcKBkRlbGV0ZRIkLnYxLm1hbmFnZXIubWFuYWdlbWVudC5EZWxldGVSZXF1ZXN0GiUudjEubWFuYWdlci5tYW5hZ2VtZW50LkRlbGV0ZVJlc3BvbnNlIgBCN1o1Z2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyL21hbmFnZW1lbnRiBnByb3RvMw", [file_v1_manager_user]);
+  fileDesc("CiZ2MS9tYW5hZ2VyL21hbmFnZW1lbnQvbWFuYWdlbWVudC5wcm90bxIVdjEubWFuYWdlci5tYW5hZ2VtZW50IgwKCkdldFJlcXVlc3QiLQoLR2V0UmVzcG9uc2USHgoEdXNlchgBIAEoCzIQLnYxLm1hbmFnZXIuVXNlciJBCg1VcHNlcnRSZXF1ZXN0EhAKCHZlcmlmaWVyGAEgASgJEh4KBHVzZXIYAiABKAsyEC52MS5tYW5hZ2VyLlVzZXIiEAoOVXBzZXJ0UmVzcG9uc2UiDwoNRGVsZXRlUmVxdWVzdCIQCg5EZWxldGVSZXNwb25zZTKVAgoRTWFuYWdlbWVudFNlcnZpY2USTgoDR2V0EiEudjEubWFuYWdlci5tYW5hZ2VtZW50LkdldFJlcXVlc3QaIi52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuR2V0UmVzcG9uc2UiABJXCgZVcHNlcnQSJC52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuVXBzZXJ0UmVxdWVzdBolLnYxLm1hbmFnZXIubWFuYWdlbWVudC5VcHNlcnRSZXNwb25zZSIAElcKBkRlbGV0ZRIkLnYxLm1hbmFnZXIubWFuYWdlbWVudC5EZWxldGVSZXF1ZXN0GiUudjEubWFuYWdlci5tYW5hZ2VtZW50LkRlbGV0ZVJlc3BvbnNlIgBCN1o1Z2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyL21hbmFnZW1lbnRiBnByb3RvMw", [file_v1_manager_user]);
 
 /**
  * @generated from message v1.manager.management.GetRequest
@@ -45,6 +45,41 @@ export const GetResponseSchema: GenMessage<GetResponse> = /*@__PURE__*/
   messageDesc(file_v1_manager_management_management, 1);
 
 /**
+ * @generated from message v1.manager.management.UpsertRequest
+ */
+export type UpsertRequest = Message<"v1.manager.management.UpsertRequest"> & {
+  /**
+   * @generated from field: string verifier = 1;
+   */
+  verifier: string;
+
+  /**
+   * @generated from field: v1.manager.User user = 2;
+   */
+  user?: User;
+};
+
+/**
+ * Describes the message v1.manager.management.UpsertRequest.
+ * Use `create(UpsertRequestSchema)` to create a new message.
+ */
+export const UpsertRequestSchema: GenMessage<UpsertRequest> = /*@__PURE__*/
+  messageDesc(file_v1_manager_management_management, 2);
+
+/**
+ * @generated from message v1.manager.management.UpsertResponse
+ */
+export type UpsertResponse = Message<"v1.manager.management.UpsertResponse"> & {
+};
+
+/**
+ * Describes the message v1.manager.management.UpsertResponse.
+ * Use `create(UpsertResponseSchema)` to create a new message.
+ */
+export const UpsertResponseSchema: GenMessage<UpsertResponse> = /*@__PURE__*/
+  messageDesc(file_v1_manager_management_management, 3);
+
+/**
  * @generated from message v1.manager.management.DeleteRequest
  */
 export type DeleteRequest = Message<"v1.manager.management.DeleteRequest"> & {
@@ -55,7 +90,7 @@ export type DeleteRequest = Message<"v1.manager.management.DeleteRequest"> & {
  * Use `create(DeleteRequestSchema)` to create a new message.
  */
 export const DeleteRequestSchema: GenMessage<DeleteRequest> = /*@__PURE__*/
-  messageDesc(file_v1_manager_management_management, 2);
+  messageDesc(file_v1_manager_management_management, 4);
 
 /**
  * @generated from message v1.manager.management.DeleteResponse
@@ -68,7 +103,7 @@ export type DeleteResponse = Message<"v1.manager.management.DeleteResponse"> & {
  * Use `create(DeleteResponseSchema)` to create a new message.
  */
 export const DeleteResponseSchema: GenMessage<DeleteResponse> = /*@__PURE__*/
-  messageDesc(file_v1_manager_management_management, 3);
+  messageDesc(file_v1_manager_management_management, 5);
 
 /**
  * @generated from service v1.manager.management.ManagementService
@@ -81,6 +116,14 @@ export const ManagementService: GenService<{
     methodKind: "unary";
     input: typeof GetRequestSchema;
     output: typeof GetResponseSchema;
+  },
+  /**
+   * @generated from rpc v1.manager.management.ManagementService.Upsert
+   */
+  upsert: {
+    methodKind: "unary";
+    input: typeof UpsertRequestSchema;
+    output: typeof UpsertResponseSchema;
   },
   /**
    * @generated from rpc v1.manager.management.ManagementService.Delete

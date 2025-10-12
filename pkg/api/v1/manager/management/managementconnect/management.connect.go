@@ -35,6 +35,9 @@ const (
 const (
 	// ManagementServiceGetProcedure is the fully-qualified name of the ManagementService's Get RPC.
 	ManagementServiceGetProcedure = "/v1.manager.management.ManagementService/Get"
+	// ManagementServiceUpsertProcedure is the fully-qualified name of the ManagementService's Upsert
+	// RPC.
+	ManagementServiceUpsertProcedure = "/v1.manager.management.ManagementService/Upsert"
 	// ManagementServiceDeleteProcedure is the fully-qualified name of the ManagementService's Delete
 	// RPC.
 	ManagementServiceDeleteProcedure = "/v1.manager.management.ManagementService/Delete"
@@ -43,6 +46,7 @@ const (
 // ManagementServiceClient is a client for the v1.manager.management.ManagementService service.
 type ManagementServiceClient interface {
 	Get(context.Context, *connect.Request[management.GetRequest]) (*connect.Response[management.GetResponse], error)
+	Upsert(context.Context, *connect.Request[management.UpsertRequest]) (*connect.Response[management.UpsertResponse], error)
 	Delete(context.Context, *connect.Request[management.DeleteRequest]) (*connect.Response[management.DeleteResponse], error)
 }
 
@@ -63,6 +67,12 @@ func NewManagementServiceClient(httpClient connect.HTTPClient, baseURL string, o
 			connect.WithSchema(managementServiceMethods.ByName("Get")),
 			connect.WithClientOptions(opts...),
 		),
+		upsert: connect.NewClient[management.UpsertRequest, management.UpsertResponse](
+			httpClient,
+			baseURL+ManagementServiceUpsertProcedure,
+			connect.WithSchema(managementServiceMethods.ByName("Upsert")),
+			connect.WithClientOptions(opts...),
+		),
 		delete: connect.NewClient[management.DeleteRequest, management.DeleteResponse](
 			httpClient,
 			baseURL+ManagementServiceDeleteProcedure,
@@ -75,12 +85,18 @@ func NewManagementServiceClient(httpClient connect.HTTPClient, baseURL string, o
 // managementServiceClient implements ManagementServiceClient.
 type managementServiceClient struct {
 	get    *connect.Client[management.GetRequest, management.GetResponse]
+	upsert *connect.Client[management.UpsertRequest, management.UpsertResponse]
 	delete *connect.Client[management.DeleteRequest, management.DeleteResponse]
 }
 
 // Get calls v1.manager.management.ManagementService.Get.
 func (c *managementServiceClient) Get(ctx context.Context, req *connect.Request[management.GetRequest]) (*connect.Response[management.GetResponse], error) {
 	return c.get.CallUnary(ctx, req)
+}
+
+// Upsert calls v1.manager.management.ManagementService.Upsert.
+func (c *managementServiceClient) Upsert(ctx context.Context, req *connect.Request[management.UpsertRequest]) (*connect.Response[management.UpsertResponse], error) {
+	return c.upsert.CallUnary(ctx, req)
 }
 
 // Delete calls v1.manager.management.ManagementService.Delete.
@@ -92,6 +108,7 @@ func (c *managementServiceClient) Delete(ctx context.Context, req *connect.Reque
 // service.
 type ManagementServiceHandler interface {
 	Get(context.Context, *connect.Request[management.GetRequest]) (*connect.Response[management.GetResponse], error)
+	Upsert(context.Context, *connect.Request[management.UpsertRequest]) (*connect.Response[management.UpsertResponse], error)
 	Delete(context.Context, *connect.Request[management.DeleteRequest]) (*connect.Response[management.DeleteResponse], error)
 }
 
@@ -108,6 +125,12 @@ func NewManagementServiceHandler(svc ManagementServiceHandler, opts ...connect.H
 		connect.WithSchema(managementServiceMethods.ByName("Get")),
 		connect.WithHandlerOptions(opts...),
 	)
+	managementServiceUpsertHandler := connect.NewUnaryHandler(
+		ManagementServiceUpsertProcedure,
+		svc.Upsert,
+		connect.WithSchema(managementServiceMethods.ByName("Upsert")),
+		connect.WithHandlerOptions(opts...),
+	)
 	managementServiceDeleteHandler := connect.NewUnaryHandler(
 		ManagementServiceDeleteProcedure,
 		svc.Delete,
@@ -118,6 +141,8 @@ func NewManagementServiceHandler(svc ManagementServiceHandler, opts ...connect.H
 		switch r.URL.Path {
 		case ManagementServiceGetProcedure:
 			managementServiceGetHandler.ServeHTTP(w, r)
+		case ManagementServiceUpsertProcedure:
+			managementServiceUpsertHandler.ServeHTTP(w, r)
 		case ManagementServiceDeleteProcedure:
 			managementServiceDeleteHandler.ServeHTTP(w, r)
 		default:
@@ -131,6 +156,10 @@ type UnimplementedManagementServiceHandler struct{}
 
 func (UnimplementedManagementServiceHandler) Get(context.Context, *connect.Request[management.GetRequest]) (*connect.Response[management.GetResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.management.ManagementService.Get is not implemented"))
+}
+
+func (UnimplementedManagementServiceHandler) Upsert(context.Context, *connect.Request[management.UpsertRequest]) (*connect.Response[management.UpsertResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.management.ManagementService.Upsert is not implemented"))
 }
 
 func (UnimplementedManagementServiceHandler) Delete(context.Context, *connect.Request[management.DeleteRequest]) (*connect.Response[management.DeleteResponse], error) {

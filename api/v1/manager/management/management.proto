@@ -12,11 +12,19 @@ message GetResponse {
   User user = 1;
 }
 
+message UpsertRequest {
+  string verifier = 1;
+  User user = 2;
+}
+
+message UpsertResponse { }
+
 message DeleteRequest { }
 
 message DeleteResponse { }
 
 service ManagementService {
   rpc Get(GetRequest) returns (GetResponse) {}
+  rpc Upsert(UpsertRequest) returns (UpsertResponse) {}
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
 }

@@ -7,6 +7,8 @@ option go_package = "github.com/megakuul/zen/pkg/api/v1/manager";
 message User {
   string id = 1;
   string username = 2;
-  int64 streak = 3;
-  double score = 4;
+  string email = 3;
+  string phone = 4;
+  int64 streak = 5;
+  double score = 6;
 }

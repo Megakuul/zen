@@ -1,29 +1,31 @@
-import { createClient, Code, ConnectError, type Interceptor, type Transport } from "@connectrpc/connect";
+import { createClient, type Transport } from "@connectrpc/connect";
 import { createConnectTransport } from "@connectrpc/connect-web";
-import { PlannerService } from "$lib/sdk/v1/scheduler/planner_pb";
-import { TimerService } from "$lib/sdk/v1/scheduler/timer_pb";
+import { ManagementService } from "$lib/sdk/v1/manager/management/management_pb";
+import { AuthenticationService } from "$lib/sdk/v1/manager/authentication/authentication_pb";
+import { PlanningService } from "$lib/sdk/v1/scheduler/planning/planning_pb";
+import { TimingService } from "$lib/sdk/v1/scheduler/timing/timing_pb";
+import { GetToken } from './auth.svelte';
 
 let transportUrl = $state("")
-let transportToken = $state("")
 
 export function SetUrl(url: string) {
 	transportUrl = url
 }
 
-export function SetToken(token: string) {
-  transportToken = token
-}
-
 let transport: Transport = $derived(createConnectTransport({
 	baseUrl: transportUrl,
 	interceptors: [(next) => async (req) => {
-		req.header.set("authorization", transportToken)
+		req.header.set("authorization", await GetToken())
 		return await next(req)
-	}]
+	}],
 }))
 
-let plannerClient = $derived(createClient(PlannerService, transport))
-let timerClient = $derived(createClient(TimerService, transport))
+let managementClient = $derived(createClient(ManagementService, transport))
+let authenticationClient = $derived(createClient(AuthenticationService, transport))
+let planningClient = $derived(createClient(PlanningService, transport))
+let timingClient = $derived(createClient(TimingService, transport))
 
-export const PlannerClient = () => plannerClient;
-export const TimerClient = () => timerClient;
+export let ManagementClient = () => managementClient
+export let AuthenticationClient = () => authenticationClient
+export let PlanningClient = () => planningClient
+export let TimingClient = () => timingClient

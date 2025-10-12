@@ -102,6 +102,94 @@ func (x *GetResponse) GetUser() *manager.User {
 	return nil
 }
 
+type UpsertRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Verifier      string                 `protobuf:"bytes,1,opt,name=verifier,proto3" json:"verifier,omitempty"`
+	User          *manager.User          `protobuf:"bytes,2,opt,name=user,proto3" json:"user,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertRequest) Reset() {
+	*x = UpsertRequest{}
+	mi := &file_v1_manager_management_management_proto_msgTypes[2]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertRequest) ProtoMessage() {}
+
+func (x *UpsertRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_manager_management_management_proto_msgTypes[2]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertRequest.ProtoReflect.Descriptor instead.
+func (*UpsertRequest) Descriptor() ([]byte, []int) {
+	return file_v1_manager_management_management_proto_rawDescGZIP(), []int{2}
+}
+
+func (x *UpsertRequest) GetVerifier() string {
+	if x != nil {
+		return x.Verifier
+	}
+	return ""
+}
+
+func (x *UpsertRequest) GetUser() *manager.User {
+	if x != nil {
+		return x.User
+	}
+	return nil
+}
+
+type UpsertResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *UpsertResponse) Reset() {
+	*x = UpsertResponse{}
+	mi := &file_v1_manager_management_management_proto_msgTypes[3]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *UpsertResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*UpsertResponse) ProtoMessage() {}
+
+func (x *UpsertResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_v1_manager_management_management_proto_msgTypes[3]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use UpsertResponse.ProtoReflect.Descriptor instead.
+func (*UpsertResponse) Descriptor() ([]byte, []int) {
+	return file_v1_manager_management_management_proto_rawDescGZIP(), []int{3}
+}
+
 type DeleteRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -110,7 +198,7 @@ type DeleteRequest struct {
 
 func (x *DeleteRequest) Reset() {
 	*x = DeleteRequest{}
-	mi := &file_v1_manager_management_management_proto_msgTypes[2]
+	mi := &file_v1_manager_management_management_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -122,7 +210,7 @@ func (x *DeleteRequest) String() string {
 func (*DeleteRequest) ProtoMessage() {}
 
 func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_manager_management_management_proto_msgTypes[2]
+	mi := &file_v1_manager_management_management_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -135,7 +223,7 @@ func (x *DeleteRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteRequest.ProtoReflect.Descriptor instead.
 func (*DeleteRequest) Descriptor() ([]byte, []int) {
-	return file_v1_manager_management_management_proto_rawDescGZIP(), []int{2}
+	return file_v1_manager_management_management_proto_rawDescGZIP(), []int{4}
 }
 
 type DeleteResponse struct {
@@ -146,7 +234,7 @@ type DeleteResponse struct {
 
 func (x *DeleteResponse) Reset() {
 	*x = DeleteResponse{}
-	mi := &file_v1_manager_management_management_proto_msgTypes[3]
+	mi := &file_v1_manager_management_management_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -158,7 +246,7 @@ func (x *DeleteResponse) String() string {
 func (*DeleteResponse) ProtoMessage() {}
 
 func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_v1_manager_management_management_proto_msgTypes[3]
+	mi := &file_v1_manager_management_management_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -171,7 +259,7 @@ func (x *DeleteResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use DeleteResponse.ProtoReflect.Descriptor instead.
 func (*DeleteResponse) Descriptor() ([]byte, []int) {
-	return file_v1_manager_management_management_proto_rawDescGZIP(), []int{3}
+	return file_v1_manager_management_management_proto_rawDescGZIP(), []int{5}
 }
 
 var File_v1_manager_management_management_proto protoreflect.FileDescriptor
@@ -182,11 +270,16 @@ const file_v1_manager_management_management_proto_rawDesc = "" +
 	"\n" +
 	"GetRequest\"3\n" +
 	"\vGetResponse\x12$\n" +
-	"\x04user\x18\x01 \x01(\v2\x10.v1.manager.UserR\x04user\"\x0f\n" +
+	"\x04user\x18\x01 \x01(\v2\x10.v1.manager.UserR\x04user\"Q\n" +
+	"\rUpsertRequest\x12\x1a\n" +
+	"\bverifier\x18\x01 \x01(\tR\bverifier\x12$\n" +
+	"\x04user\x18\x02 \x01(\v2\x10.v1.manager.UserR\x04user\"\x10\n" +
+	"\x0eUpsertResponse\"\x0f\n" +
 	"\rDeleteRequest\"\x10\n" +
-	"\x0eDeleteResponse2\xbc\x01\n" +
+	"\x0eDeleteResponse2\x95\x02\n" +
 	"\x11ManagementService\x12N\n" +
 	"\x03Get\x12!.v1.manager.management.GetRequest\x1a\".v1.manager.management.GetResponse\"\x00\x12W\n" +
+	"\x06Upsert\x12$.v1.manager.management.UpsertRequest\x1a%.v1.manager.management.UpsertResponse\"\x00\x12W\n" +
 	"\x06Delete\x12$.v1.manager.management.DeleteRequest\x1a%.v1.manager.management.DeleteResponse\"\x00B7Z5github.com/megakuul/zen/pkg/api/v1/manager/managementb\x06proto3"
 
 var (
@@ -201,25 +294,30 @@ func file_v1_manager_management_management_proto_rawDescGZIP() []byte {
 	return file_v1_manager_management_management_proto_rawDescData
 }
 
-var file_v1_manager_management_management_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_v1_manager_management_management_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
 var file_v1_manager_management_management_proto_goTypes = []any{
 	(*GetRequest)(nil),     // 0: v1.manager.management.GetRequest
 	(*GetResponse)(nil),    // 1: v1.manager.management.GetResponse
-	(*DeleteRequest)(nil),  // 2: v1.manager.management.DeleteRequest
-	(*DeleteResponse)(nil), // 3: v1.manager.management.DeleteResponse
-	(*manager.User)(nil),   // 4: v1.manager.User
+	(*UpsertRequest)(nil),  // 2: v1.manager.management.UpsertRequest
+	(*UpsertResponse)(nil), // 3: v1.manager.management.UpsertResponse
+	(*DeleteRequest)(nil),  // 4: v1.manager.management.DeleteRequest
+	(*DeleteResponse)(nil), // 5: v1.manager.management.DeleteResponse
+	(*manager.User)(nil),   // 6: v1.manager.User
 }
 var file_v1_manager_management_management_proto_depIdxs = []int32{
-	4, // 0: v1.manager.management.GetResponse.user:type_name -> v1.manager.User
-	0, // 1: v1.manager.management.ManagementService.Get:input_type -> v1.manager.management.GetRequest
-	2, // 2: v1.manager.management.ManagementService.Delete:input_type -> v1.manager.management.DeleteRequest
-	1, // 3: v1.manager.management.ManagementService.Get:output_type -> v1.manager.management.GetResponse
-	3, // 4: v1.manager.management.ManagementService.Delete:output_type -> v1.manager.management.DeleteResponse
-	3, // [3:5] is the sub-list for method output_type
-	1, // [1:3] is the sub-list for method input_type
-	1, // [1:1] is the sub-list for extension type_name
-	1, // [1:1] is the sub-list for extension extendee
-	0, // [0:1] is the sub-list for field type_name
+	6, // 0: v1.manager.management.GetResponse.user:type_name -> v1.manager.User
+	6, // 1: v1.manager.management.UpsertRequest.user:type_name -> v1.manager.User
+	0, // 2: v1.manager.management.ManagementService.Get:input_type -> v1.manager.management.GetRequest
+	2, // 3: v1.manager.management.ManagementService.Upsert:input_type -> v1.manager.management.UpsertRequest
+	4, // 4: v1.manager.management.ManagementService.Delete:input_type -> v1.manager.management.DeleteRequest
+	1, // 5: v1.manager.management.ManagementService.Get:output_type -> v1.manager.management.GetResponse
+	3, // 6: v1.manager.management.ManagementService.Upsert:output_type -> v1.manager.management.UpsertResponse
+	5, // 7: v1.manager.management.ManagementService.Delete:output_type -> v1.manager.management.DeleteResponse
+	5, // [5:8] is the sub-list for method output_type
+	2, // [2:5] is the sub-list for method input_type
+	2, // [2:2] is the sub-list for extension type_name
+	2, // [2:2] is the sub-list for extension extendee
+	0, // [0:2] is the sub-list for field type_name
 }
 
 func init() { file_v1_manager_management_management_proto_init() }
@@ -233,7 +331,7 @@ func file_v1_manager_management_management_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_v1_manager_management_management_proto_rawDesc), len(file_v1_manager_management_management_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   4,
+			NumMessages:   6,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

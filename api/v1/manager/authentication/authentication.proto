@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package v1.manager.authentication;
+
+option go_package = "github.com/megakuul/zen/pkg/api/v1/manager/authentication";
+
+message GetRequest { 
+  string verifier = 1;
+  bool auto_refresh = 2; 
+}
+
+message GetResponse {
+  string token = 1;
+}
+
+message RevokeRequest { }
+
+message RevokeResponse { }
+
+service AuthenticationService {
+  rpc Get(GetRequest) returns (GetResponse) {}
+  rpc Revoke(RevokeRequest) returns (RevokeResponse) {}
+}
