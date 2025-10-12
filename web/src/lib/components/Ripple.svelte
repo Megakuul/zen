@@ -1,7 +1,7 @@
 <script>
   import { goto } from "$app/navigation";
   import { cn } from "$lib/utils/cn";
-    import { fade } from "svelte/transition";
+  import { fade } from "svelte/transition";
 
   /**
    * @type {{
