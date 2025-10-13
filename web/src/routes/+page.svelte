@@ -5,7 +5,7 @@
   import Logo from "../lib/components/Logo.svelte";
 </script>
 
-<Logo></Logo>
+<Logo class="p-20" svgClass="w-40 h-40 lg:w-96 lg:h-96 xl:w-[588px] xl:h-[588px]"></Logo>
 
 <TextGenerateEffect class="flex flex-col items-center w-9/12 text-center mt-10 sm:mt-20 lg:mt-32 2xl:mt-36" durationPerWord={2} segments={[
   {text: "« The first and greatest victory is to conquer yourself »", class: "text-base lg:text-3xl xl:text-5xl 2xl:text-6xl font-medium text-slate-100/60"},

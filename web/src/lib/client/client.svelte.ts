@@ -20,12 +20,16 @@ let transport: Transport = $derived(createConnectTransport({
 	}],
 }))
 
+let authTransport: Transport = $derived(createConnectTransport({
+	baseUrl: transportUrl,
+}))
+
+let authenticationClient = $derived(createClient(AuthenticationService, authTransport))
 let managementClient = $derived(createClient(ManagementService, transport))
-let authenticationClient = $derived(createClient(AuthenticationService, transport))
 let planningClient = $derived(createClient(PlanningService, transport))
 let timingClient = $derived(createClient(TimingService, transport))
 
-export let ManagementClient = () => managementClient
 export let AuthenticationClient = () => authenticationClient
+export let ManagementClient = () => managementClient
 export let PlanningClient = () => planningClient
 export let TimingClient = () => timingClient

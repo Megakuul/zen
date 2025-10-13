@@ -2,8 +2,6 @@ import { create } from '@bufbuild/protobuf';
 import { GetRequestSchema } from "$lib/sdk/v1/manager/authentication/authentication_pb";
 import { AuthenticationClient } from './client.svelte';
 
-
-
 /**
  * Login to the system (usually needed if GetToken() fails with status 16 "UNAUTHENTICATED").
  * Provide a message channel as verifier to send a code to the user (e.g. email:salami.brot@gmail.com).

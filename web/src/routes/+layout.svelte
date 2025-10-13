@@ -16,7 +16,7 @@
 
 <Nav></Nav>
 
-<footer class="flex justify-center text-xs sm:text-2xl my-20">
+<footer class="flex justify-center text-xs sm:text-2xl mb-40 mt-20">
   <p>
     <a class="font-bold" href="https://github.com/megakuul/zen">Opensource Project</a> made with ⏳ and ❤️ by <a class="font-bold" href="https://github.com/megakuul">Megakuul</a>
   </p>
