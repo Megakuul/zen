@@ -9,6 +9,8 @@ import (
 
 type managerInput struct {
 	CodeArchive    pulumi.Archive
+	BucketName      pulumi.StringOutput
+	BucketPolicyArn pulumi.StringOutput
 	TableName      pulumi.StringOutput
 	TablePolicyArn pulumi.StringOutput
 }
@@ -42,6 +44,7 @@ func (o *Operator) deployManager(ctx *pulumi.Context, input *managerInput) (*man
 		}`),
 		ManagedPolicyArns: pulumi.ToStringArrayOutput([]pulumi.StringOutput{
 			input.TablePolicyArn,
+			input.BucketPolicyArn,
 		}),
 	})
 	if err != nil {
@@ -65,6 +68,7 @@ func (o *Operator) deployManager(ctx *pulumi.Context, input *managerInput) (*man
 		Environment: lambda.FunctionEnvironmentPtr(&lambda.FunctionEnvironmentArgs{
 			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
 				"TABLE": input.TableName,
+				"BUCKET": input.BucketName,
 			}),
 		}),
 	})

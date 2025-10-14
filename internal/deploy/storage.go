@@ -26,6 +26,25 @@ func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*sto
 		return nil, err
 	}
 
+	_, err = s3.NewBucketLifecycleConfigurationV2(ctx, "storage", &s3.BucketLifecycleConfigurationV2Args{
+		Bucket: bucket.Bucket,
+		Region: bucket.Region,
+		Rules: s3.BucketLifecycleConfigurationV2RuleArray{
+			s3.BucketLifecycleConfigurationV2RuleArgs{
+				Id:     pulumi.String("captcha-cleanup"),
+				Prefix: pulumi.String("captcha/"),
+				Status: pulumi.String("Enabled"),
+				Expiration: s3.BucketLifecycleConfigurationV2RuleExpirationPtr(&s3.BucketLifecycleConfigurationV2RuleExpirationArgs{
+					Days:                      pulumi.IntPtr(1),
+					ExpiredObjectDeleteMarker: pulumi.BoolPtr(true),
+				}),
+			},
+		},
+	})
+	if err!=nil {
+		return nil, err
+	}
+
 	_, err = s3.NewBucketPolicy(ctx, "storage", &s3.BucketPolicyArgs{
 		Bucket: bucket.Bucket,
 		Region: bucket.Region,
@@ -42,7 +61,7 @@ func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*sto
 					"%s/leaderboard/*"
 				]
 			}]
-		}`, bucket.Arn),
+		}`, bucket.Arn, bucket.Arn),
 	})
 	if err != nil {
 		return nil, err
@@ -58,7 +77,8 @@ func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*sto
 				"Effect": "Allow",
 				"Action": [
 					"s3:GetObject",
-					"s3:PutObject"
+					"s3:PutObject",
+					"s3:DeleteObject"
 				],
 				"Resource": "%s/*"
 			}]

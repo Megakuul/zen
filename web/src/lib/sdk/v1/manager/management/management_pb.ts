@@ -12,7 +12,61 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/manager/management/management.proto.
  */
 export const file_v1_manager_management_management: GenFile = /*@__PURE__*/
-  fileDesc("CiZ2MS9tYW5hZ2VyL21hbmFnZW1lbnQvbWFuYWdlbWVudC5wcm90bxIVdjEubWFuYWdlci5tYW5hZ2VtZW50IgwKCkdldFJlcXVlc3QiLQoLR2V0UmVzcG9uc2USHgoEdXNlchgBIAEoCzIQLnYxLm1hbmFnZXIuVXNlciJBCg1VcHNlcnRSZXF1ZXN0EhAKCHZlcmlmaWVyGAEgASgJEh4KBHVzZXIYAiABKAsyEC52MS5tYW5hZ2VyLlVzZXIiEAoOVXBzZXJ0UmVzcG9uc2UiDwoNRGVsZXRlUmVxdWVzdCIQCg5EZWxldGVSZXNwb25zZTKVAgoRTWFuYWdlbWVudFNlcnZpY2USTgoDR2V0EiEudjEubWFuYWdlci5tYW5hZ2VtZW50LkdldFJlcXVlc3QaIi52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuR2V0UmVzcG9uc2UiABJXCgZVcHNlcnQSJC52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuVXBzZXJ0UmVxdWVzdBolLnYxLm1hbmFnZXIubWFuYWdlbWVudC5VcHNlcnRSZXNwb25zZSIAElcKBkRlbGV0ZRIkLnYxLm1hbmFnZXIubWFuYWdlbWVudC5EZWxldGVSZXF1ZXN0GiUudjEubWFuYWdlci5tYW5hZ2VtZW50LkRlbGV0ZVJlc3BvbnNlIgBCN1o1Z2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyL21hbmFnZW1lbnRiBnByb3RvMw", [file_v1_manager_user]);
+  fileDesc("CiZ2MS9tYW5hZ2VyL21hbmFnZW1lbnQvbWFuYWdlbWVudC5wcm90bxIVdjEubWFuYWdlci5tYW5hZ2VtZW50Im8KD1JlZ2lzdGVyUmVxdWVzdBIeCgR1c2VyGAEgASgLMhAudjEubWFuYWdlci5Vc2VyEhIKCmNhcHRjaGFfaWQYAiABKAkSFgoOY2FwdGNoYV9kaWdpdHMYAyABKAkSEAoIdmVyaWZpZXIYBCABKAkiPAoQUmVnaXN0ZXJSZXNwb25zZRISCgpjYXB0Y2hhX2lkGAEgASgJEhQKDGNhcHRjaGFfYmxvYhgCIAEoDCIMCgpHZXRSZXF1ZXN0Ii0KC0dldFJlc3BvbnNlEh4KBHVzZXIYASABKAsyEC52MS5tYW5hZ2VyLlVzZXIiLwoNVXBkYXRlUmVxdWVzdBIeCgR1c2VyGAEgASgLMhAudjEubWFuYWdlci5Vc2VyIhAKDlVwZGF0ZVJlc3BvbnNlIiEKDURlbGV0ZVJlcXVlc3QSEAoIdmVyaWZpZXIYASABKAkiEAoORGVsZXRlUmVzcG9uc2Uy9AIKEU1hbmFnZW1lbnRTZXJ2aWNlEl0KCFJlZ2lzdGVyEiYudjEubWFuYWdlci5tYW5hZ2VtZW50LlJlZ2lzdGVyUmVxdWVzdBonLnYxLm1hbmFnZXIubWFuYWdlbWVudC5SZWdpc3RlclJlc3BvbnNlIgASTgoDR2V0EiEudjEubWFuYWdlci5tYW5hZ2VtZW50LkdldFJlcXVlc3QaIi52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuR2V0UmVzcG9uc2UiABJXCgZVcGRhdGUSJC52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuVXBkYXRlUmVxdWVzdBolLnYxLm1hbmFnZXIubWFuYWdlbWVudC5VcGRhdGVSZXNwb25zZSIAElcKBkRlbGV0ZRIkLnYxLm1hbmFnZXIubWFuYWdlbWVudC5EZWxldGVSZXF1ZXN0GiUudjEubWFuYWdlci5tYW5hZ2VtZW50LkRlbGV0ZVJlc3BvbnNlIgBCN1o1Z2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyL21hbmFnZW1lbnRiBnByb3RvMw", [file_v1_manager_user]);
+
+/**
+ * @generated from message v1.manager.management.RegisterRequest
+ */
+export type RegisterRequest = Message<"v1.manager.management.RegisterRequest"> & {
+  /**
+   * @generated from field: v1.manager.User user = 1;
+   */
+  user?: User;
+
+  /**
+   * @generated from field: string captcha_id = 2;
+   */
+  captchaId: string;
+
+  /**
+   * @generated from field: string captcha_digits = 3;
+   */
+  captchaDigits: string;
+
+  /**
+   * @generated from field: string verifier = 4;
+   */
+  verifier: string;
+};
+
+/**
+ * Describes the message v1.manager.management.RegisterRequest.
+ * Use `create(RegisterRequestSchema)` to create a new message.
+ */
+export const RegisterRequestSchema: GenMessage<RegisterRequest> = /*@__PURE__*/
+  messageDesc(file_v1_manager_management_management, 0);
+
+/**
+ * @generated from message v1.manager.management.RegisterResponse
+ */
+export type RegisterResponse = Message<"v1.manager.management.RegisterResponse"> & {
+  /**
+   * @generated from field: string captcha_id = 1;
+   */
+  captchaId: string;
+
+  /**
+   * @generated from field: bytes captcha_blob = 2;
+   */
+  captchaBlob: Uint8Array;
+};
+
+/**
+ * Describes the message v1.manager.management.RegisterResponse.
+ * Use `create(RegisterResponseSchema)` to create a new message.
+ */
+export const RegisterResponseSchema: GenMessage<RegisterResponse> = /*@__PURE__*/
+  messageDesc(file_v1_manager_management_management, 1);
 
 /**
  * @generated from message v1.manager.management.GetRequest
@@ -25,7 +79,7 @@ export type GetRequest = Message<"v1.manager.management.GetRequest"> & {
  * Use `create(GetRequestSchema)` to create a new message.
  */
 export const GetRequestSchema: GenMessage<GetRequest> = /*@__PURE__*/
-  messageDesc(file_v1_manager_management_management, 0);
+  messageDesc(file_v1_manager_management_management, 2);
 
 /**
  * @generated from message v1.manager.management.GetResponse
@@ -42,47 +96,46 @@ export type GetResponse = Message<"v1.manager.management.GetResponse"> & {
  * Use `create(GetResponseSchema)` to create a new message.
  */
 export const GetResponseSchema: GenMessage<GetResponse> = /*@__PURE__*/
-  messageDesc(file_v1_manager_management_management, 1);
+  messageDesc(file_v1_manager_management_management, 3);
 
 /**
- * @generated from message v1.manager.management.UpsertRequest
+ * @generated from message v1.manager.management.UpdateRequest
  */
-export type UpsertRequest = Message<"v1.manager.management.UpsertRequest"> & {
+export type UpdateRequest = Message<"v1.manager.management.UpdateRequest"> & {
   /**
-   * @generated from field: string verifier = 1;
-   */
-  verifier: string;
-
-  /**
-   * @generated from field: v1.manager.User user = 2;
+   * @generated from field: v1.manager.User user = 1;
    */
   user?: User;
 };
 
 /**
- * Describes the message v1.manager.management.UpsertRequest.
- * Use `create(UpsertRequestSchema)` to create a new message.
+ * Describes the message v1.manager.management.UpdateRequest.
+ * Use `create(UpdateRequestSchema)` to create a new message.
  */
-export const UpsertRequestSchema: GenMessage<UpsertRequest> = /*@__PURE__*/
-  messageDesc(file_v1_manager_management_management, 2);
+export const UpdateRequestSchema: GenMessage<UpdateRequest> = /*@__PURE__*/
+  messageDesc(file_v1_manager_management_management, 4);
 
 /**
- * @generated from message v1.manager.management.UpsertResponse
+ * @generated from message v1.manager.management.UpdateResponse
  */
-export type UpsertResponse = Message<"v1.manager.management.UpsertResponse"> & {
+export type UpdateResponse = Message<"v1.manager.management.UpdateResponse"> & {
 };
 
 /**
- * Describes the message v1.manager.management.UpsertResponse.
- * Use `create(UpsertResponseSchema)` to create a new message.
+ * Describes the message v1.manager.management.UpdateResponse.
+ * Use `create(UpdateResponseSchema)` to create a new message.
  */
-export const UpsertResponseSchema: GenMessage<UpsertResponse> = /*@__PURE__*/
-  messageDesc(file_v1_manager_management_management, 3);
+export const UpdateResponseSchema: GenMessage<UpdateResponse> = /*@__PURE__*/
+  messageDesc(file_v1_manager_management_management, 5);
 
 /**
  * @generated from message v1.manager.management.DeleteRequest
  */
 export type DeleteRequest = Message<"v1.manager.management.DeleteRequest"> & {
+  /**
+   * @generated from field: string verifier = 1;
+   */
+  verifier: string;
 };
 
 /**
@@ -90,7 +143,7 @@ export type DeleteRequest = Message<"v1.manager.management.DeleteRequest"> & {
  * Use `create(DeleteRequestSchema)` to create a new message.
  */
 export const DeleteRequestSchema: GenMessage<DeleteRequest> = /*@__PURE__*/
-  messageDesc(file_v1_manager_management_management, 4);
+  messageDesc(file_v1_manager_management_management, 6);
 
 /**
  * @generated from message v1.manager.management.DeleteResponse
@@ -103,12 +156,20 @@ export type DeleteResponse = Message<"v1.manager.management.DeleteResponse"> & {
  * Use `create(DeleteResponseSchema)` to create a new message.
  */
 export const DeleteResponseSchema: GenMessage<DeleteResponse> = /*@__PURE__*/
-  messageDesc(file_v1_manager_management_management, 5);
+  messageDesc(file_v1_manager_management_management, 7);
 
 /**
  * @generated from service v1.manager.management.ManagementService
  */
 export const ManagementService: GenService<{
+  /**
+   * @generated from rpc v1.manager.management.ManagementService.Register
+   */
+  register: {
+    methodKind: "unary";
+    input: typeof RegisterRequestSchema;
+    output: typeof RegisterResponseSchema;
+  },
   /**
    * @generated from rpc v1.manager.management.ManagementService.Get
    */
@@ -118,12 +179,12 @@ export const ManagementService: GenService<{
     output: typeof GetResponseSchema;
   },
   /**
-   * @generated from rpc v1.manager.management.ManagementService.Upsert
+   * @generated from rpc v1.manager.management.ManagementService.Update
    */
-  upsert: {
+  update: {
     methodKind: "unary";
-    input: typeof UpsertRequestSchema;
-    output: typeof UpsertResponseSchema;
+    input: typeof UpdateRequestSchema;
+    output: typeof UpdateResponseSchema;
   },
   /**
    * @generated from rpc v1.manager.management.ManagementService.Delete

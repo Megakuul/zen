@@ -33,11 +33,14 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
+	// ManagementServiceRegisterProcedure is the fully-qualified name of the ManagementService's
+	// Register RPC.
+	ManagementServiceRegisterProcedure = "/v1.manager.management.ManagementService/Register"
 	// ManagementServiceGetProcedure is the fully-qualified name of the ManagementService's Get RPC.
 	ManagementServiceGetProcedure = "/v1.manager.management.ManagementService/Get"
-	// ManagementServiceUpsertProcedure is the fully-qualified name of the ManagementService's Upsert
+	// ManagementServiceUpdateProcedure is the fully-qualified name of the ManagementService's Update
 	// RPC.
-	ManagementServiceUpsertProcedure = "/v1.manager.management.ManagementService/Upsert"
+	ManagementServiceUpdateProcedure = "/v1.manager.management.ManagementService/Update"
 	// ManagementServiceDeleteProcedure is the fully-qualified name of the ManagementService's Delete
 	// RPC.
 	ManagementServiceDeleteProcedure = "/v1.manager.management.ManagementService/Delete"
@@ -45,8 +48,9 @@ const (
 
 // ManagementServiceClient is a client for the v1.manager.management.ManagementService service.
 type ManagementServiceClient interface {
+	Register(context.Context, *connect.Request[management.RegisterRequest]) (*connect.Response[management.RegisterResponse], error)
 	Get(context.Context, *connect.Request[management.GetRequest]) (*connect.Response[management.GetResponse], error)
-	Upsert(context.Context, *connect.Request[management.UpsertRequest]) (*connect.Response[management.UpsertResponse], error)
+	Update(context.Context, *connect.Request[management.UpdateRequest]) (*connect.Response[management.UpdateResponse], error)
 	Delete(context.Context, *connect.Request[management.DeleteRequest]) (*connect.Response[management.DeleteResponse], error)
 }
 
@@ -61,16 +65,22 @@ func NewManagementServiceClient(httpClient connect.HTTPClient, baseURL string, o
 	baseURL = strings.TrimRight(baseURL, "/")
 	managementServiceMethods := management.File_v1_manager_management_management_proto.Services().ByName("ManagementService").Methods()
 	return &managementServiceClient{
+		register: connect.NewClient[management.RegisterRequest, management.RegisterResponse](
+			httpClient,
+			baseURL+ManagementServiceRegisterProcedure,
+			connect.WithSchema(managementServiceMethods.ByName("Register")),
+			connect.WithClientOptions(opts...),
+		),
 		get: connect.NewClient[management.GetRequest, management.GetResponse](
 			httpClient,
 			baseURL+ManagementServiceGetProcedure,
 			connect.WithSchema(managementServiceMethods.ByName("Get")),
 			connect.WithClientOptions(opts...),
 		),
-		upsert: connect.NewClient[management.UpsertRequest, management.UpsertResponse](
+		update: connect.NewClient[management.UpdateRequest, management.UpdateResponse](
 			httpClient,
-			baseURL+ManagementServiceUpsertProcedure,
-			connect.WithSchema(managementServiceMethods.ByName("Upsert")),
+			baseURL+ManagementServiceUpdateProcedure,
+			connect.WithSchema(managementServiceMethods.ByName("Update")),
 			connect.WithClientOptions(opts...),
 		),
 		delete: connect.NewClient[management.DeleteRequest, management.DeleteResponse](
@@ -84,9 +94,15 @@ func NewManagementServiceClient(httpClient connect.HTTPClient, baseURL string, o
 
 // managementServiceClient implements ManagementServiceClient.
 type managementServiceClient struct {
-	get    *connect.Client[management.GetRequest, management.GetResponse]
-	upsert *connect.Client[management.UpsertRequest, management.UpsertResponse]
-	delete *connect.Client[management.DeleteRequest, management.DeleteResponse]
+	register *connect.Client[management.RegisterRequest, management.RegisterResponse]
+	get      *connect.Client[management.GetRequest, management.GetResponse]
+	update   *connect.Client[management.UpdateRequest, management.UpdateResponse]
+	delete   *connect.Client[management.DeleteRequest, management.DeleteResponse]
+}
+
+// Register calls v1.manager.management.ManagementService.Register.
+func (c *managementServiceClient) Register(ctx context.Context, req *connect.Request[management.RegisterRequest]) (*connect.Response[management.RegisterResponse], error) {
+	return c.register.CallUnary(ctx, req)
 }
 
 // Get calls v1.manager.management.ManagementService.Get.
@@ -94,9 +110,9 @@ func (c *managementServiceClient) Get(ctx context.Context, req *connect.Request[
 	return c.get.CallUnary(ctx, req)
 }
 
-// Upsert calls v1.manager.management.ManagementService.Upsert.
-func (c *managementServiceClient) Upsert(ctx context.Context, req *connect.Request[management.UpsertRequest]) (*connect.Response[management.UpsertResponse], error) {
-	return c.upsert.CallUnary(ctx, req)
+// Update calls v1.manager.management.ManagementService.Update.
+func (c *managementServiceClient) Update(ctx context.Context, req *connect.Request[management.UpdateRequest]) (*connect.Response[management.UpdateResponse], error) {
+	return c.update.CallUnary(ctx, req)
 }
 
 // Delete calls v1.manager.management.ManagementService.Delete.
@@ -107,8 +123,9 @@ func (c *managementServiceClient) Delete(ctx context.Context, req *connect.Reque
 // ManagementServiceHandler is an implementation of the v1.manager.management.ManagementService
 // service.
 type ManagementServiceHandler interface {
+	Register(context.Context, *connect.Request[management.RegisterRequest]) (*connect.Response[management.RegisterResponse], error)
 	Get(context.Context, *connect.Request[management.GetRequest]) (*connect.Response[management.GetResponse], error)
-	Upsert(context.Context, *connect.Request[management.UpsertRequest]) (*connect.Response[management.UpsertResponse], error)
+	Update(context.Context, *connect.Request[management.UpdateRequest]) (*connect.Response[management.UpdateResponse], error)
 	Delete(context.Context, *connect.Request[management.DeleteRequest]) (*connect.Response[management.DeleteResponse], error)
 }
 
@@ -119,16 +136,22 @@ type ManagementServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewManagementServiceHandler(svc ManagementServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	managementServiceMethods := management.File_v1_manager_management_management_proto.Services().ByName("ManagementService").Methods()
+	managementServiceRegisterHandler := connect.NewUnaryHandler(
+		ManagementServiceRegisterProcedure,
+		svc.Register,
+		connect.WithSchema(managementServiceMethods.ByName("Register")),
+		connect.WithHandlerOptions(opts...),
+	)
 	managementServiceGetHandler := connect.NewUnaryHandler(
 		ManagementServiceGetProcedure,
 		svc.Get,
 		connect.WithSchema(managementServiceMethods.ByName("Get")),
 		connect.WithHandlerOptions(opts...),
 	)
-	managementServiceUpsertHandler := connect.NewUnaryHandler(
-		ManagementServiceUpsertProcedure,
-		svc.Upsert,
-		connect.WithSchema(managementServiceMethods.ByName("Upsert")),
+	managementServiceUpdateHandler := connect.NewUnaryHandler(
+		ManagementServiceUpdateProcedure,
+		svc.Update,
+		connect.WithSchema(managementServiceMethods.ByName("Update")),
 		connect.WithHandlerOptions(opts...),
 	)
 	managementServiceDeleteHandler := connect.NewUnaryHandler(
@@ -139,10 +162,12 @@ func NewManagementServiceHandler(svc ManagementServiceHandler, opts ...connect.H
 	)
 	return "/v1.manager.management.ManagementService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
+		case ManagementServiceRegisterProcedure:
+			managementServiceRegisterHandler.ServeHTTP(w, r)
 		case ManagementServiceGetProcedure:
 			managementServiceGetHandler.ServeHTTP(w, r)
-		case ManagementServiceUpsertProcedure:
-			managementServiceUpsertHandler.ServeHTTP(w, r)
+		case ManagementServiceUpdateProcedure:
+			managementServiceUpdateHandler.ServeHTTP(w, r)
 		case ManagementServiceDeleteProcedure:
 			managementServiceDeleteHandler.ServeHTTP(w, r)
 		default:
@@ -154,12 +179,16 @@ func NewManagementServiceHandler(svc ManagementServiceHandler, opts ...connect.H
 // UnimplementedManagementServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedManagementServiceHandler struct{}
 
+func (UnimplementedManagementServiceHandler) Register(context.Context, *connect.Request[management.RegisterRequest]) (*connect.Response[management.RegisterResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.management.ManagementService.Register is not implemented"))
+}
+
 func (UnimplementedManagementServiceHandler) Get(context.Context, *connect.Request[management.GetRequest]) (*connect.Response[management.GetResponse], error) {
 	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.management.ManagementService.Get is not implemented"))
 }
 
-func (UnimplementedManagementServiceHandler) Upsert(context.Context, *connect.Request[management.UpsertRequest]) (*connect.Response[management.UpsertResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.management.ManagementService.Upsert is not implemented"))
+func (UnimplementedManagementServiceHandler) Update(context.Context, *connect.Request[management.UpdateRequest]) (*connect.Response[management.UpdateResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.management.ManagementService.Update is not implemented"))
 }
 
 func (UnimplementedManagementServiceHandler) Delete(context.Context, *connect.Request[management.DeleteRequest]) (*connect.Response[management.DeleteResponse], error) {

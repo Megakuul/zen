@@ -6,25 +6,40 @@ option go_package = "github.com/megakuul/zen/pkg/api/v1/manager/management";
 
 import "v1/manager/user.proto";
 
+
+message RegisterRequest {
+  User user = 1;
+  string captcha_id = 2;
+  string captcha_digits = 3;
+  string verifier = 4;
+}
+
+message RegisterResponse {
+  string captcha_id = 1;
+  bytes captcha_blob = 2;
+}
+
 message GetRequest { }
 
 message GetResponse {
   User user = 1;
 }
 
-message UpsertRequest {
-  string verifier = 1;
-  User user = 2;
+message UpdateRequest {
+  User user = 1;
 }
 
-message UpsertResponse { }
+message UpdateResponse { }
 
-message DeleteRequest { }
+message DeleteRequest { 
+  string verifier = 1;
+}
 
 message DeleteResponse { }
 
 service ManagementService {
+  rpc Register(RegisterRequest) returns (RegisterResponse) {}
   rpc Get(GetRequest) returns (GetResponse) {}
-  rpc Upsert(UpsertRequest) returns (UpsertResponse) {}
+  rpc Update(UpdateRequest) returns (UpdateResponse) {}
   rpc Delete(DeleteRequest) returns (DeleteResponse) {}
 }

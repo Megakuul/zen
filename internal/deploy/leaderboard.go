@@ -120,8 +120,8 @@ func (o *Operator) deployLeaderboard(ctx *pulumi.Context, input *leaderboardInpu
 		Code: input.CodeArchive,
 		Environment: lambda.FunctionEnvironmentPtr(&lambda.FunctionEnvironmentArgs{
 			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
-				"QUEUE_NAME":  queue.Name,
-				"BUCKET_NAME": input.BucketName,
+				"QUEUE":  queue.Name,
+				"BUCKET": input.BucketName,
 			}),
 		}),
 	})

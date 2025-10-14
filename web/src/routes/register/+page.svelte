@@ -1,7 +1,7 @@
 <script>
   import { create } from '@bufbuild/protobuf';
   import { onMount } from 'svelte';
-  import { GetToken, Login } from '$lib/client/auth.svelte';
+  import { GetToken } from '$lib/client/auth.svelte';
   import { goto } from '$app/navigation';
   import { Code, ConnectError } from '@connectrpc/connect';
   import { fade } from 'svelte/transition';
@@ -13,17 +13,28 @@
   let registered = $state(false);
   let loading = $state(false);
 
-  /** @param {string} verifier */
+  /** 
+   * @param {string} verifier
+   */
   async function register(verifier) {
     loading = true
     // TODO: wrap this into a sonner error wrapper
     try {
-      await ManagementClient().upsert({
+      const response = await ManagementClient().register({
         user: user,
+        captchaId: captchaId,
+        captchaDigits: captchaCode,
         verifier: verifier,
-        // TODO add captcha
       })
-      sent = true;
+      if (captchaId && captchaCode) {
+        sent = true;
+      } else {
+        captchaId = response.captchaId
+        captchaBlob = URL.createObjectURL(new Blob(
+          [new Uint8Array(response.captchaBlob)], 
+          {type: "image/png"}
+        ))
+      }
     } catch (e) {
       const err = ConnectError.from(e)
       // TODO: emit a real error here via sandwicher or somethign
@@ -32,9 +43,25 @@
     loading = false
   }
 
+  onMount(async () => {
+    try {
+      if (await GetToken()) goto("/profile")
+    } catch (e) {
+      const err = ConnectError.from(e)
+      if (err.code !== Code.Unauthenticated) {
+        // TODO: emit a real error here via sandwicher or somethign
+        console.error(err.cause)
+        return
+      } 
+    }
+  })
+
   /** @type {import("$lib/sdk/v1/manager/user_pb").User}*/
   let user = $state(create(UserSchema, {}))
 
+  let captchaId = $state("");
+  let captchaBlob = $state("");
+  let captchaCode = $state("");
   let code = $state("");
 </script>
 
@@ -60,6 +87,12 @@
       {:else}
         <input transition:fade bind:value={user.username} placeholder="Username" class="glass p-3 sm:p-5 rounded-xl focus:outline-0" />
         <input transition:fade type="email" bind:value={user.email} placeholder="Email" class="glass p-3 sm:p-5 rounded-xl focus:outline-0" />
+        {#if captchaBlob}
+          <div class="flex flex-row items-center justify-between gap-4">
+            <img src={captchaBlob} alt="captcha" />
+            <input bind:value={captchaCode} placeholder="Captcha" class="glass p-3 sm:p-5 rounded-xl focus:outline-0" />
+          </div>
+        {/if}
         <button transition:fade onclick={() => register(`email:${user.email}`)} class="glass w-full flex flex-row justify-center items-center gap-4 cursor-pointer p-3 sm:p-4 rounded-xl hover:scale-105 transition-all duration-700">
           {#if loading}
             <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
