@@ -8,18 +8,17 @@
   import Logo from '$lib/components/Logo.svelte';
   import { ManagementClient } from '$lib/client/client.svelte';
   import { UserSchema } from '$lib/sdk/v1/manager/user_pb';
+  import { Exec } from '$lib/error/error.svelte';
 
   let sent = $state(false);
   let registered = $state(false);
   let loading = $state(false);
 
-  /** 
+    /** 
    * @param {string} verifier
    */
   async function register(verifier) {
-    loading = true
-    // TODO: wrap this into a sonner error wrapper
-    try {
+    await Exec(async () => {
       const response = await ManagementClient().register({
         user: user,
         captchaId: captchaId,
@@ -35,25 +34,13 @@
           {type: "image/png"}
         ))
       }
-    } catch (e) {
-      const err = ConnectError.from(e)
-      // TODO: emit a real error here via sandwicher or somethign
-      console.error(err.cause)
-    }
-    loading = false
+    }, true, loading)
   }
 
   onMount(async () => {
-    try {
+    await Exec(async () => {
       if (await GetToken()) goto("/profile")
-    } catch (e) {
-      const err = ConnectError.from(e)
-      if (err.code !== Code.Unauthenticated) {
-        // TODO: emit a real error here via sandwicher or somethign
-        console.error(err.cause)
-        return
-      } 
-    }
+    }, false, loading)
   })
 
   /** @type {import("$lib/sdk/v1/manager/user_pb").User}*/

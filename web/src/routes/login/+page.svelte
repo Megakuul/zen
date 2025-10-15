@@ -2,43 +2,21 @@
   import { onMount } from 'svelte';
   import { GetToken, Login } from '$lib/client/auth.svelte';
   import { goto } from '$app/navigation';
-  import { Code, ConnectError } from '@connectrpc/connect';
   import { fade } from 'svelte/transition';
-    import Logo from '$lib/components/Logo.svelte';
+  import Logo from '$lib/components/Logo.svelte';
+  import { Exec } from '$lib/error/error.svelte';
 
   let sent = $state(false);
-
-  /** @param {string} verifier */
-  async function login(verifier) {
-    loading = true
-    // TODO: wrap this into a sonner error wrapper
-    try {
-      await Login(verifier)
-      sent = true;
-    } catch (e) {
-      const err = ConnectError.from(e)
-      // TODO: emit a real error here via sandwicher or somethign
-      console.error(err.cause)
-    }
-    loading = false
-  }
+  let loading = $state(false);
 
   onMount(async () => {
-    try {
+    await Exec(async () => {
       if (await GetToken()) goto("/profile")
-    } catch (e) {
-      const err = ConnectError.from(e)
-      if (err.code !== Code.Unauthenticated) {
-        // TODO: emit a real error here via sandwicher or somethign
-        console.error(err.cause)
-      } 
-    }
+    }, false, loading)
   })
 
   let email = $state("");
   let code = $state("");
-
-  let loading = $state(false);
 </script>
 
 <div class="w-screen h-screen flex justify-center items-center text-base sm:text-4xl">
@@ -47,7 +25,8 @@
     <h1 class="text-xl sm:text-5xl font-bold text-slate-200/50">Zen Login</h1>
     {#if sent}
       <input transition:fade bind:value={code} placeholder="Code (XXXX-XXXX)" class="glass text-center p-3 sm:p-5 rounded-xl focus:outline-0" />
-      <button transition:fade onclick={() => login(`code:${code}`)} class="glass w-full flex flex-row justify-center items-center gap-4 cursor-pointer p-3 sm:p-4 rounded-xl hover:scale-105 transition-all duration-700">
+      <button transition:fade onclick={() => Exec(async () => Login(`code:${code}`), true, loading)} 
+        class="glass w-full flex flex-row justify-center items-center gap-4 cursor-pointer p-3 sm:p-4 rounded-xl hover:scale-105 transition-all duration-700">
         {#if loading}
           <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
         {:else}
@@ -57,7 +36,8 @@
     </button>
     {:else}
       <input transition:fade type="email" bind:value={email} placeholder="Email" class="glass p-3 sm:p-5 rounded-xl focus:outline-0" />
-      <button transition:fade onclick={() => login(`email:${email}`)} class="glass w-full flex flex-row justify-center items-center gap-4 cursor-pointer p-3 sm:p-4 rounded-xl hover:scale-105 transition-all duration-700">
+      <button transition:fade onclick={() => Exec(async () => {Login(`email:${email}`); sent = true}, true, loading)} 
+        class="glass w-full flex flex-row justify-center items-center gap-4 cursor-pointer p-3 sm:p-4 rounded-xl hover:scale-105 transition-all duration-700">
         {#if loading}
           <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
         {:else}
