@@ -3,10 +3,10 @@ import { toast } from 'svelte-sonner';
 
 /** 
  * Exec wraps a function and reports thrown ConnectError exceptions
- * @param unauth controls whether unauthenticated responses emit an error or not
+ * @param unauth provides a function that handles "unauthenticated" errors, if omitted "unauthenticated" is considered an error.
  * @param processing state variable that can be used to check if the operation is processing (ref)
  */
-export async function Exec(fn: () => Promise<void>, unauth?: boolean, processing?: boolean): Promise<void> {
+export async function Exec(fn: () => Promise<void>, unauth?: () => Promise<void>, processing?: boolean): Promise<void> {
   processing = true
   try {
     const result = await fn()
@@ -14,7 +14,9 @@ export async function Exec(fn: () => Promise<void>, unauth?: boolean, processing
     return result
   } catch (e: unknown) {
     const err = ConnectError.from(e)
-    if (unauth || err.code !== Code.Unauthenticated) {
+    if (unauth !== undefined && err.code === Code.Unauthenticated) {
+      await unauth()
+    } else {
       toast.error(err.name, {
         description: String(err.message)
       })

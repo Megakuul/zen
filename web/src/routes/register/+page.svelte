@@ -3,7 +3,6 @@
   import { onMount } from 'svelte';
   import { GetToken } from '$lib/client/auth.svelte';
   import { goto } from '$app/navigation';
-  import { Code, ConnectError } from '@connectrpc/connect';
   import { fade } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
   import { ManagementClient } from '$lib/client/client.svelte';
@@ -14,7 +13,7 @@
   let registered = $state(false);
   let loading = $state(false);
 
-    /** 
+  /** 
    * @param {string} verifier
    */
   async function register(verifier) {
@@ -34,13 +33,13 @@
           {type: "image/png"}
         ))
       }
-    }, true, loading)
+    }, undefined, loading)
   }
 
   onMount(async () => {
     await Exec(async () => {
       if (await GetToken()) goto("/profile")
-    }, false, loading)
+    }, async () => {/* ignore unauth errors */}, loading)
   })
 
   /** @type {import("$lib/sdk/v1/manager/user_pb").User}*/
@@ -61,8 +60,8 @@
     {:else}
       <Logo class="p-3 sm:p-6" svgClass="w-12 h-12 sm:w-20 sm:h-20"></Logo>
       <h1 class="text-xl sm:text-5xl font-bold text-slate-200/50">Zen Registration</h1>
-      {#if sent}
-        <input transition:fade bind:value={code} placeholder="Code (XXXX-XXXX)" class="glass text-center p-3 sm:p-5 rounded-xl focus:outline-0" />
+      {#if !sent}
+        <input transition:fade bind:value={code} autocomplete="one-time-code" placeholder="Code (XXXX-XXXX)" class="glass text-center p-3 sm:p-5 rounded-xl focus:outline-0" />
         <button transition:fade onclick={() => register(`code:${code}`)} class="glass w-full flex flex-row justify-center items-center gap-4 cursor-pointer p-3 sm:p-4 rounded-xl hover:scale-105 transition-all duration-700">
           {#if loading}
             <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
