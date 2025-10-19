@@ -1,7 +1,6 @@
 package deploy
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -23,16 +22,19 @@ type proxyOutput struct {
 }
 
 func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOutput, error) {
+	if len(o.domains) < 1 {
+		return nil, fmt.Errorf("expected at least one domain")
+	}
 	viewerCertificate := cloudfront.DistributionViewerCertificateArgs{
 		CloudfrontDefaultCertificate: pulumi.BoolPtr(true),
 	}
-	if o.certificateArn != "" {
+	if !o.autoDns {
 		viewerCertificate = cloudfront.DistributionViewerCertificateArgs{
 			AcmCertificateArn:      pulumi.String(o.certificateArn),
 			MinimumProtocolVersion: pulumi.String("TLSv1.2"),
 			SslSupportMethod:       pulumi.String("sni-only"),
 		}
-	} else if len(o.domains) > 0 {
+	} else {
 		sans := []string{}
 		if len(o.domains) > 1 {
 			sans = o.domains[1:]
@@ -56,7 +58,6 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 			return nil, err
 		}
 		validationFqdns := []pulumi.StringOutput{}
-		cert.DomainValidationOptions.ApplyT(func(input acm.CertificateDomainValidationOption)) // TODO
 		for i, domain := range o.domains {
 			zone, err := lookupZone(ctx, domain)
 			if err != nil {
@@ -239,7 +240,13 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 		return nil, err
 	}
 
-	if o.certificateArn == "" {
+	if !o.autoDns {
+		for _, domain := range o.domains {
+			ctx.Export(
+				fmt.Sprintf("REQUIRED_CNAME_%s", strings.ToUpper(domain)),
+				pulumi.Sprintf("CNAME %s %s", pulumi.String(domain), proxy.DomainName),
+			)
+		}
 		return &proxyOutput{ProxyDomain: proxy.DomainName}, nil
 	}
 	// if hosted zone is in route53, records are automatically created.
@@ -281,29 +288,3 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 	return &proxyOutput{ProxyDomain: proxy.DomainName}, nil
 }
 
-// lookupZone checks if there is a route53 zone for the provided domain.
-// It traverses each domain segment to check for a zone.
-func lookupZone(ctx *pulumi.Context, domain string) (*route53.LookupZoneResult, error) {
-	var (
-		err      error
-		zoneName string = domain
-		zone     *route53.LookupZoneResult
-	)
-	for {
-		if lZone, lErr := route53.LookupZone(ctx, &route53.LookupZoneArgs{
-			Name:        pulumi.StringRef(zoneName),
-			PrivateZone: pulumi.BoolRef(false),
-		}); lErr != nil {
-			err = errors.Join(err, lErr)
-		} else {
-			zone = lZone
-			break
-		}
-		segments := strings.Split(zoneName, ".")
-		if len(segments) < 3 { // 3 segments minimum, the tld is never a hosted zone
-			return nil, fmt.Errorf("no route53 hosted zone found for domain '%s': %v", domain, err)
-		}
-		zoneName = segments[1]
-	}
-	return zone, nil
-}
