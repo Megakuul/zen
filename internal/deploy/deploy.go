@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"log/slog"
 	"net/url"
+	"path/filepath"
 	"strings"
 
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/route53"
-	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
+	"github.com/pulumi/pulumi-command/sdk/go/command/local"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -20,6 +21,8 @@ type Operator struct {
 	autoDns          bool
 	certificateArn   string
 	deleteProtection bool
+	buildCtxPath     string
+	buildCachePath   string
 }
 
 type Option func(*Operator)
@@ -32,11 +35,22 @@ func New(logger *slog.Logger, region string, opts ...Option) *Operator {
 		domains:          []string{},
 		certificateArn:   "",
 		deleteProtection: false,
+		buildCtxPath:     ".",
+		buildCachePath:   "./.buildcache",
 	}
 	for _, opt := range opts {
 		opt(operator)
 	}
 	return operator
+}
+
+// WithBuildPath defines a custom context and cache directory for the build step in the deployment.
+// The context path is expected to contain the repository root (cmd/<handler>/<handler>.go).
+func WithBuildPath(ctx, cache string) Option {
+	return func(o *Operator) {
+		o.buildCtxPath = ctx
+		o.buildCachePath = cache
+	}
 }
 
 // WithDomain adds the specified domain aliases to the public proxy endpoint.
@@ -67,6 +81,26 @@ func WithDeleteProtection(enable bool) Option {
 }
 
 func (o *Operator) Deploy(ctx *pulumi.Context) error {
+	handlerPath, err := filepath.Abs(filepath.Join(o.buildCachePath, "lambda", "leaderboard"))
+	if err != nil {
+		return err
+	}
+	command := fmt.Sprintf("go build -o '%s' ./cmd/leaderboard/leaderboard.go", handlerPath)
+	build, err := local.NewCommand(ctx, "leaderboard", &local.CommandArgs{
+		Create:       pulumi.String(command),
+		Update:       pulumi.String(command),
+		Dir:          pulumi.String(o.buildCtxPath),
+		ArchivePaths: pulumi.ToStringArray([]string{handlerPath}),
+		Environment: pulumi.ToStringMap(map[string]string{
+			"CGO_ENABLED": "0",
+			"GOOS":        "linux",
+			"GOARCH":      "arm64",
+		}),
+		Logging: local.LoggingStdoutAndStderr,
+	})
+	if err!=nil {
+		return nil, err
+	}
 	tableOutputs, err := o.deployTable(ctx, &tableInput{})
 	if err != nil {
 		return fmt.Errorf("failed to deploy table: %v", err)

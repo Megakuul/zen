@@ -1,27 +1,31 @@
 package deploy
 
 import (
+	"path/filepath"
+
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/lambda"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-type schedulerInput struct {
-	CodeArchive    pulumi.Archive
-	TableName      pulumi.StringOutput
-	TablePolicyArn pulumi.StringOutput
-	QueueName      pulumi.StringOutput
-	QueuePolicyArn pulumi.StringOutput
+type managerInput struct {
+	Handler         pulumi.Archive
+	BucketName      pulumi.StringOutput
+	BucketPolicyArn pulumi.StringOutput
+	TableName       pulumi.StringOutput
+	TablePolicyArn  pulumi.StringOutput
+	EmailName       pulumi.StringOutput
+	EmailPolicyArn  pulumi.StringOutput
 }
 
-type schedulerOutput struct {
+type managerOutput struct {
 	PublicUrl pulumi.StringOutput
 }
 
-func (o *Operator) deployScheduler(ctx *pulumi.Context, input *schedulerInput) (*schedulerOutput, error) {
-	schedulerLogGroup, err := cloudwatch.NewLogGroup(ctx, "scheduler", &cloudwatch.LogGroupArgs{
-		Name:            pulumi.String("zen-scheduler"),
+func (o *Operator) deployManager(ctx *pulumi.Context, input *managerInput) (*managerOutput, error) {
+	managerLogGroup, err := cloudwatch.NewLogGroup(ctx, "manager", &cloudwatch.LogGroupArgs{
+		Name:            pulumi.String("zen-manager"),
 		Region:          pulumi.String(o.region),
 		LogGroupClass:   pulumi.String("INFREQUENT_ACCESS"),
 		RetentionInDays: pulumi.IntPtr(7),
@@ -30,8 +34,8 @@ func (o *Operator) deployScheduler(ctx *pulumi.Context, input *schedulerInput) (
 		return nil, err
 	}
 
-	schedulerRole, err := iam.NewRole(ctx, "scheduler", &iam.RoleArgs{
-		Name: pulumi.String("zen-scheduler"),
+	managerRole, err := iam.NewRole(ctx, "manager", &iam.RoleArgs{
+		Name: pulumi.String("zen-manager"),
 		AssumeRolePolicy: pulumi.String(`{
 			"Version": "2012-10-17",
 			"Statement": [{
@@ -44,31 +48,33 @@ func (o *Operator) deployScheduler(ctx *pulumi.Context, input *schedulerInput) (
 		}`),
 		ManagedPolicyArns: pulumi.ToStringArrayOutput([]pulumi.StringOutput{
 			input.TablePolicyArn,
-			input.QueuePolicyArn,
+			input.BucketPolicyArn,
+			input.EmailPolicyArn,
 		}),
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	scheduler, err := lambda.NewFunction(ctx, "scheduler", &lambda.FunctionArgs{
-		Name:          pulumi.String("zen-scheduler"),
-		Description:   pulumi.StringPtr("backend responsible for managing the calendar associated timings"),
+	manager, err := lambda.NewFunction(ctx, "manager", &lambda.FunctionArgs{
+		Name:          pulumi.String("zen-manager"),
+		Description:   pulumi.StringPtr("backend responsible for managing administrative tasks"),
 		Region:        pulumi.StringPtr(o.region),
-		Handler:       pulumi.StringPtr("scheduler"),
+		Handler:       pulumi.StringPtr(filepath.Base(input.Handler.Path())),
 		Runtime:       lambda.RuntimeCustomAL2023,
-		Architectures: pulumi.ToStringArray([]string{"x8664"}),
+		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(128),
 		LoggingConfig: lambda.FunctionLoggingConfigPtr(&lambda.FunctionLoggingConfigArgs{
-			LogGroup:  schedulerLogGroup.Name,
+			LogGroup:  managerLogGroup.Name,
 			LogFormat: pulumi.String("Text"),
 		}),
-		Role: schedulerRole.Arn,
-		Code: input.CodeArchive,
+		Role: managerRole.Arn,
+		Code: input.Handler,
 		Environment: lambda.FunctionEnvironmentPtr(&lambda.FunctionEnvironmentArgs{
 			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
-				"TABLE": input.TableName,
-				"QUEUE": input.QueueName,
+				"TABLE":  input.TableName,
+				"BUCKET": input.BucketName,
+				"EMAIL":  input.EmailName,
 			}),
 		}),
 	})
@@ -76,8 +82,8 @@ func (o *Operator) deployScheduler(ctx *pulumi.Context, input *schedulerInput) (
 		return nil, err
 	}
 
-	schedulerUrl, err := lambda.NewFunctionUrl(ctx, "scheduler", &lambda.FunctionUrlArgs{
-		FunctionName:      scheduler.Arn,
+	managerUrl, err := lambda.NewFunctionUrl(ctx, "manager", &lambda.FunctionUrlArgs{
+		FunctionName:      manager.Arn,
 		InvokeMode:        pulumi.String("BUFFERED"),
 		Qualifier:         pulumi.String("$LATEST"),
 		Region:            pulumi.String(o.region),
@@ -86,7 +92,7 @@ func (o *Operator) deployScheduler(ctx *pulumi.Context, input *schedulerInput) (
 	if err != nil {
 		return nil, err
 	}
-	return &schedulerOutput{
-		PublicUrl: schedulerUrl.FunctionUrl,
+	return &managerOutput{
+		PublicUrl: managerUrl.FunctionUrl,
 	}, nil
 }

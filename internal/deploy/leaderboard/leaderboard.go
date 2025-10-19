@@ -1,6 +1,8 @@
 package deploy
 
 import (
+	"path/filepath"
+
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/lambda"
@@ -9,7 +11,7 @@ import (
 )
 
 type leaderboardInput struct {
-	CodeArchive     pulumi.Archive
+	Handler         pulumi.Archive
 	BucketName      pulumi.StringOutput
 	BucketPolicyArn pulumi.StringOutput
 }
@@ -107,9 +109,9 @@ func (o *Operator) deployLeaderboard(ctx *pulumi.Context, input *leaderboardInpu
 		Name:          pulumi.String("zen-leaderboard"),
 		Description:   pulumi.StringPtr("background processor responsible for creating the leaderboard"),
 		Region:        pulumi.StringPtr(o.region),
-		Handler:       pulumi.StringPtr("leaderboard"),
+		Handler:       pulumi.StringPtr(filepath.Base(input.Handler.Path())),
 		Runtime:       lambda.RuntimeCustomAL2023,
-		Architectures: pulumi.ToStringArray([]string{"x8664"}),
+		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(512),
 		Timeout:       queue.VisibilityTimeoutSeconds, // avoid a function to read the task while another is processing it
 		LoggingConfig: lambda.FunctionLoggingConfigPtr(&lambda.FunctionLoggingConfigArgs{
@@ -117,7 +119,7 @@ func (o *Operator) deployLeaderboard(ctx *pulumi.Context, input *leaderboardInpu
 			LogFormat: pulumi.String("Text"),
 		}),
 		Role: leaderboardRole.Arn,
-		Code: input.CodeArchive,
+		Code: input.Handler,
 		Environment: lambda.FunctionEnvironmentPtr(&lambda.FunctionEnvironmentArgs{
 			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
 				"QUEUE":  queue.Name,

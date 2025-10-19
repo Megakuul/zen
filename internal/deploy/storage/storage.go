@@ -1,12 +1,16 @@
 package deploy
 
 import (
+	"fmt"
+	"mime"
+
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
 type storageInput struct {
+	WebArtifacts map[string]pulumi.Asset
 }
 
 type storageOutput struct {
@@ -41,7 +45,7 @@ func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*sto
 			},
 		},
 	})
-	if err!=nil {
+	if err != nil {
 		return nil, err
 	}
 
@@ -86,6 +90,18 @@ func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*sto
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	for key, asset := range input.WebArtifacts {
+		_, err := s3.NewBucketObjectv2(ctx, fmt.Sprintf("storage-web-%s", key), &s3.BucketObjectv2Args{
+			Bucket:      bucket.Arn,
+			Key:         pulumi.Sprintf("web/%s", key),
+			ContentType: pulumi.String(mime.TypeByExtension(asset.Path())),
+			Source:      asset,
+		})
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	return &storageOutput{
