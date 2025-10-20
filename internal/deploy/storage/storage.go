@@ -95,7 +95,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		return nil, err
 	}
 
-	input.WebArtifacts.ApplyT(func(artifacts map[string]pulumi.AssetOrArchive) error {
+	input.WebArtifacts.ApplyT(func(artifacts map[string]pulumi.AssetOrArchive) (string, error) {
 		for key, artifact := range artifacts {
 			if asset, ok := artifact.(pulumi.Asset); ok {
 				_, err := s3.NewBucketObjectv2(ctx, fmt.Sprintf("storage-web-%s", key), &s3.BucketObjectv2Args{
@@ -105,11 +105,11 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 					Source:      asset,
 				})
 				if err != nil {
-					return err
+					return "", err
 				}
 			}
 		}
-		return nil
+		return "", nil
 	})
 
 	return &DeployOutput{

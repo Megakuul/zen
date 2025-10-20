@@ -93,7 +93,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		if err != nil {
 			return nil, err
 		}
-		emailIdentity.DkimSigningAttributes.Tokens().ApplyT(func(selectors []string) error {
+		emailIdentity.DkimSigningAttributes.Tokens().ApplyT(func(selectors []string) (string, error) {
 			for i, selector := range selectors {
 				_, err = route53.NewRecord(ctx, fmt.Sprintf("email-dkim-%d", i), &route53.RecordArgs{
 					ZoneId: pulumi.String(zone.Id),
@@ -104,10 +104,10 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 					}),
 				})
 				if err != nil {
-					return err
+					return "", err
 				}
 			}
-			return nil
+			return "", nil
 		})
 		_, err = route53.NewRecord(ctx, "email-dmarc", &route53.RecordArgs{
 			ZoneId: pulumi.String(zone.Id),
@@ -129,14 +129,14 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			pulumi.String(envelopeDomain),
 			pulumi.String("v=spf1 include:amazonses.com -all"),
 		))
-		emailIdentity.DkimSigningAttributes.Tokens().ApplyT(func(selectors []string) error {
+		emailIdentity.DkimSigningAttributes.Tokens().ApplyT(func(selectors []string) (string, error) {
 			for i, selector := range selectors {
 				ctx.Export(fmt.Sprintf("REQUIRED_CNAME_DKIM_%d", i), pulumi.Sprintf("CNAME %s %s",
 					pulumi.String(fmt.Sprintf("%s._domainkey.%s", selector, input.Domains[0])),
 					pulumi.String(fmt.Sprintf("%s.dkim.amazonses.com", selector)),
 				))
 			}
-			return nil
+			return "", nil
 		})
 		ctx.Export(fmt.Sprintf("REQUIRED_TXT_DMARC"), pulumi.Sprintf("TXT %s \"%s\"",
 			pulumi.String(fmt.Sprintf("_dmarc.%s", input.Domains[0])),
