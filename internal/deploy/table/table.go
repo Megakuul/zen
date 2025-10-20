@@ -1,4 +1,4 @@
-package deploy
+package table
 
 import (
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/dynamodb"
@@ -6,17 +6,20 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-type tableInput struct{}
+type DeployInput struct {
+	Region           string
+	DeleteProtection bool
+}
 
-type tableOutput struct {
+type DeployOutput struct {
 	TableName      pulumi.StringOutput
 	TablePolicyArn pulumi.StringOutput
 }
 
-func (o *Operator) deployTable(ctx *pulumi.Context, input *tableInput) (*tableOutput, error) {
+func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	table, err := dynamodb.NewTable(ctx, "table", &dynamodb.TableArgs{
 		Name:        pulumi.String("zen-table"),
-		Region:      pulumi.String(o.region),
+		Region:      pulumi.String(input.Region),
 		BillingMode: pulumi.String("PAY_PER_REQUEST"),
 		HashKey:     pulumi.String("pk"),
 		RangeKey:    pulumi.String("sk"),
@@ -32,7 +35,7 @@ func (o *Operator) deployTable(ctx *pulumi.Context, input *tableInput) (*tableOu
 			AttributeName: pulumi.String("expiry"),
 			Enabled:       pulumi.BoolPtr(true),
 		}),
-		DeletionProtectionEnabled: pulumi.BoolPtr(o.deleteProtection),
+		DeletionProtectionEnabled: pulumi.BoolPtr(input.DeleteProtection),
 	})
 	if err != nil {
 		return nil, err
@@ -60,7 +63,7 @@ func (o *Operator) deployTable(ctx *pulumi.Context, input *tableInput) (*tableOu
 		return nil, err
 	}
 
-	return &tableOutput{
+	return &DeployOutput{
 		TableName:      table.Name,
 		TablePolicyArn: tablePolicy.Arn,
 	}, nil

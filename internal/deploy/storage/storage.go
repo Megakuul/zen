@@ -1,30 +1,33 @@
-package deploy
+package storage
 
 import (
 	"fmt"
 	"mime"
+	"path"
 
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-type storageInput struct {
-	WebArtifacts map[string]pulumi.Asset
+type DeployInput struct {
+	Region           string
+	DeleteProtection bool
+	WebArtifacts     pulumi.AssetOrArchiveMapOutput
 }
 
-type storageOutput struct {
+type DeployOutput struct {
 	BucketName      pulumi.StringOutput
 	BucketDomain    pulumi.StringOutput
 	BucketArn       pulumi.StringOutput
 	BucketPolicyArn pulumi.StringOutput
 }
 
-func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*storageOutput, error) {
+func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	bucket, err := s3.NewBucket(ctx, "storage", &s3.BucketArgs{
 		BucketPrefix: pulumi.String("zen-storage-"),
-		Region:       pulumi.String(o.region),
-		ForceDestroy: pulumi.BoolPtr(!o.deleteProtection),
+		Region:       pulumi.String(input.Region),
+		ForceDestroy: pulumi.BoolPtr(!input.DeleteProtection),
 	})
 	if err != nil {
 		return nil, err
@@ -92,19 +95,24 @@ func (o *Operator) deployStorage(ctx *pulumi.Context, input *storageInput) (*sto
 		return nil, err
 	}
 
-	for key, asset := range input.WebArtifacts {
-		_, err := s3.NewBucketObjectv2(ctx, fmt.Sprintf("storage-web-%s", key), &s3.BucketObjectv2Args{
-			Bucket:      bucket.Arn,
-			Key:         pulumi.Sprintf("web/%s", key),
-			ContentType: pulumi.String(mime.TypeByExtension(asset.Path())),
-			Source:      asset,
-		})
-		if err != nil {
-			return nil, err
+	input.WebArtifacts.ApplyT(func(artifacts map[string]pulumi.AssetOrArchive) error {
+		for key, artifact := range artifacts {
+			if asset, ok := artifact.(pulumi.Asset); ok {
+				_, err := s3.NewBucketObjectv2(ctx, fmt.Sprintf("storage-web-%s", key), &s3.BucketObjectv2Args{
+					Bucket:      bucket.Arn,
+					Key:         pulumi.Sprintf(path.Join("web", key)),
+					ContentType: pulumi.String(mime.TypeByExtension(asset.Path())),
+					Source:      asset,
+				})
+				if err != nil {
+					return err
+				}
+			}
 		}
-	}
+		return nil
+	})
 
-	return &storageOutput{
+	return &DeployOutput{
 		BucketName:      bucket.Bucket,
 		BucketDomain:    bucket.BucketRegionalDomainName,
 		BucketArn:       bucket.Arn,

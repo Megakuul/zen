@@ -2,15 +2,19 @@
 package deploy
 
 import (
-	"errors"
 	"fmt"
 	"log/slog"
 	"net/url"
 	"path/filepath"
-	"strings"
 
-	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/route53"
-	"github.com/pulumi/pulumi-command/sdk/go/command/local"
+	"github.com/megakuul/zen/internal/deploy/email"
+	"github.com/megakuul/zen/internal/deploy/leaderboard"
+	"github.com/megakuul/zen/internal/deploy/manager"
+	"github.com/megakuul/zen/internal/deploy/proxy"
+	"github.com/megakuul/zen/internal/deploy/scheduler"
+	"github.com/megakuul/zen/internal/deploy/storage"
+	"github.com/megakuul/zen/internal/deploy/table"
+	"github.com/megakuul/zen/internal/deploy/web"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
@@ -81,116 +85,114 @@ func WithDeleteProtection(enable bool) Option {
 }
 
 func (o *Operator) Deploy(ctx *pulumi.Context) error {
-	handlerPath, err := filepath.Abs(filepath.Join(o.buildCachePath, "lambda", "leaderboard"))
-	if err != nil {
-		return err
-	}
-	command := fmt.Sprintf("go build -o '%s' ./cmd/leaderboard/leaderboard.go", handlerPath)
-	build, err := local.NewCommand(ctx, "leaderboard", &local.CommandArgs{
-		Create:       pulumi.String(command),
-		Update:       pulumi.String(command),
-		Dir:          pulumi.String(o.buildCtxPath),
-		ArchivePaths: pulumi.ToStringArray([]string{handlerPath}),
-		Environment: pulumi.ToStringMap(map[string]string{
-			"CGO_ENABLED": "0",
-			"GOOS":        "linux",
-			"GOARCH":      "arm64",
-		}),
-		Logging: local.LoggingStdoutAndStderr,
+	leaderboardBuild, err := leaderboard.Build(ctx, &leaderboard.BuildInput{
+		CtxPath:   o.buildCtxPath,
+		CachePath: filepath.Join(o.buildCachePath, "lambda", "leaderboard"),
 	})
-	if err!=nil {
-		return nil, err
+	if err != nil {
+		return fmt.Errorf("failed to build leaderboard function: %v", err)
 	}
-	tableOutputs, err := o.deployTable(ctx, &tableInput{})
+	managerBuild, err := manager.Build(ctx, &manager.BuildInput{
+		CtxPath:   o.buildCtxPath,
+		CachePath: filepath.Join(o.buildCachePath, "lambda", "manager"),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to build manager function: %v", err)
+	}
+	schedulerBuild, err := scheduler.Build(ctx, &scheduler.BuildInput{
+		CtxPath:   o.buildCtxPath,
+		CachePath: filepath.Join(o.buildCachePath, "lambda", "scheduler"),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to build scheduler function: %v", err)
+	}
+	webBuild, err := web.Build(ctx, &web.BuildInput{
+		CtxPath:   o.buildCtxPath,
+		CachePath: filepath.Join(o.buildCachePath, "web"),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to build web assets: %v", err)
+	}
+	tableDeploy, err := table.Deploy(ctx, &table.DeployInput{
+		Region:           o.region,
+		DeleteProtection: o.deleteProtection,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to deploy table: %v", err)
 	}
-	storageOutputs, err := o.deployStorage(ctx, &storageInput{})
+	storageDeploy, err := storage.Deploy(ctx, &storage.DeployInput{
+		Region:           o.region,
+		DeleteProtection: o.deleteProtection,
+		WebArtifacts:     webBuild.Artifacts,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to deploy storage: %v", err)
 	}
-	leaderboardOutputs, err := o.deployLeaderboard(ctx, &leaderboardInput{
-		CodeArchive:     pulumi.NewAssetArchive(map[string]any{}),
-		BucketPolicyArn: storageOutputs.BucketArn,
-		BucketName:      storageOutputs.BucketName,
+	leaderboardDeploy, err := leaderboard.Deploy(ctx, &leaderboard.DeployInput{
+		Region:          o.region,
+		Handler:         leaderboardBuild.Handler,
+		BucketPolicyArn: storageDeploy.BucketArn,
+		BucketName:      storageDeploy.BucketName,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to deploy leaderboard system: %v", err)
 	}
-	schedulerOutputs, err := o.deployScheduler(ctx, &schedulerInput{
-		CodeArchive:    pulumi.NewAssetArchive(map[string]any{}),
-		TableName:      tableOutputs.TableName,
-		TablePolicyArn: tableOutputs.TablePolicyArn,
-		QueueName:      leaderboardOutputs.QueueName,
-		QueuePolicyArn: leaderboardOutputs.QueuePolicyArn,
+	schedulerDeploy, err := scheduler.Deploy(ctx, &scheduler.DeployInput{
+		Region:         o.region,
+		Handler:        schedulerBuild.Handler,
+		TableName:      tableDeploy.TableName,
+		TablePolicyArn: tableDeploy.TablePolicyArn,
+		QueueName:      leaderboardDeploy.QueueName,
+		QueuePolicyArn: leaderboardDeploy.QueuePolicyArn,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to deploy scheduler: %v", err)
 	}
-	emailOutputs, err := o.deployEmail(ctx, &emailInput{})
+	emailDeploy, err := email.Deploy(ctx, &email.DeployInput{
+		Region:  o.region,
+		Domains: o.domains,
+		AutoDns: o.autoDns,
+	})
 	if err != nil {
 		return fmt.Errorf("failed to deploy ses email: %v", err)
 	}
-	_, err = o.deployManager(ctx, &managerInput{
-		CodeArchive:     pulumi.NewAssetArchive(map[string]any{}),
-		TableName:       tableOutputs.TableName,
-		TablePolicyArn:  tableOutputs.TablePolicyArn,
-		BucketName:      storageOutputs.BucketName,
-		BucketPolicyArn: storageOutputs.BucketPolicyArn,
-		EmailName:       emailOutputs.EmailName,
-		EmailPolicyArn:  emailOutputs.EmailPolicyArn,
+	_, err = manager.Deploy(ctx, &manager.DeployInput{
+		Region:          o.region,
+		Handler:         managerBuild.Handler,
+		TableName:       tableDeploy.TableName,
+		TablePolicyArn:  tableDeploy.TablePolicyArn,
+		BucketName:      storageDeploy.BucketName,
+		BucketPolicyArn: storageDeploy.BucketPolicyArn,
+		EmailName:       emailDeploy.EmailName,
+		EmailPolicyArn:  emailDeploy.EmailPolicyArn,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to deploy manager: %v", err)
 	}
-	proxyOutput, err := o.deployProxy(ctx, &proxyInput{
-		SchedulerDomain: schedulerOutputs.PublicUrl.ApplyT(func(input string) string {
+	proxyDeploy, err := proxy.Deploy(ctx, &proxy.DeployInput{
+		Domains:        o.domains,
+		AutoDns:        o.autoDns,
+		CertificateArn: o.certificateArn,
+		SchedulerDomain: schedulerDeploy.PublicUrl.ApplyT(func(input string) string {
 			url, err := url.Parse(input)
 			if err != nil {
 				return "invalid.domain"
 			}
 			return url.Host
 		}).(pulumi.StringOutput),
-		ManagerDomain: schedulerOutputs.PublicUrl.ApplyT(func(input string) string {
+		ManagerDomain: schedulerDeploy.PublicUrl.ApplyT(func(input string) string {
 			url, err := url.Parse(input)
 			if err != nil {
 				return "invalid.domain"
 			}
 			return url.Host
 		}).(pulumi.StringOutput),
-		BucketDomain: storageOutputs.BucketDomain,
+		BucketDomain: storageDeploy.BucketDomain,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to deploy proxy cdn: %v", err)
 	}
 
-	ctx.Export("ENDPOINT", proxyOutput.ProxyDomain)
+	ctx.Export("ENDPOINT", proxyDeploy.ProxyDomain)
 	return nil
-}
-
-// lookupZone checks if there is a route53 zone for the provided domain.
-// It traverses each domain segment to check for a zone.
-func lookupZone(ctx *pulumi.Context, domain string) (*route53.LookupZoneResult, error) {
-	var (
-		err      error
-		zoneName string = domain
-		zone     *route53.LookupZoneResult
-	)
-	for {
-		if lZone, lErr := route53.LookupZone(ctx, &route53.LookupZoneArgs{
-			Name:        pulumi.StringRef(zoneName),
-			PrivateZone: pulumi.BoolRef(false),
-		}); lErr != nil {
-			err = errors.Join(err, lErr)
-		} else {
-			zone = lZone
-			break
-		}
-		segments := strings.Split(zoneName, ".")
-		if len(segments) < 3 { // 3 segments minimum, the tld is never a hosted zone
-			return nil, fmt.Errorf("no route53 hosted zone found for domain '%s': %v", domain, err)
-		}
-		zoneName = segments[1]
-	}
-	return zone, nil
 }

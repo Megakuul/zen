@@ -1,9 +1,10 @@
-package deploy
+package proxy
 
 import (
 	"fmt"
 	"strings"
 
+	"github.com/megakuul/zen/internal/deploy/util"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/acm"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudfront"
@@ -11,36 +12,39 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-type proxyInput struct {
+type DeployInput struct {
+	Domains         []string
+	AutoDns         bool
+	CertificateArn  string
 	SchedulerDomain pulumi.StringOutput
 	ManagerDomain   pulumi.StringOutput
 	BucketDomain    pulumi.StringOutput
 }
 
-type proxyOutput struct {
+type DeployOutput struct {
 	ProxyDomain pulumi.StringOutput
 }
 
-func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOutput, error) {
-	if len(o.domains) < 1 {
+func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
+	if len(input.Domains) < 1 {
 		return nil, fmt.Errorf("expected at least one domain")
 	}
 	viewerCertificate := cloudfront.DistributionViewerCertificateArgs{
 		CloudfrontDefaultCertificate: pulumi.BoolPtr(true),
 	}
-	if !o.autoDns {
+	if !input.AutoDns {
 		viewerCertificate = cloudfront.DistributionViewerCertificateArgs{
-			AcmCertificateArn:      pulumi.String(o.certificateArn),
+			AcmCertificateArn:      pulumi.String(input.CertificateArn),
 			MinimumProtocolVersion: pulumi.String("TLSv1.2"),
 			SslSupportMethod:       pulumi.String("sni-only"),
 		}
 	} else {
 		sans := []string{}
-		if len(o.domains) > 1 {
-			sans = o.domains[1:]
+		if len(input.Domains) > 1 {
+			sans = input.Domains[1:]
 		}
 		validations := acm.CertificateValidationOptionArray{}
-		for _, domain := range o.domains {
+		for _, domain := range input.Domains {
 			validations = append(validations, acm.CertificateValidationOptionArgs{
 				DomainName:       pulumi.String(domain),
 				ValidationDomain: pulumi.String(domain),
@@ -49,7 +53,7 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 		cert, err := acm.NewCertificate(ctx, "proxy", &acm.CertificateArgs{
 			Region:                  aws.RegionUSEast1,
 			KeyAlgorithm:            pulumi.String("RSA_2048"),
-			DomainName:              pulumi.String(o.domains[0]),
+			DomainName:              pulumi.String(input.Domains[0]),
 			SubjectAlternativeNames: pulumi.ToStringArray(sans),
 			ValidationMethod:        pulumi.String("DNS"),
 			ValidationOptions:       validations,
@@ -58,8 +62,8 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 			return nil, err
 		}
 		validationFqdns := []pulumi.StringOutput{}
-		for i, domain := range o.domains {
-			zone, err := lookupZone(ctx, domain)
+		for i, domain := range input.Domains {
+			zone, err := util.LookupZone(ctx, domain)
 			if err != nil {
 				return nil, err
 			}
@@ -233,25 +237,25 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 		},
 		DefaultRootObject: pulumi.String("index.html"),
 		IsIpv6Enabled:     pulumi.BoolPtr(true),
-		Aliases:           pulumi.ToStringArray(o.domains),
+		Aliases:           pulumi.ToStringArray(input.Domains),
 		ViewerCertificate: viewerCertificate,
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	if !o.autoDns {
-		for _, domain := range o.domains {
+	if !input.AutoDns {
+		for _, domain := range input.Domains {
 			ctx.Export(
 				fmt.Sprintf("REQUIRED_CNAME_%s", strings.ToUpper(domain)),
 				pulumi.Sprintf("CNAME %s %s", pulumi.String(domain), proxy.DomainName),
 			)
 		}
-		return &proxyOutput{ProxyDomain: proxy.DomainName}, nil
+		return &DeployOutput{ProxyDomain: proxy.DomainName}, nil
 	}
 	// if hosted zone is in route53, records are automatically created.
-	for i, domain := range o.domains {
-		zone, err := lookupZone(ctx, domain)
+	for i, domain := range input.Domains {
+		zone, err := util.LookupZone(ctx, domain)
 		if err != nil {
 			return nil, err
 		}
@@ -285,6 +289,5 @@ func (o *Operator) deployProxy(ctx *pulumi.Context, input *proxyInput) (*proxyOu
 			return nil, err
 		}
 	}
-	return &proxyOutput{ProxyDomain: proxy.DomainName}, nil
+	return &DeployOutput{ProxyDomain: proxy.DomainName}, nil
 }
-

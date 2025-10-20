@@ -1,30 +1,72 @@
-package deploy
+package scheduler
 
 import (
+	"fmt"
 	"path/filepath"
 
+	"github.com/google/uuid"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/lambda"
+	"github.com/pulumi/pulumi-command/sdk/go/command/local"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
 )
 
-type schedulerInput struct {
-	Handler        pulumi.Archive
+type BuildInput struct {
+	CtxPath   string
+	CachePath string
+}
+
+type BuildOutput struct {
+	Handler pulumi.ArchiveOutput
+}
+
+func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
+	outputPath, err := filepath.Abs(input.CachePath)
+	if err != nil {
+		return nil, err
+	}
+	command := fmt.Sprintf("go build -o '%s' ./cmd/scheduler/scheduler.go", outputPath)
+	build, err := local.NewCommand(ctx, "scheduler", &local.CommandArgs{
+		Create:       pulumi.String(command),
+		Update:       pulumi.String(command),
+		Dir:          pulumi.String(input.CtxPath),
+		ArchivePaths: pulumi.ToStringArray([]string{outputPath}),
+		Environment: pulumi.ToStringMap(map[string]string{
+			"CGO_ENABLED": "0",
+			"GOOS":        "linux",
+			"GOARCH":      "arm64",
+		}),
+		Logging: local.LoggingStdoutAndStderr,
+		// not rebuilding causes the empty archive to trigger a rebuild of the function deployment.
+		// therefore, rebuild is always triggered.
+		Triggers: pulumi.ToArray([]any{uuid.New().String()}),
+	})
+	if err != nil {
+		return nil, err
+	}
+	return &BuildOutput{
+		Handler: build.Archive,
+	}, nil
+}
+
+type DeployInput struct {
+	Region         string
+	Handler        pulumi.ArchiveOutput
 	TableName      pulumi.StringOutput
 	TablePolicyArn pulumi.StringOutput
 	QueueName      pulumi.StringOutput
 	QueuePolicyArn pulumi.StringOutput
 }
 
-type schedulerOutput struct {
+type DeployOutput struct {
 	PublicUrl pulumi.StringOutput
 }
 
-func (o *Operator) deployScheduler(ctx *pulumi.Context, input *schedulerInput) (*schedulerOutput, error) {
+func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	schedulerLogGroup, err := cloudwatch.NewLogGroup(ctx, "scheduler", &cloudwatch.LogGroupArgs{
 		Name:            pulumi.String("zen-scheduler"),
-		Region:          pulumi.String(o.region),
+		Region:          pulumi.String(input.Region),
 		LogGroupClass:   pulumi.String("INFREQUENT_ACCESS"),
 		RetentionInDays: pulumi.IntPtr(7),
 	})
@@ -56,8 +98,10 @@ func (o *Operator) deployScheduler(ctx *pulumi.Context, input *schedulerInput) (
 	scheduler, err := lambda.NewFunction(ctx, "scheduler", &lambda.FunctionArgs{
 		Name:          pulumi.String("zen-scheduler"),
 		Description:   pulumi.StringPtr("backend responsible for managing the calendar associated timings"),
-		Region:        pulumi.StringPtr(o.region),
-		Handler:       pulumi.StringPtr(filepath.Base(input.Handler.Path())),
+		Region:        pulumi.StringPtr(input.Region),
+		Handler: input.Handler.ApplyT(func(archive pulumi.Archive) string {
+			return filepath.Base(archive.Path())
+		}).(pulumi.StringOutput).ToStringPtrOutput(),
 		Runtime:       lambda.RuntimeCustomAL2023,
 		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(128),
@@ -82,13 +126,13 @@ func (o *Operator) deployScheduler(ctx *pulumi.Context, input *schedulerInput) (
 		FunctionName:      scheduler.Arn,
 		InvokeMode:        pulumi.String("BUFFERED"),
 		Qualifier:         pulumi.String("$LATEST"),
-		Region:            pulumi.String(o.region),
+		Region:            pulumi.String(input.Region),
 		AuthorizationType: pulumi.String("NONE"),
 	})
 	if err != nil {
 		return nil, err
 	}
-	return &schedulerOutput{
+	return &DeployOutput{
 		PublicUrl: schedulerUrl.FunctionUrl,
 	}, nil
 }
