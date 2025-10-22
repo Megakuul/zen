@@ -181,20 +181,20 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			},
 			cloudfront.DistributionOriginArgs{
 				OriginId: pulumi.String("scheduler-api"),
-				CustomOriginConfig: cloudfront.DistributionOriginCustomOriginConfigPtr(&cloudfront.DistributionOriginCustomOriginConfigArgs{
+				CustomOriginConfig: &cloudfront.DistributionOriginCustomOriginConfigArgs{
 					HttpsPort:            pulumi.Int(443),
 					OriginProtocolPolicy: pulumi.String("https-only"),
 					OriginSslProtocols:   pulumi.ToStringArray([]string{"TLSv1.2"}),
-				}),
+				},
 				DomainName: input.SchedulerDomain,
 			},
 			cloudfront.DistributionOriginArgs{
 				OriginId: pulumi.String("manager-api"),
-				CustomOriginConfig: cloudfront.DistributionOriginCustomOriginConfigPtr(&cloudfront.DistributionOriginCustomOriginConfigArgs{
+				CustomOriginConfig: &cloudfront.DistributionOriginCustomOriginConfigArgs{
 					HttpsPort:            pulumi.Int(443),
 					OriginProtocolPolicy: pulumi.String("https-only"),
 					OriginSslProtocols:   pulumi.ToStringArray([]string{"TLSv1.2"}),
-				}),
+				},
 				DomainName: input.ManagerDomain,
 			},
 		},

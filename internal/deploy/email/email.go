@@ -28,12 +28,12 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	emailConfig, err := sesv2.NewConfigurationSet(ctx, "email", &sesv2.ConfigurationSetArgs{
 		ConfigurationSetName: pulumi.String("zen-email"),
 		Region:               pulumi.String(input.Region),
-		SuppressionOptions: sesv2.ConfigurationSetSuppressionOptionsPtr(&sesv2.ConfigurationSetSuppressionOptionsArgs{
+		SuppressionOptions: &sesv2.ConfigurationSetSuppressionOptionsArgs{
 			SuppressedReasons: pulumi.ToStringArray([]string{"BOUNCE", "COMPLAINT"}),
-		}),
-		SendingOptions: sesv2.ConfigurationSetSendingOptionsPtr(&sesv2.ConfigurationSetSendingOptionsArgs{
+		},
+		SendingOptions: &sesv2.ConfigurationSetSendingOptionsArgs{
 			SendingEnabled: pulumi.Bool(true),
-		}),
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -41,9 +41,9 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	emailIdentity, err := sesv2.NewEmailIdentity(ctx, "email", &sesv2.EmailIdentityArgs{
 		EmailIdentity: pulumi.String(input.Domains[0]),
 		Region:        pulumi.String(input.Region),
-		DkimSigningAttributes: sesv2.EmailIdentityDkimSigningAttributesPtr(&sesv2.EmailIdentityDkimSigningAttributesArgs{
+		DkimSigningAttributes: &sesv2.EmailIdentityDkimSigningAttributesArgs{
 			NextSigningKeyLength: pulumi.String("RSA_2048_BIT"),
-		}),
+		},
 		ConfigurationSetName: emailConfig.ConfigurationSetName,
 	})
 	if err != nil {
@@ -52,7 +52,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	envelopeDomain := fmt.Sprintf("%s.%s", "bounce", input.Domains[0])
 	_, err = sesv2.NewEmailIdentityMailFromAttributes(ctx, "email", &sesv2.EmailIdentityMailFromAttributesArgs{
 		EmailIdentity:       emailIdentity.EmailIdentity,
-		BehaviorOnMxFailure: pulumi.String("REJECT"),
+		BehaviorOnMxFailure: pulumi.String("REJECT_MESSAGE"),
 		MailFromDomain:      pulumi.String(envelopeDomain),
 		Region:              pulumi.String(input.Region),
 	})

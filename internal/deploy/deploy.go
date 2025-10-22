@@ -3,7 +3,6 @@ package deploy
 
 import (
 	"fmt"
-	"log/slog"
 	"net/url"
 	"path/filepath"
 
@@ -19,7 +18,6 @@ import (
 )
 
 type Operator struct {
-	logger           *slog.Logger
 	region           string
 	domains          []string
 	autoDns          bool
@@ -31,9 +29,8 @@ type Operator struct {
 
 type Option func(*Operator)
 
-func New(logger *slog.Logger, region string, opts ...Option) *Operator {
+func New(region string, opts ...Option) *Operator {
 	operator := &Operator{
-		logger:           logger,
 		region:           region,
 		autoDns:          true,
 		domains:          []string{},

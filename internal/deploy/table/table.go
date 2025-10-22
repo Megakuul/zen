@@ -27,14 +27,14 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			dynamodb.TableAttributeArgs{Name: pulumi.String("pk"), Type: pulumi.String("S")},
 			dynamodb.TableAttributeArgs{Name: pulumi.String("sk"), Type: pulumi.String("S")},
 		},
-		OnDemandThroughput: dynamodb.TableOnDemandThroughputPtr(&dynamodb.TableOnDemandThroughputArgs{
+		OnDemandThroughput: &dynamodb.TableOnDemandThroughputArgs{
 			MaxWriteRequestUnits: pulumi.IntPtr(10),
 			MaxReadRequestUnits:  pulumi.IntPtr(100),
-		}),
-		Ttl: dynamodb.TableTtlPtr(&dynamodb.TableTtlArgs{
+		},
+		Ttl: &dynamodb.TableTtlArgs{
 			AttributeName: pulumi.String("expiry"),
 			Enabled:       pulumi.BoolPtr(true),
-		}),
+		},
 		DeletionProtectionEnabled: pulumi.BoolPtr(input.DeleteProtection),
 	})
 	if err != nil {

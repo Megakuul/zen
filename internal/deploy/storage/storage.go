@@ -41,10 +41,10 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				Id:     pulumi.String("captcha-cleanup"),
 				Prefix: pulumi.String("captcha/"),
 				Status: pulumi.String("Enabled"),
-				Expiration: s3.BucketLifecycleConfigurationV2RuleExpirationPtr(&s3.BucketLifecycleConfigurationV2RuleExpirationArgs{
+				Expiration: &s3.BucketLifecycleConfigurationV2RuleExpirationArgs{
 					Days:                      pulumi.IntPtr(1),
 					ExpiredObjectDeleteMarker: pulumi.BoolPtr(true),
-				}),
+				},
 			},
 		},
 	})

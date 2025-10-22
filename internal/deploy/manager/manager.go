@@ -108,19 +108,19 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		Runtime:       lambda.RuntimeCustomAL2023,
 		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(128),
-		LoggingConfig: lambda.FunctionLoggingConfigPtr(&lambda.FunctionLoggingConfigArgs{
+		LoggingConfig: &lambda.FunctionLoggingConfigArgs{
 			LogGroup:  managerLogGroup.Name,
 			LogFormat: pulumi.String("Text"),
-		}),
+		},
 		Role: managerRole.Arn,
 		Code: input.Handler,
-		Environment: lambda.FunctionEnvironmentPtr(&lambda.FunctionEnvironmentArgs{
+		Environment: &lambda.FunctionEnvironmentArgs{
 			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
 				"TABLE":  input.TableName,
 				"BUCKET": input.BucketName,
 				"EMAIL":  input.EmailName,
 			}),
-		}),
+		},
 	})
 	if err != nil {
 		return nil, err

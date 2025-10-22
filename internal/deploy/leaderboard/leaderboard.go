@@ -158,18 +158,18 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(512),
 		Timeout:       queue.VisibilityTimeoutSeconds, // avoid a function to read the task while another is processing it
-		LoggingConfig: lambda.FunctionLoggingConfigPtr(&lambda.FunctionLoggingConfigArgs{
+		LoggingConfig: lambda.FunctionLoggingConfigArgs{
 			LogGroup:  leaderboardLogGroup.Name,
 			LogFormat: pulumi.String("Text"),
-		}),
+		},
 		Role: leaderboardRole.Arn,
 		Code: input.Handler,
-		Environment: lambda.FunctionEnvironmentPtr(&lambda.FunctionEnvironmentArgs{
+		Environment: &lambda.FunctionEnvironmentArgs{
 			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
 				"QUEUE":  queue.Name,
 				"BUCKET": input.BucketName,
 			}),
-		}),
+		},
 	})
 	if err != nil {
 		return nil, err
