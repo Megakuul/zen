@@ -16,6 +16,7 @@ type DeployInput struct {
 	Domains         []string
 	AutoDns         bool
 	CertificateArn  string
+	WebRouter       pulumi.String
 	SchedulerDomain pulumi.StringOutput
 	ManagerDomain   pulumi.StringOutput
 	BucketDomain    pulumi.StringOutput
@@ -165,6 +166,16 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		return nil, err
 	}
 
+	router, err := cloudfront.NewFunction(ctx, "proxy", &cloudfront.FunctionArgs{
+		Name:    pulumi.String("zen-proxy-router"),
+		Comment: pulumi.String("Sveltekit router used to correctly route pages"),
+		Runtime: pulumi.String("cloudfront-js-2.0"),
+		Code:    input.WebRouter,
+	})
+	if err != nil {
+		return nil, err
+	}
+
 	proxy, err := cloudfront.NewDistribution(ctx, "proxy", &cloudfront.DistributionArgs{
 		PriceClass: pulumi.String("PriceClass_All"),
 		Origins: cloudfront.DistributionOriginArray{
@@ -205,6 +216,12 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			TargetOriginId:       pulumi.String("web"),
 			ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
 			CachePolicyId:        webCachePolicy.ID(),
+			FunctionAssociations: cloudfront.DistributionDefaultCacheBehaviorFunctionAssociationArray{
+				cloudfront.DistributionDefaultCacheBehaviorFunctionAssociationArgs{
+					EventType:   pulumi.String("viewer-request"),
+					FunctionArn: router.Arn,
+				},
+			},
 		},
 		OrderedCacheBehaviors: cloudfront.DistributionOrderedCacheBehaviorArray{
 			cloudfront.DistributionOrderedCacheBehaviorArgs{

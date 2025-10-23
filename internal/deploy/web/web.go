@@ -2,6 +2,7 @@ package web
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -16,6 +17,7 @@ type BuildInput struct {
 
 type BuildOutput struct {
 	Artifacts pulumi.AssetOrArchiveMapOutput
+	Router    pulumi.String
 }
 
 func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
@@ -40,7 +42,12 @@ func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
 	if err != nil {
 		return nil, err
 	}
+	router, err := os.ReadFile(filepath.Join(input.CtxPath, "web/router/router.js"))
+	if err != nil {
+		return nil, fmt.Errorf("no web router found: %v", err)
+	}
 	return &BuildOutput{
 		Artifacts: build.Assets,
+		Router:    pulumi.String(router),
 	}, nil
 }

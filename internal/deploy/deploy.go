@@ -170,6 +170,7 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 		Domains:        o.domains,
 		AutoDns:        o.autoDns,
 		CertificateArn: o.certificateArn,
+		WebRouter:      webBuild.Router,
 		SchedulerDomain: schedulerDeploy.PublicUrl.ApplyT(func(input string) string {
 			url, err := url.Parse(input)
 			if err != nil {
