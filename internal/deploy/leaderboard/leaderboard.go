@@ -151,9 +151,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		Name:        pulumi.String("zen-leaderboard"),
 		Description: pulumi.StringPtr("background processor responsible for creating the leaderboard"),
 		Region:      pulumi.StringPtr(input.Region),
-		Handler: input.Handler.ApplyT(func(archive pulumi.Archive) string {
-			return filepath.Base(archive.Path())
-		}).(pulumi.StringOutput).ToStringPtrOutput(),
+		Handler: pulumi.String("leaderboard"),
 		Runtime:       lambda.RuntimeCustomAL2023,
 		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(512),

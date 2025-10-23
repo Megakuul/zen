@@ -99,12 +99,10 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	}
 
 	manager, err := lambda.NewFunction(ctx, "manager", &lambda.FunctionArgs{
-		Name:        pulumi.String("zen-manager"),
-		Description: pulumi.StringPtr("backend responsible for managing administrative tasks"),
-		Region:      pulumi.StringPtr(input.Region),
-		Handler: input.Handler.ApplyT(func(archive pulumi.Archive) string {
-			return filepath.Base(archive.Path())
-		}).(pulumi.StringOutput).ToStringPtrOutput(),
+		Name:          pulumi.String("zen-manager"),
+		Description:   pulumi.StringPtr("backend responsible for managing administrative tasks"),
+		Region:        pulumi.StringPtr(input.Region),
+		Handler:       pulumi.String("manager"),
 		Runtime:       lambda.RuntimeCustomAL2023,
 		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(128),

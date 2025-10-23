@@ -99,9 +99,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		Name:          pulumi.String("zen-scheduler"),
 		Description:   pulumi.StringPtr("backend responsible for managing the calendar associated timings"),
 		Region:        pulumi.StringPtr(input.Region),
-		Handler: input.Handler.ApplyT(func(archive pulumi.Archive) string {
-			return filepath.Base(archive.Path())
-		}).(pulumi.StringOutput).ToStringPtrOutput(),
+		Handler:       pulumi.String("scheduler"),
 		Runtime:       lambda.RuntimeCustomAL2023,
 		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(128),

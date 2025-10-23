@@ -20,7 +20,6 @@ func launch(ctx context.Context, ws auto.Workspace) error {
 	if err != nil {
 		return fmt.Errorf("failed to construct stack: %v", err)
 	}
-	// TODO change secrets provider
 	spinner.Stop()
 	spinner, _ = pterm.DefaultSpinner.WithRemoveWhenDone(true).
 		Start("Loading stack update preview...")
