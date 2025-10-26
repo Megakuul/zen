@@ -32,7 +32,7 @@ func LookupZone(ctx *pulumi.Context, domain string) (*route53.LookupZoneResult, 
 		if len(segments) < 3 { // 3 segments minimum, the tld is never a hosted zone
 			return nil, fmt.Errorf("no route53 hosted zone found for domain '%s': %v", domain, err)
 		}
-		zoneName = segments[1]
+		zoneName = strings.Join(segments[1:], ".")
 	}
 	return zone, nil
 }

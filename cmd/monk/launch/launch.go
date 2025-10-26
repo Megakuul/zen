@@ -1,4 +1,4 @@
-package main
+package launch
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/auto/optpreview"
 )
 
-// launch performs an interactive process to deploy the operator stack on the provided workspace.
-func launch(ctx context.Context, ws auto.Workspace) error {
+// Launch performs an interactive process to deploy the operator stack on the provided workspace.
+func Launch(ctx context.Context, ws auto.Workspace) error {
 	environment, _ := pterm.DefaultInteractiveTextInput.
 		WithDefaultValue("prod").Show("Enter the environment")
 	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).

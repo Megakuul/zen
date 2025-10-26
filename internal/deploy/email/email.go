@@ -72,6 +72,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			Records: pulumi.ToStringArray([]string{
 				fmt.Sprintf("10 feedback-smtp.%s.amazonses.com", input.Region),
 			}),
+			Ttl: pulumi.IntPtr(300),
 		})
 		if err != nil {
 			return nil, err
@@ -84,6 +85,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			Records: pulumi.ToStringArray([]string{
 				"v=spf1 include:amazonses.com -all",
 			}),
+			Ttl: pulumi.IntPtr(300),
 		})
 		if err != nil {
 			return nil, err
@@ -102,6 +104,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 					Records: pulumi.ToStringArray([]string{
 						fmt.Sprintf("%s.dkim.amazonses.com", selector),
 					}),
+					Ttl: pulumi.IntPtr(300),
 				})
 				if err != nil {
 					return "", err
@@ -116,6 +119,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			Records: pulumi.ToStringArray([]string{
 				"v=DMARC1; p=reject; adkim=s; aspf=r;", // spf is relaxed because SES envelope must be a subdomain of the identity.
 			}),
+			Ttl: pulumi.IntPtr(300),
 		})
 		if err != nil {
 			return nil, err

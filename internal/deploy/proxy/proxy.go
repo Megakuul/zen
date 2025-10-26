@@ -151,6 +151,36 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		MinTtl:     pulumi.IntPtr(0),
 		MaxTtl:     pulumi.IntPtr(0),
 		DefaultTtl: pulumi.IntPtr(0),
+		ParametersInCacheKeyAndForwardedToOrigin: cloudfront.CachePolicyParametersInCacheKeyAndForwardedToOriginArgs{
+			EnableAcceptEncodingBrotli: pulumi.BoolPtr(false),
+			EnableAcceptEncodingGzip:   pulumi.BoolPtr(false),
+			CookiesConfig: cloudfront.CachePolicyParametersInCacheKeyAndForwardedToOriginCookiesConfigArgs{
+				CookieBehavior: pulumi.String("none"),
+			},
+			HeadersConfig: cloudfront.CachePolicyParametersInCacheKeyAndForwardedToOriginHeadersConfigArgs{
+				HeaderBehavior: pulumi.String("none"),
+			},
+			QueryStringsConfig: cloudfront.CachePolicyParametersInCacheKeyAndForwardedToOriginQueryStringsConfigArgs{
+				QueryStringBehavior: pulumi.String("none"),
+			},
+		},
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	apiOriginPolicy, err := cloudfront.NewOriginRequestPolicy(ctx, "proxy-api", &cloudfront.OriginRequestPolicyArgs{
+		Name:    pulumi.String("zen-proxy-api"),
+		Comment: pulumi.String("allows all data (headers, queries, cookies) to be forwarded to the api"),
+		CookiesConfig: cloudfront.OriginRequestPolicyCookiesConfigArgs{
+			CookieBehavior: pulumi.String("all"),
+		},
+		HeadersConfig: cloudfront.OriginRequestPolicyHeadersConfigArgs{
+			HeaderBehavior: pulumi.String("allViewer"),
+		},
+		QueryStringsConfig: cloudfront.OriginRequestPolicyQueryStringsConfigArgs{
+			QueryStringBehavior: pulumi.String("all"),
+		},
 	})
 	if err != nil {
 		return nil, err
@@ -177,6 +207,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	}
 
 	proxy, err := cloudfront.NewDistribution(ctx, "proxy", &cloudfront.DistributionArgs{
+		Enabled:    pulumi.Bool(true),
 		PriceClass: pulumi.String("PriceClass_All"),
 		Origins: cloudfront.DistributionOriginArray{
 			cloudfront.DistributionOriginArgs{
@@ -234,28 +265,36 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				CachePolicyId:        leaderboardCachePolicy.ID(),
 			},
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
-				PathPattern:          pulumi.String("/api/scheduler"),
-				AllowedMethods:       pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST"}),
-				CachedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD"}),
-				Compress:             pulumi.BoolPtr(false),
-				TargetOriginId:       pulumi.String("scheduler-api"),
-				ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
-				CachePolicyId:        apiCachePolicy.ID(),
+				PathPattern:           pulumi.String("/api/scheduler"),
+				AllowedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST"}),
+				CachedMethods:         pulumi.ToStringArray([]string{"GET", "HEAD"}),
+				Compress:              pulumi.BoolPtr(false),
+				TargetOriginId:        pulumi.String("scheduler-api"),
+				ViewerProtocolPolicy:  pulumi.String("redirect-to-https"),
+				CachePolicyId:         apiCachePolicy.ID(),
+				OriginRequestPolicyId: apiOriginPolicy.ID(),
 			},
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
-				PathPattern:          pulumi.String("/api/manager"),
-				AllowedMethods:       pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST"}),
-				CachedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD"}),
-				Compress:             pulumi.BoolPtr(false),
-				TargetOriginId:       pulumi.String("manager-api"),
-				ViewerProtocolPolicy: pulumi.String("redirect-to-https"),
-				CachePolicyId:        apiCachePolicy.ID(),
+				PathPattern:           pulumi.String("/api/manager"),
+				AllowedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST"}),
+				CachedMethods:         pulumi.ToStringArray([]string{"GET", "HEAD"}),
+				Compress:              pulumi.BoolPtr(false),
+				TargetOriginId:        pulumi.String("manager-api"),
+				ViewerProtocolPolicy:  pulumi.String("redirect-to-https"),
+				CachePolicyId:         apiCachePolicy.ID(),
+				OriginRequestPolicyId: apiOriginPolicy.ID(),
 			},
 		},
 		DefaultRootObject: pulumi.String("index.html"),
 		IsIpv6Enabled:     pulumi.BoolPtr(true),
 		Aliases:           pulumi.ToStringArray(input.Domains),
 		ViewerCertificate: viewerCertificate,
+		Restrictions: cloudfront.DistributionRestrictionsArgs{
+			GeoRestriction: cloudfront.DistributionRestrictionsGeoRestrictionArgs{
+				RestrictionType: pulumi.String("none"),
+				Locations: pulumi.ToStringArray([]string{}),
+			},
+		},
 	})
 	if err != nil {
 		return nil, err

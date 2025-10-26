@@ -1,4 +1,4 @@
-package main
+package nuke
 
 import (
 	"context"
@@ -9,8 +9,8 @@ import (
 	"github.com/pulumi/pulumi/sdk/v3/go/auto/optdestroy"
 )
 
-// nuke performs an interactive process to destroy a running operator.
-func nuke(ctx context.Context, ws auto.Workspace, stackName string) error {
+// Nuke performs an interactive process to destroy a running operator.
+func Nuke(ctx context.Context, ws auto.Workspace, stackName string) error {
 	stack, err := auto.SelectStack(ctx, stackName, ws)
 	if err != nil {
 		return fmt.Errorf("failed to load stack: %v", err)

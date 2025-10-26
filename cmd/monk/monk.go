@@ -15,6 +15,8 @@ import (
 	kmstypes "github.com/aws/aws-sdk-go-v2/service/kms/types"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	s3types "github.com/aws/aws-sdk-go-v2/service/s3/types"
+	"github.com/megakuul/zen/cmd/monk/launch"
+	"github.com/megakuul/zen/cmd/monk/nuke"
 	"github.com/megakuul/zen/internal/deploy"
 	"github.com/pterm/pterm"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto"
@@ -125,16 +127,16 @@ func run(ctx context.Context) error {
 	}
 	spinner.Stop()
 	if len(stacks) < 1 {
-		return launch(ctx, ws)
+		return launch.Launch(ctx, ws)
 	} else {
 		action, _ := pterm.DefaultInteractiveSelect.
 			WithOptions([]string{"launch", "nuke"}).Show("Select action")
 		switch action {
 		case "launch":
-			return launch(ctx, ws)
+			return launch.Launch(ctx, ws)
 		case "nuke":
 			for _, stack := range stacks {
-				err = nuke(ctx, ws, stack.Name)
+				err = nuke.Nuke(ctx, ws, stack.Name)
 				if err != nil {
 					return err
 				}
