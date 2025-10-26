@@ -87,9 +87,11 @@ func run(ctx context.Context) error {
 		Key:    aws.String(configKey),
 	})
 	if err != nil {
-		if !errors.Is(err, &s3types.NotFound{}) {
+		var nErr *s3types.NoSuchKey 
+		if !errors.As(err, &nErr) {
 			return fmt.Errorf("failed to load app config: %v", err)
 		}
+		config.AutoDns = true
 	} else {
 		defer configObject.Body.Close()
 		rawConfig, err := io.ReadAll(configObject.Body)
@@ -103,17 +105,17 @@ func run(ctx context.Context) error {
 	}
 
 	if ok, _ := pterm.DefaultInteractiveConfirm.
+		WithDefaultValue(config.Project == "").Show("Customize project name?"); ok {
+		config.Project, _ = pterm.DefaultInteractiveTextInput.
+			WithDefaultValue("zen").Show("Enter project name")
+	}
+
+	if ok, _ := pterm.DefaultInteractiveConfirm.
 		WithDefaultValue(config.StateKey == "").Show("Customize state key?"); ok {
 		config.StateKey, err = setupKey(ctx, kmsClient)
 		if err != nil {
 			return fmt.Errorf("failed to setup kms: %v", err)
 		}
-	}
-
-	if ok, _ := pterm.DefaultInteractiveConfirm.
-		WithDefaultValue(config.Project == "").Show("Customize project key?"); ok {
-		config.Project, _ = pterm.DefaultInteractiveTextInput.
-			WithDefaultValue("zen").Show("Enter project name")
 	}
 
 	if ok, _ := pterm.DefaultInteractiveConfirm.
