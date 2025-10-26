@@ -1,8 +1,12 @@
 package main
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"os"
 	"os/signal"
 	"strings"
@@ -48,6 +52,17 @@ func main() {
 	return
 }
 
+// appConfig is a json config used to store input parameters beside the pulumi state.
+// Useful for updates where only certain parameters have to be changed.
+// (pulumis IgnoreChange option is not sufficiently versatile for this use case).
+type appConfig struct {
+	Project          string   `json:"project"`
+	Domains          []string `json:"domains"`
+	AutoDns          bool     `json:"auto_dns"`
+	DeleteProtection bool     `json:"delete_protection"`
+	StateKey         string   `json:"state_key"`
+}
+
 func run(ctx context.Context) error {
 	pterm.DefaultSpinner.Style = pterm.NewStyle(pterm.FgLightBlue)
 	pterm.DefaultBasicText.Style = pterm.NewStyle(pterm.FgLightBlue)
@@ -57,65 +72,116 @@ func run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	s3Client := s3.NewFromConfig(cfg)
+	kmsClient := kms.NewFromConfig(cfg)
 
-	project, _ := pterm.DefaultInteractiveTextInput.
-		WithDefaultValue("zen").Show("Enter project name")
-
-	operatorOptions := []deploy.Option{}
-
-	ok, _ := pterm.DefaultInteractiveConfirm.
-		WithDefaultValue(false).Show("Enable delete protection?")
-	if ok {
-		operatorOptions = append(operatorOptions, deploy.WithDeleteProtection(true))
+	bucket, prefix, err := setupBucket(ctx, s3Client)
+	if err != nil {
+		return fmt.Errorf("failed to setup bucket: %v", err)
 	}
+	configKey := fmt.Sprint(strings.TrimPrefix(prefix, "/"), "zen-app-config.json")
 
-	domains := []string{}
-	for {
-		domain, _ := pterm.DefaultInteractiveTextInput.
-			WithDefaultValue("zen.megakuul.com").Show("Enter application domain")
-		domains = append(domains, domain)
-		ok, _ := pterm.DefaultInteractiveConfirm.
-			WithDefaultValue(false).Show("Add another domain?")
-		if !ok {
-			break
+	var config appConfig
+	configObject, err := s3Client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(configKey),
+	})
+	if err != nil {
+		if !errors.Is(err, &s3types.NotFound{}) {
+			return fmt.Errorf("failed to load app config: %v", err)
+		}
+	} else {
+		defer configObject.Body.Close()
+		rawConfig, err := io.ReadAll(configObject.Body)
+		if err != nil {
+			return fmt.Errorf("failed to read app config: %v", err)
+		}
+		err = json.Unmarshal(rawConfig, &config)
+		if err != nil {
+			return fmt.Errorf("failed to parse app config: %v", err)
 		}
 	}
 
-	ok, _ = pterm.DefaultInteractiveConfirm.
-		WithDefaultValue(true).Show("Enable dns management (requires route53 zone for each domain)?")
-	if !ok {
+	if ok, _ := pterm.DefaultInteractiveConfirm.
+		WithDefaultValue(config.StateKey == "").Show("Customize state key?"); ok {
+		config.StateKey, err = setupKey(ctx, kmsClient)
+		if err != nil {
+			return fmt.Errorf("failed to setup kms: %v", err)
+		}
+	}
+
+	if ok, _ := pterm.DefaultInteractiveConfirm.
+		WithDefaultValue(config.Project == "").Show("Customize project key?"); ok {
+		config.Project, _ = pterm.DefaultInteractiveTextInput.
+			WithDefaultValue("zen").Show("Enter project name")
+	}
+
+	if ok, _ := pterm.DefaultInteractiveConfirm.
+		WithDefaultValue(config.Domains == nil).Show("Customize domains?"); ok {
+		config.Domains = []string{}
+		for {
+			domain, _ := pterm.DefaultInteractiveTextInput.
+				WithDefaultValue("zen.megakuul.com").Show("Enter application domain")
+			config.Domains = append(config.Domains, domain)
+			ok, _ := pterm.DefaultInteractiveConfirm.
+				WithDefaultValue(false).Show("Add another domain?")
+			if !ok {
+				break
+			}
+		}
+	}
+
+	if ok, _ := pterm.DefaultInteractiveConfirm.
+		WithDefaultValue(false).Show("Customize delete protection?"); ok {
+		config.DeleteProtection, _ = pterm.DefaultInteractiveConfirm.
+			WithDefaultValue(false).Show("Enable delete protection?")
+	}
+
+	if ok, _ := pterm.DefaultInteractiveConfirm.
+		WithDefaultValue(false).Show("Customize dns management?"); ok {
+		config.AutoDns, _ = pterm.DefaultInteractiveConfirm.
+			WithDefaultValue(true).Show("Enable dns management (requires route53 zone for each domain)?")
+	}
+
+	operatorOptions := []deploy.Option{}
+	if config.DeleteProtection {
+		operatorOptions = append(operatorOptions, deploy.WithDeleteProtection(true))
+	}
+	if !config.AutoDns {
 		certArn, _ := pterm.DefaultInteractiveTextInput.
 			WithDefaultValue("arn:aws:acm:us-east-1:...").Show("Enter acm certificate arn (must have SAN's for each domains)")
 		operatorOptions = append(operatorOptions, deploy.WithDnsSetup(certArn))
 	}
-
 	operatorOptions = append(operatorOptions, deploy.WithBuildPath(".", ".buildcache"))
-	operatorOptions = append(operatorOptions, deploy.WithDomain(domains))
+	operatorOptions = append(operatorOptions, deploy.WithDomain(config.Domains))
 	operator := deploy.New(cfg.Region, operatorOptions...)
 
-	bucket, prefix, err := setupBucket(ctx, cfg, project)
-	if err != nil {
-		return fmt.Errorf("failed to setup bucket: %v", err)
-	}
-
-	keyAlias, err := setupKey(ctx, cfg, project)
-	if err != nil {
-		return fmt.Errorf("failed to setup kms: %v", err)
-	}
-
 	ws, err := auto.NewLocalWorkspace(ctx, auto.Project(workspace.Project{
-		Name:    tokens.PackageName(project),
+		Name:    tokens.PackageName(config.Project),
 		Author:  aws.String("zen monk bootstrapper"),
 		Runtime: workspace.NewProjectRuntimeInfo("go", map[string]any{}),
 		Backend: &workspace.ProjectBackend{
 			URL: fmt.Sprintf("s3://%s%s", bucket, prefix),
 		},
 	}),
-		auto.SecretsProvider(fmt.Sprintf("awskms://%s", keyAlias)),
+		auto.SecretsProvider(fmt.Sprintf("awskms://%s", config.StateKey)),
 		auto.Program(operator.Deploy),
 	)
 	if err != nil {
 		return err
+	}
+
+	rawConfig, err := json.Marshal(config)
+	if err!=nil {
+		return fmt.Errorf("failed to serialize app config: %v", err)
+	}
+	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
+		Bucket: aws.String(bucket),
+		Key:    aws.String(configKey),
+		Body: bytes.NewReader(rawConfig),
+	})
+	if err != nil {
+		return fmt.Errorf("failed to upload app config: %v", err)
 	}
 
 	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
@@ -148,56 +214,52 @@ func run(ctx context.Context) error {
 	}
 }
 
-func setupKey(ctx context.Context, cfg aws.Config, project string) (string, error) {
-	kmsClient := kms.NewFromConfig(cfg)
-	ok, _ := pterm.DefaultInteractiveConfirm.
-		WithDefaultValue(false).Show("Use existing kms key for state encryption?")
-	if ok {
-		listResp, err := kmsClient.ListAliases(ctx, &kms.ListAliasesInput{})
-		if err != nil {
-			return "", err
-		}
-		keys := []string{}
-		for _, alias := range listResp.Aliases {
-			keys = append(keys, *alias.AliasName)
-		}
-		selected, err := pterm.DefaultInteractiveSelect.
-			WithOptions(keys).
-			Show("Select kms key")
-		if err != nil {
-			return "", err
-		}
-		return selected, nil
-	} else {
-		name, _ := pterm.DefaultInteractiveTextInput.
-			WithDefaultValue(fmt.Sprint(project, "-state-key")).Show("Enter key alias name")
-		alias := fmt.Sprintf("alias/%s", name)
+func setupKey(ctx context.Context, client *kms.Client) (string, error) {
+	name, _ := pterm.DefaultInteractiveTextInput.
+		WithDefaultValue("zen-state-key").Show("Enter key alias name")
+	alias := fmt.Sprintf("alias/%s", name)
 
-		spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
-			Start("Creating kms key...")
-		defer spinner.Stop()
-		createResp, err := kmsClient.CreateKey(ctx, &kms.CreateKeyInput{
-			KeySpec:     types.KeySpecSymmetricDefault,
-			KeyUsage:    kmstypes.KeyUsageTypeEncryptDecrypt,
-			Description: aws.String("Key used to encrypt sensitive pulumi stack data"),
-		})
-		if err != nil {
-			return "", err
-		}
-		_, err = kmsClient.CreateAlias(ctx, &kms.CreateAliasInput{
-			AliasName:   aws.String(alias),
-			TargetKeyId: createResp.KeyMetadata.KeyId,
-		})
-		return alias, err
+	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
+		Start("Creating kms key...")
+	defer spinner.Stop()
+	createResp, err := client.CreateKey(ctx, &kms.CreateKeyInput{
+		KeySpec:     types.KeySpecSymmetricDefault,
+		KeyUsage:    kmstypes.KeyUsageTypeEncryptDecrypt,
+		Description: aws.String("Key used to encrypt sensitive pulumi stack data"),
+	})
+	if err != nil {
+		return "", err
 	}
+	_, err = client.CreateAlias(ctx, &kms.CreateAliasInput{
+		AliasName:   aws.String(alias),
+		TargetKeyId: createResp.KeyMetadata.KeyId,
+	})
+	return alias, err
 }
 
-func setupBucket(ctx context.Context, cfg aws.Config, project string) (string, string, error) {
-	s3Client := s3.NewFromConfig(cfg)
+func setupBucket(ctx context.Context, client *s3.Client) (string, string, error) {
 	ok, _ := pterm.DefaultInteractiveConfirm.
-		WithDefaultValue(false).Show("Use existing s3 bucket for state?")
+		WithDefaultValue(true).Show("Create new project?")
 	if ok {
-		listResp, err := s3Client.ListBuckets(ctx, &s3.ListBucketsInput{})
+		name, _ := pterm.DefaultInteractiveTextInput.
+			WithDefaultValue("zen-state-bucket").Show("Enter state bucket name")
+		region, _ := pterm.DefaultInteractiveTextInput.
+			WithDefaultValue("eu-central-1").Show("Enter state bucket name")
+		spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
+			Start("Creating state bucket...")
+		defer spinner.Stop()
+		_, err := client.CreateBucket(ctx, &s3.CreateBucketInput{
+			Bucket: aws.String(name),
+			CreateBucketConfiguration: &s3types.CreateBucketConfiguration{
+				LocationConstraint: s3types.BucketLocationConstraint(region),
+			},
+		})
+		if err != nil {
+			return "", "", err
+		}
+		return name, "/", nil
+	} else {
+		listResp, err := client.ListBuckets(ctx, &s3.ListBucketsInput{})
 		if err != nil {
 			return "", "", err
 		}
@@ -213,23 +275,5 @@ func setupBucket(ctx context.Context, cfg aws.Config, project string) (string, s
 		}
 		prefix, _ := pterm.DefaultInteractiveTextInput.WithDefaultValue("/").Show("Specify bucket prefix")
 		return selected, prefix, nil
-	} else {
-		name, _ := pterm.DefaultInteractiveTextInput.
-			WithDefaultValue(fmt.Sprint(project, "-state-bucket")).Show("Enter state bucket name")
-		region, _ := pterm.DefaultInteractiveTextInput.
-			WithDefaultValue("eu-central-1").Show("Enter state bucket name")
-		spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
-			Start("Creating state bucket...")
-		defer spinner.Stop()
-		_, err := s3Client.CreateBucket(ctx, &s3.CreateBucketInput{
-			Bucket: aws.String(name),
-			CreateBucketConfiguration: &s3types.CreateBucketConfiguration{
-				LocationConstraint: s3types.BucketLocationConstraint(region),
-			},
-		})
-		if err != nil {
-			return "", "", err
-		}
-		return name, "/", nil
 	}
 }

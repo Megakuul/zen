@@ -22,6 +22,10 @@ type BuildOutput struct {
 }
 
 func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
+	contextPath, err := filepath.Abs(input.CtxPath)
+	if err != nil {
+		return nil, err
+	}
 	outputPath, err := filepath.Abs(input.CachePath)
 	if err != nil {
 		return nil, err
@@ -30,7 +34,7 @@ func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
 	build, err := local.NewCommand(ctx, "manager", &local.CommandArgs{
 		Create:       pulumi.String(command),
 		Update:       pulumi.String(command),
-		Dir:          pulumi.String(input.CtxPath),
+		Dir:          pulumi.String(contextPath),
 		ArchivePaths: pulumi.ToStringArray([]string{outputPath}),
 		Environment: pulumi.ToStringMap(map[string]string{
 			"CGO_ENABLED": "0",

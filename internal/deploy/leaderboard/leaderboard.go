@@ -23,6 +23,10 @@ type BuildOutput struct {
 }
 
 func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
+	contextPath, err := filepath.Abs(input.CtxPath)
+	if err != nil {
+		return nil, err
+	}
 	outputPath, err := filepath.Abs(input.CachePath)
 	if err != nil {
 		return nil, err
@@ -31,7 +35,7 @@ func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
 	build, err := local.NewCommand(ctx, "leaderboard", &local.CommandArgs{
 		Create:       pulumi.String(command),
 		Update:       pulumi.String(command),
-		Dir:          pulumi.String(input.CtxPath),
+		Dir:          pulumi.String(contextPath),
 		ArchivePaths: pulumi.ToStringArray([]string{outputPath}),
 		Environment: pulumi.ToStringMap(map[string]string{
 			"CGO_ENABLED": "0",
@@ -148,10 +152,10 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	}
 
 	leaderboard, err := lambda.NewFunction(ctx, "leaderboard", &lambda.FunctionArgs{
-		Name:        pulumi.String("zen-leaderboard"),
-		Description: pulumi.StringPtr("background processor responsible for creating the leaderboard"),
-		Region:      pulumi.StringPtr(input.Region),
-		Handler: pulumi.String("leaderboard"),
+		Name:          pulumi.String("zen-leaderboard"),
+		Description:   pulumi.StringPtr("background processor responsible for creating the leaderboard"),
+		Region:        pulumi.StringPtr(input.Region),
+		Handler:       pulumi.String("leaderboard"),
 		Runtime:       lambda.RuntimeCustomAL2023,
 		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(512),
