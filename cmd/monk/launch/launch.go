@@ -7,12 +7,14 @@ import (
 	"github.com/pterm/pterm"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto"
 	"github.com/pulumi/pulumi/sdk/v3/go/auto/optpreview"
+	"github.com/pulumi/pulumi/sdk/v3/go/auto/optup"
 )
 
 // Launch performs an interactive process to deploy the operator stack on the provided workspace.
 func Launch(ctx context.Context, ws auto.Workspace) error {
-	environment, _ := pterm.DefaultInteractiveTextInput.
-		WithDefaultValue("prod").Show("Enter the environment")
+	environment, _ := pterm.DefaultInteractiveSelect.WithOptions([]string{
+		"prod", "test", "int", "dev",
+	}).WithDefaultOption("prod").Show("Select environment")
 	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
 		Start("Merging stack update locally...")
 	defer spinner.Stop()
@@ -40,11 +42,30 @@ func Launch(ctx context.Context, ws auto.Workspace) error {
 	if !ok {
 		return fmt.Errorf("process cancelled")
 	}
+	multi, _ := pterm.DefaultMultiPrinter.Start()
+	defer multi.Stop()
+	stackWriter := multi.NewWriter()
 	spinner, _ = pterm.DefaultSpinner.WithRemoveWhenDone(true).
-		Start("Applying stack update...")
-	_, err = stack.Up(ctx)
+		WithWriter(multi.NewWriter()).Start("Building and deploying application...")
+	err = stack.SetAllConfig(ctx, auto.ConfigMap{
+		"aws:defaultTags": auto.ConfigValue{Value: fmt.Sprintf(`{
+			"tags": {
+				"system": "zen",
+				"environment": "%s"
+			}
+		}`, environment)},
+	})
+	if err!=nil {
+		return fmt.Errorf("failed to set default tags: %v", err)
+	}
+	result, err := stack.Up(ctx, optup.ProgressStreams(stackWriter))
 	if err != nil {
 		return fmt.Errorf("failed to update stack: %v", err)
 	}
+	pterm.DefaultBasicText.Println("Success 🎉 Use the outputs to finish setup ⛩️")
+	for k, v := range result.Outputs {
+		pterm.DefaultBasicText.Printf(" - %s: %v\n", k, v.Value)
+	}
+
 	return nil
 }

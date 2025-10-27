@@ -35,11 +35,15 @@ func Nuke(ctx context.Context, ws auto.Workspace, stackName string) error {
 	if !ok {
 		return fmt.Errorf("process cancelled")
 	}
+	multi, _ := pterm.DefaultMultiPrinter.Start()
+	defer multi.Stop()
+	stackWriter := multi.NewWriter()
 	spinner, _ = pterm.DefaultSpinner.WithRemoveWhenDone(true).
-		Start("Destroying stack...")
-	_, err = stack.Destroy(ctx)
+		WithWriter(multi.NewWriter()).Start("Destroying application...")
+	_, err = stack.Destroy(ctx, optdestroy.ProgressStreams(stackWriter))
 	if err != nil {
 		return fmt.Errorf("failed to destroy stack: %v", err)
 	}
+	pterm.DefaultBasicText.Println("Success 🎉 Your application got wiped from earth ☢️")
 	return nil
 }

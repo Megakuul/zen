@@ -49,7 +49,6 @@ func main() {
 		pterm.DefaultBasicText.Println("❌ ========= ERROR =========")
 		os.Exit(1)
 	}
-	return
 }
 
 // appConfig is a json config used to store input parameters beside the pulumi state.
@@ -87,7 +86,7 @@ func run(ctx context.Context) error {
 		Key:    aws.String(configKey),
 	})
 	if err != nil {
-		var nErr *s3types.NoSuchKey 
+		var nErr *s3types.NoSuchKey
 		if !errors.As(err, &nErr) {
 			return fmt.Errorf("failed to load app config: %v", err)
 		}
@@ -167,6 +166,14 @@ func run(ctx context.Context) error {
 		},
 	}),
 		auto.SecretsProvider(fmt.Sprintf("awskms://%s", config.StateKey)),
+		// TODO remove this workaround for an issue in pulumi <3.2.0
+		// https://github.com/pulumi/pulumi/issues/7278
+		auto.Stacks(map[string]workspace.ProjectStack{
+			"prod": {SecretsProvider: fmt.Sprintf("awskms://%s", config.StateKey)},
+			"test": {SecretsProvider: fmt.Sprintf("awskms://%s", config.StateKey)},
+			"int":  {SecretsProvider: fmt.Sprintf("awskms://%s", config.StateKey)},
+			"dev":  {SecretsProvider: fmt.Sprintf("awskms://%s", config.StateKey)},
+		}),
 		auto.Program(operator.Deploy),
 	)
 	if err != nil {
@@ -174,13 +181,13 @@ func run(ctx context.Context) error {
 	}
 
 	rawConfig, err := json.Marshal(config)
-	if err!=nil {
+	if err != nil {
 		return fmt.Errorf("failed to serialize app config: %v", err)
 	}
 	_, err = s3Client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(bucket),
 		Key:    aws.String(configKey),
-		Body: bytes.NewReader(rawConfig),
+		Body:   bytes.NewReader(rawConfig),
 	})
 	if err != nil {
 		return fmt.Errorf("failed to upload app config: %v", err)

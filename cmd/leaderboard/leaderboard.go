@@ -8,6 +8,7 @@ import (
 
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/megakuul/zen/internal/httplambda"
+	"github.com/megakuul/zen/internal/server/v1/manager/leaderboard"
 	"github.com/megakuul/zen/internal/server/v1/manager/management"
 	"github.com/megakuul/zen/pkg/api/v1/manager/leaderboard/leaderboardconnect"
 	"github.com/megakuul/zen/pkg/api/v1/manager/management/managementconnect"
