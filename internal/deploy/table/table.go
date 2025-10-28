@@ -32,7 +32,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			MaxReadRequestUnits:  pulumi.IntPtr(100),
 		},
 		Ttl: &dynamodb.TableTtlArgs{
-			AttributeName: pulumi.String("expiry"),
+			AttributeName: pulumi.String("expiresAt"),
 			Enabled:       pulumi.BoolPtr(true),
 		},
 		DeletionProtectionEnabled: pulumi.BoolPtr(input.DeleteProtection),
