@@ -16,10 +16,10 @@ import (
 )
 
 type Store struct {
-	client *s3.Client
-	logger *slog.Logger
-	bucket string
-	prefix string
+	client  *s3.Client
+	logger  *slog.Logger
+	bucket  string
+	prefix  string
 	timeout time.Duration
 }
 
@@ -31,14 +31,14 @@ func New(client *s3.Client, logger *slog.Logger, timeout time.Duration, bucket, 
 	}
 }
 
-func (s *Store) Get(id string, del bool) []byte  {
+func (s *Store) Get(id string, del bool) []byte {
 	ctx, cancel := context.WithTimeout(context.Background(), s.timeout)
 	defer cancel()
 	output, err := s.client.GetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(s.bucket),
-		Key: aws.String(fmt.Sprint(s.prefix, id)),
+		Key:    aws.String(fmt.Sprint(s.prefix, id)),
 	})
-	if err!=nil {
+	if err != nil {
 		var nsk *types.NoSuchKey
 		if !errors.As(err, &nsk) {
 			s.logger.Error(fmt.Sprintf("failed to load captcha: %v", err))
@@ -46,16 +46,16 @@ func (s *Store) Get(id string, del bool) []byte  {
 		return nil
 	}
 	digits, err := io.ReadAll(output.Body)
-	if err!=nil {
+	if err != nil {
 		s.logger.Error(fmt.Sprintf("failed to read captcha: %v", err))
 		return nil
 	}
 	if del {
 		_, err = s.client.DeleteObject(ctx, &s3.DeleteObjectInput{
 			Bucket: aws.String(s.bucket),
-			Key: aws.String(fmt.Sprint(s.prefix, id)),
+			Key:    aws.String(fmt.Sprint(s.prefix, id)),
 		})
-		if err!=nil {
+		if err != nil {
 			s.logger.Error(fmt.Sprintf("failed to delete captcha: %v", err))
 			return nil
 		}
@@ -68,11 +68,10 @@ func (s *Store) Set(id string, digits []byte) {
 	defer cancel()
 	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
 		Bucket: aws.String(s.bucket),
-		Key: aws.String(fmt.Sprint(s.prefix, id)),
-		Body: bytes.NewReader(digits),
+		Key:    aws.String(fmt.Sprint(s.prefix, id)),
+		Body:   bytes.NewReader(digits),
 	})
-	if err!=nil {
+	if err != nil {
 		s.logger.Error(fmt.Sprintf("failed to insert captcha: %v", err))
 	}
 }
-
