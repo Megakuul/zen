@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"connectrpc.com/connect"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -26,14 +27,14 @@ func (c *Controller) GetRegistration(ctx context.Context, email string) (*Regist
 		KeyConditionExpression: aws.String("pk = :pk AND sk = :sk"),
 	})
 	if err != nil {
-		return nil, false, err
+		return nil, false, connect.NewError(connect.CodeInternal, err)
 	} else if len(result.Items) < 1 {
 		return nil, false, nil
 	}
 
 	registration := &Registration{}
 	if err := attributevalue.UnmarshalMap(result.Items[0], registration); err != nil {
-		return nil, false, err
+		return nil, false, connect.NewError(connect.CodeInternal, err)
 	}
 	return registration, true, nil
 }
@@ -43,14 +44,17 @@ func (c *Controller) PutRegistration(ctx context.Context, email string, registra
 	registration.SK = "REGISTRATION"
 	item, err := attributevalue.MarshalMap(registration)
 	if err != nil {
-		return err
+		return connect.NewError(connect.CodeInvalidArgument, err)
 	}
 	_, err = c.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName:           aws.String(c.table),
 		Item:                item,
 		ConditionExpression: aws.String("attribute_not_exists(pk)"),
 	})
-	return err
+	if err!=nil {
+		return connect.NewError(connect.CodeInternal, err)
+	}
+	return nil
 }
 
 func (c *Controller) DeleteRegistration(ctx context.Context, email string) error {
@@ -61,5 +65,8 @@ func (c *Controller) DeleteRegistration(ctx context.Context, email string) error
 			"sk": &types.AttributeValueMemberS{Value: "REGISTRATION"},
 		},
 	})
-	return err
+	if err!=nil {
+		return connect.NewError(connect.CodeInternal, err)
+	}
+	return nil
 }

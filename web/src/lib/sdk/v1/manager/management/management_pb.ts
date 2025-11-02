@@ -6,13 +6,15 @@ import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegen
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
 import type { User } from "../user_pb";
 import { file_v1_manager_user } from "../user_pb";
+import type { Verifier } from "../verifier_pb";
+import { file_v1_manager_verifier } from "../verifier_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file v1/manager/management/management.proto.
  */
 export const file_v1_manager_management_management: GenFile = /*@__PURE__*/
-  fileDesc("CiZ2MS9tYW5hZ2VyL21hbmFnZW1lbnQvbWFuYWdlbWVudC5wcm90bxIVdjEubWFuYWdlci5tYW5hZ2VtZW50Im8KD1JlZ2lzdGVyUmVxdWVzdBIeCgR1c2VyGAEgASgLMhAudjEubWFuYWdlci5Vc2VyEhIKCmNhcHRjaGFfaWQYAiABKAkSFgoOY2FwdGNoYV9kaWdpdHMYAyABKAkSEAoIdmVyaWZpZXIYBCABKAkiPAoQUmVnaXN0ZXJSZXNwb25zZRISCgpjYXB0Y2hhX2lkGAEgASgJEhQKDGNhcHRjaGFfYmxvYhgCIAEoDCIMCgpHZXRSZXF1ZXN0Ii0KC0dldFJlc3BvbnNlEh4KBHVzZXIYASABKAsyEC52MS5tYW5hZ2VyLlVzZXIiLwoNVXBkYXRlUmVxdWVzdBIeCgR1c2VyGAEgASgLMhAudjEubWFuYWdlci5Vc2VyIhAKDlVwZGF0ZVJlc3BvbnNlIiEKDURlbGV0ZVJlcXVlc3QSEAoIdmVyaWZpZXIYASABKAkiEAoORGVsZXRlUmVzcG9uc2Uy9AIKEU1hbmFnZW1lbnRTZXJ2aWNlEl0KCFJlZ2lzdGVyEiYudjEubWFuYWdlci5tYW5hZ2VtZW50LlJlZ2lzdGVyUmVxdWVzdBonLnYxLm1hbmFnZXIubWFuYWdlbWVudC5SZWdpc3RlclJlc3BvbnNlIgASTgoDR2V0EiEudjEubWFuYWdlci5tYW5hZ2VtZW50LkdldFJlcXVlc3QaIi52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuR2V0UmVzcG9uc2UiABJXCgZVcGRhdGUSJC52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuVXBkYXRlUmVxdWVzdBolLnYxLm1hbmFnZXIubWFuYWdlbWVudC5VcGRhdGVSZXNwb25zZSIAElcKBkRlbGV0ZRIkLnYxLm1hbmFnZXIubWFuYWdlbWVudC5EZWxldGVSZXF1ZXN0GiUudjEubWFuYWdlci5tYW5hZ2VtZW50LkRlbGV0ZVJlc3BvbnNlIgBCN1o1Z2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyL21hbmFnZW1lbnRiBnByb3RvMw", [file_v1_manager_user]);
+  fileDesc("CiZ2MS9tYW5hZ2VyL21hbmFnZW1lbnQvbWFuYWdlbWVudC5wcm90bxIVdjEubWFuYWdlci5tYW5hZ2VtZW50IoUBCg9SZWdpc3RlclJlcXVlc3QSHgoEdXNlchgBIAEoCzIQLnYxLm1hbmFnZXIuVXNlchISCgpjYXB0Y2hhX2lkGAIgASgJEhYKDmNhcHRjaGFfZGlnaXRzGAMgASgJEiYKCHZlcmlmaWVyGAQgASgLMhQudjEubWFuYWdlci5WZXJpZmllciI8ChBSZWdpc3RlclJlc3BvbnNlEhIKCmNhcHRjaGFfaWQYASABKAkSFAoMY2FwdGNoYV9ibG9iGAIgASgMIgwKCkdldFJlcXVlc3QiLQoLR2V0UmVzcG9uc2USHgoEdXNlchgBIAEoCzIQLnYxLm1hbmFnZXIuVXNlciIvCg1VcGRhdGVSZXF1ZXN0Eh4KBHVzZXIYASABKAsyEC52MS5tYW5hZ2VyLlVzZXIiEAoOVXBkYXRlUmVzcG9uc2UiNwoNRGVsZXRlUmVxdWVzdBImCgh2ZXJpZmllchgBIAEoCzIULnYxLm1hbmFnZXIuVmVyaWZpZXIiEAoORGVsZXRlUmVzcG9uc2Uy9AIKEU1hbmFnZW1lbnRTZXJ2aWNlEl0KCFJlZ2lzdGVyEiYudjEubWFuYWdlci5tYW5hZ2VtZW50LlJlZ2lzdGVyUmVxdWVzdBonLnYxLm1hbmFnZXIubWFuYWdlbWVudC5SZWdpc3RlclJlc3BvbnNlIgASTgoDR2V0EiEudjEubWFuYWdlci5tYW5hZ2VtZW50LkdldFJlcXVlc3QaIi52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuR2V0UmVzcG9uc2UiABJXCgZVcGRhdGUSJC52MS5tYW5hZ2VyLm1hbmFnZW1lbnQuVXBkYXRlUmVxdWVzdBolLnYxLm1hbmFnZXIubWFuYWdlbWVudC5VcGRhdGVSZXNwb25zZSIAElcKBkRlbGV0ZRIkLnYxLm1hbmFnZXIubWFuYWdlbWVudC5EZWxldGVSZXF1ZXN0GiUudjEubWFuYWdlci5tYW5hZ2VtZW50LkRlbGV0ZVJlc3BvbnNlIgBCN1o1Z2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyL21hbmFnZW1lbnRiBnByb3RvMw", [file_v1_manager_user, file_v1_manager_verifier]);
 
 /**
  * @generated from message v1.manager.management.RegisterRequest
@@ -34,9 +36,9 @@ export type RegisterRequest = Message<"v1.manager.management.RegisterRequest"> &
   captchaDigits: string;
 
   /**
-   * @generated from field: string verifier = 4;
+   * @generated from field: v1.manager.Verifier verifier = 4;
    */
-  verifier: string;
+  verifier?: Verifier;
 };
 
 /**
@@ -133,9 +135,9 @@ export const UpdateResponseSchema: GenMessage<UpdateResponse> = /*@__PURE__*/
  */
 export type DeleteRequest = Message<"v1.manager.management.DeleteRequest"> & {
   /**
-   * @generated from field: string verifier = 1;
+   * @generated from field: v1.manager.Verifier verifier = 1;
    */
-  verifier: string;
+  verifier?: Verifier;
 };
 
 /**

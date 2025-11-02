@@ -33,19 +33,19 @@ const (
 // reflection-formatted method names, remove the leading slash and convert the remaining slash to a
 // period.
 const (
-	// AuthenticationServiceGetProcedure is the fully-qualified name of the AuthenticationService's Get
-	// RPC.
-	AuthenticationServiceGetProcedure = "/v1.manager.authentication.AuthenticationService/Get"
-	// AuthenticationServiceRevokeProcedure is the fully-qualified name of the AuthenticationService's
-	// Revoke RPC.
-	AuthenticationServiceRevokeProcedure = "/v1.manager.authentication.AuthenticationService/Revoke"
+	// AuthenticationServiceLoginProcedure is the fully-qualified name of the AuthenticationService's
+	// Login RPC.
+	AuthenticationServiceLoginProcedure = "/v1.manager.authentication.AuthenticationService/Login"
+	// AuthenticationServiceLogoutProcedure is the fully-qualified name of the AuthenticationService's
+	// Logout RPC.
+	AuthenticationServiceLogoutProcedure = "/v1.manager.authentication.AuthenticationService/Logout"
 )
 
 // AuthenticationServiceClient is a client for the v1.manager.authentication.AuthenticationService
 // service.
 type AuthenticationServiceClient interface {
-	Get(context.Context, *connect.Request[authentication.GetRequest]) (*connect.Response[authentication.GetResponse], error)
-	Revoke(context.Context, *connect.Request[authentication.RevokeRequest]) (*connect.Response[authentication.RevokeResponse], error)
+	Login(context.Context, *connect.Request[authentication.LoginRequest]) (*connect.Response[authentication.LoginResponse], error)
+	Logout(context.Context, *connect.Request[authentication.LogoutRequest]) (*connect.Response[authentication.LogoutResponse], error)
 }
 
 // NewAuthenticationServiceClient constructs a client for the
@@ -60,16 +60,16 @@ func NewAuthenticationServiceClient(httpClient connect.HTTPClient, baseURL strin
 	baseURL = strings.TrimRight(baseURL, "/")
 	authenticationServiceMethods := authentication.File_v1_manager_authentication_authentication_proto.Services().ByName("AuthenticationService").Methods()
 	return &authenticationServiceClient{
-		get: connect.NewClient[authentication.GetRequest, authentication.GetResponse](
+		login: connect.NewClient[authentication.LoginRequest, authentication.LoginResponse](
 			httpClient,
-			baseURL+AuthenticationServiceGetProcedure,
-			connect.WithSchema(authenticationServiceMethods.ByName("Get")),
+			baseURL+AuthenticationServiceLoginProcedure,
+			connect.WithSchema(authenticationServiceMethods.ByName("Login")),
 			connect.WithClientOptions(opts...),
 		),
-		revoke: connect.NewClient[authentication.RevokeRequest, authentication.RevokeResponse](
+		logout: connect.NewClient[authentication.LogoutRequest, authentication.LogoutResponse](
 			httpClient,
-			baseURL+AuthenticationServiceRevokeProcedure,
-			connect.WithSchema(authenticationServiceMethods.ByName("Revoke")),
+			baseURL+AuthenticationServiceLogoutProcedure,
+			connect.WithSchema(authenticationServiceMethods.ByName("Logout")),
 			connect.WithClientOptions(opts...),
 		),
 	}
@@ -77,25 +77,25 @@ func NewAuthenticationServiceClient(httpClient connect.HTTPClient, baseURL strin
 
 // authenticationServiceClient implements AuthenticationServiceClient.
 type authenticationServiceClient struct {
-	get    *connect.Client[authentication.GetRequest, authentication.GetResponse]
-	revoke *connect.Client[authentication.RevokeRequest, authentication.RevokeResponse]
+	login  *connect.Client[authentication.LoginRequest, authentication.LoginResponse]
+	logout *connect.Client[authentication.LogoutRequest, authentication.LogoutResponse]
 }
 
-// Get calls v1.manager.authentication.AuthenticationService.Get.
-func (c *authenticationServiceClient) Get(ctx context.Context, req *connect.Request[authentication.GetRequest]) (*connect.Response[authentication.GetResponse], error) {
-	return c.get.CallUnary(ctx, req)
+// Login calls v1.manager.authentication.AuthenticationService.Login.
+func (c *authenticationServiceClient) Login(ctx context.Context, req *connect.Request[authentication.LoginRequest]) (*connect.Response[authentication.LoginResponse], error) {
+	return c.login.CallUnary(ctx, req)
 }
 
-// Revoke calls v1.manager.authentication.AuthenticationService.Revoke.
-func (c *authenticationServiceClient) Revoke(ctx context.Context, req *connect.Request[authentication.RevokeRequest]) (*connect.Response[authentication.RevokeResponse], error) {
-	return c.revoke.CallUnary(ctx, req)
+// Logout calls v1.manager.authentication.AuthenticationService.Logout.
+func (c *authenticationServiceClient) Logout(ctx context.Context, req *connect.Request[authentication.LogoutRequest]) (*connect.Response[authentication.LogoutResponse], error) {
+	return c.logout.CallUnary(ctx, req)
 }
 
 // AuthenticationServiceHandler is an implementation of the
 // v1.manager.authentication.AuthenticationService service.
 type AuthenticationServiceHandler interface {
-	Get(context.Context, *connect.Request[authentication.GetRequest]) (*connect.Response[authentication.GetResponse], error)
-	Revoke(context.Context, *connect.Request[authentication.RevokeRequest]) (*connect.Response[authentication.RevokeResponse], error)
+	Login(context.Context, *connect.Request[authentication.LoginRequest]) (*connect.Response[authentication.LoginResponse], error)
+	Logout(context.Context, *connect.Request[authentication.LogoutRequest]) (*connect.Response[authentication.LogoutResponse], error)
 }
 
 // NewAuthenticationServiceHandler builds an HTTP handler from the service implementation. It
@@ -105,24 +105,24 @@ type AuthenticationServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewAuthenticationServiceHandler(svc AuthenticationServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	authenticationServiceMethods := authentication.File_v1_manager_authentication_authentication_proto.Services().ByName("AuthenticationService").Methods()
-	authenticationServiceGetHandler := connect.NewUnaryHandler(
-		AuthenticationServiceGetProcedure,
-		svc.Get,
-		connect.WithSchema(authenticationServiceMethods.ByName("Get")),
+	authenticationServiceLoginHandler := connect.NewUnaryHandler(
+		AuthenticationServiceLoginProcedure,
+		svc.Login,
+		connect.WithSchema(authenticationServiceMethods.ByName("Login")),
 		connect.WithHandlerOptions(opts...),
 	)
-	authenticationServiceRevokeHandler := connect.NewUnaryHandler(
-		AuthenticationServiceRevokeProcedure,
-		svc.Revoke,
-		connect.WithSchema(authenticationServiceMethods.ByName("Revoke")),
+	authenticationServiceLogoutHandler := connect.NewUnaryHandler(
+		AuthenticationServiceLogoutProcedure,
+		svc.Logout,
+		connect.WithSchema(authenticationServiceMethods.ByName("Logout")),
 		connect.WithHandlerOptions(opts...),
 	)
 	return "/v1.manager.authentication.AuthenticationService/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
-		case AuthenticationServiceGetProcedure:
-			authenticationServiceGetHandler.ServeHTTP(w, r)
-		case AuthenticationServiceRevokeProcedure:
-			authenticationServiceRevokeHandler.ServeHTTP(w, r)
+		case AuthenticationServiceLoginProcedure:
+			authenticationServiceLoginHandler.ServeHTTP(w, r)
+		case AuthenticationServiceLogoutProcedure:
+			authenticationServiceLogoutHandler.ServeHTTP(w, r)
 		default:
 			http.NotFound(w, r)
 		}
@@ -132,10 +132,10 @@ func NewAuthenticationServiceHandler(svc AuthenticationServiceHandler, opts ...c
 // UnimplementedAuthenticationServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedAuthenticationServiceHandler struct{}
 
-func (UnimplementedAuthenticationServiceHandler) Get(context.Context, *connect.Request[authentication.GetRequest]) (*connect.Response[authentication.GetResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.authentication.AuthenticationService.Get is not implemented"))
+func (UnimplementedAuthenticationServiceHandler) Login(context.Context, *connect.Request[authentication.LoginRequest]) (*connect.Response[authentication.LoginResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.authentication.AuthenticationService.Login is not implemented"))
 }
 
-func (UnimplementedAuthenticationServiceHandler) Revoke(context.Context, *connect.Request[authentication.RevokeRequest]) (*connect.Response[authentication.RevokeResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.authentication.AuthenticationService.Revoke is not implemented"))
+func (UnimplementedAuthenticationServiceHandler) Logout(context.Context, *connect.Request[authentication.LogoutRequest]) (*connect.Response[authentication.LogoutResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("v1.manager.authentication.AuthenticationService.Logout is not implemented"))
 }

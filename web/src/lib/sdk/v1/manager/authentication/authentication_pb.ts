@@ -4,22 +4,24 @@
 
 import type { GenFile, GenMessage, GenService } from "@bufbuild/protobuf/codegenv2";
 import { fileDesc, messageDesc, serviceDesc } from "@bufbuild/protobuf/codegenv2";
+import type { Verifier } from "../verifier_pb";
+import { file_v1_manager_verifier } from "../verifier_pb";
 import type { Message } from "@bufbuild/protobuf";
 
 /**
  * Describes the file v1/manager/authentication/authentication.proto.
  */
 export const file_v1_manager_authentication_authentication: GenFile = /*@__PURE__*/
-  fileDesc("Ci52MS9tYW5hZ2VyL2F1dGhlbnRpY2F0aW9uL2F1dGhlbnRpY2F0aW9uLnByb3RvEhl2MS5tYW5hZ2VyLmF1dGhlbnRpY2F0aW9uIjQKCkdldFJlcXVlc3QSEAoIdmVyaWZpZXIYASABKAkSFAoMYXV0b19yZWZyZXNoGAIgASgIIhwKC0dldFJlc3BvbnNlEg0KBXRva2VuGAEgASgJIg8KDVJldm9rZVJlcXVlc3QiEAoOUmV2b2tlUmVzcG9uc2Uy0AEKFUF1dGhlbnRpY2F0aW9uU2VydmljZRJWCgNHZXQSJS52MS5tYW5hZ2VyLmF1dGhlbnRpY2F0aW9uLkdldFJlcXVlc3QaJi52MS5tYW5hZ2VyLmF1dGhlbnRpY2F0aW9uLkdldFJlc3BvbnNlIgASXwoGUmV2b2tlEigudjEubWFuYWdlci5hdXRoZW50aWNhdGlvbi5SZXZva2VSZXF1ZXN0GikudjEubWFuYWdlci5hdXRoZW50aWNhdGlvbi5SZXZva2VSZXNwb25zZSIAQjtaOWdpdGh1Yi5jb20vbWVnYWt1dWwvemVuL3BrZy9hcGkvdjEvbWFuYWdlci9hdXRoZW50aWNhdGlvbmIGcHJvdG8z");
+  fileDesc("Ci52MS9tYW5hZ2VyL2F1dGhlbnRpY2F0aW9uL2F1dGhlbnRpY2F0aW9uLnByb3RvEhl2MS5tYW5hZ2VyLmF1dGhlbnRpY2F0aW9uIkwKDExvZ2luUmVxdWVzdBImCgh2ZXJpZmllchgBIAEoCzIULnYxLm1hbmFnZXIuVmVyaWZpZXISFAoMYXV0b19yZWZyZXNoGAIgASgIIh4KDUxvZ2luUmVzcG9uc2USDQoFdG9rZW4YASABKAkiDwoNTG9nb3V0UmVxdWVzdCIQCg5Mb2dvdXRSZXNwb25zZTLWAQoVQXV0aGVudGljYXRpb25TZXJ2aWNlElwKBUxvZ2luEicudjEubWFuYWdlci5hdXRoZW50aWNhdGlvbi5Mb2dpblJlcXVlc3QaKC52MS5tYW5hZ2VyLmF1dGhlbnRpY2F0aW9uLkxvZ2luUmVzcG9uc2UiABJfCgZMb2dvdXQSKC52MS5tYW5hZ2VyLmF1dGhlbnRpY2F0aW9uLkxvZ291dFJlcXVlc3QaKS52MS5tYW5hZ2VyLmF1dGhlbnRpY2F0aW9uLkxvZ291dFJlc3BvbnNlIgBCO1o5Z2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyL2F1dGhlbnRpY2F0aW9uYgZwcm90bzM", [file_v1_manager_verifier]);
 
 /**
- * @generated from message v1.manager.authentication.GetRequest
+ * @generated from message v1.manager.authentication.LoginRequest
  */
-export type GetRequest = Message<"v1.manager.authentication.GetRequest"> & {
+export type LoginRequest = Message<"v1.manager.authentication.LoginRequest"> & {
   /**
-   * @generated from field: string verifier = 1;
+   * @generated from field: v1.manager.Verifier verifier = 1;
    */
-  verifier: string;
+  verifier?: Verifier;
 
   /**
    * @generated from field: bool auto_refresh = 2;
@@ -28,16 +30,16 @@ export type GetRequest = Message<"v1.manager.authentication.GetRequest"> & {
 };
 
 /**
- * Describes the message v1.manager.authentication.GetRequest.
- * Use `create(GetRequestSchema)` to create a new message.
+ * Describes the message v1.manager.authentication.LoginRequest.
+ * Use `create(LoginRequestSchema)` to create a new message.
  */
-export const GetRequestSchema: GenMessage<GetRequest> = /*@__PURE__*/
+export const LoginRequestSchema: GenMessage<LoginRequest> = /*@__PURE__*/
   messageDesc(file_v1_manager_authentication_authentication, 0);
 
 /**
- * @generated from message v1.manager.authentication.GetResponse
+ * @generated from message v1.manager.authentication.LoginResponse
  */
-export type GetResponse = Message<"v1.manager.authentication.GetResponse"> & {
+export type LoginResponse = Message<"v1.manager.authentication.LoginResponse"> & {
   /**
    * @generated from field: string token = 1;
    */
@@ -45,36 +47,36 @@ export type GetResponse = Message<"v1.manager.authentication.GetResponse"> & {
 };
 
 /**
- * Describes the message v1.manager.authentication.GetResponse.
- * Use `create(GetResponseSchema)` to create a new message.
+ * Describes the message v1.manager.authentication.LoginResponse.
+ * Use `create(LoginResponseSchema)` to create a new message.
  */
-export const GetResponseSchema: GenMessage<GetResponse> = /*@__PURE__*/
+export const LoginResponseSchema: GenMessage<LoginResponse> = /*@__PURE__*/
   messageDesc(file_v1_manager_authentication_authentication, 1);
 
 /**
- * @generated from message v1.manager.authentication.RevokeRequest
+ * @generated from message v1.manager.authentication.LogoutRequest
  */
-export type RevokeRequest = Message<"v1.manager.authentication.RevokeRequest"> & {
+export type LogoutRequest = Message<"v1.manager.authentication.LogoutRequest"> & {
 };
 
 /**
- * Describes the message v1.manager.authentication.RevokeRequest.
- * Use `create(RevokeRequestSchema)` to create a new message.
+ * Describes the message v1.manager.authentication.LogoutRequest.
+ * Use `create(LogoutRequestSchema)` to create a new message.
  */
-export const RevokeRequestSchema: GenMessage<RevokeRequest> = /*@__PURE__*/
+export const LogoutRequestSchema: GenMessage<LogoutRequest> = /*@__PURE__*/
   messageDesc(file_v1_manager_authentication_authentication, 2);
 
 /**
- * @generated from message v1.manager.authentication.RevokeResponse
+ * @generated from message v1.manager.authentication.LogoutResponse
  */
-export type RevokeResponse = Message<"v1.manager.authentication.RevokeResponse"> & {
+export type LogoutResponse = Message<"v1.manager.authentication.LogoutResponse"> & {
 };
 
 /**
- * Describes the message v1.manager.authentication.RevokeResponse.
- * Use `create(RevokeResponseSchema)` to create a new message.
+ * Describes the message v1.manager.authentication.LogoutResponse.
+ * Use `create(LogoutResponseSchema)` to create a new message.
  */
-export const RevokeResponseSchema: GenMessage<RevokeResponse> = /*@__PURE__*/
+export const LogoutResponseSchema: GenMessage<LogoutResponse> = /*@__PURE__*/
   messageDesc(file_v1_manager_authentication_authentication, 3);
 
 /**
@@ -82,20 +84,20 @@ export const RevokeResponseSchema: GenMessage<RevokeResponse> = /*@__PURE__*/
  */
 export const AuthenticationService: GenService<{
   /**
-   * @generated from rpc v1.manager.authentication.AuthenticationService.Get
+   * @generated from rpc v1.manager.authentication.AuthenticationService.Login
    */
-  get: {
+  login: {
     methodKind: "unary";
-    input: typeof GetRequestSchema;
-    output: typeof GetResponseSchema;
+    input: typeof LoginRequestSchema;
+    output: typeof LoginResponseSchema;
   },
   /**
-   * @generated from rpc v1.manager.authentication.AuthenticationService.Revoke
+   * @generated from rpc v1.manager.authentication.AuthenticationService.Logout
    */
-  revoke: {
+  logout: {
     methodKind: "unary";
-    input: typeof RevokeRequestSchema;
-    output: typeof RevokeResponseSchema;
+    input: typeof LogoutRequestSchema;
+    output: typeof LogoutResponseSchema;
   },
 }> = /*@__PURE__*/
   serviceDesc(file_v1_manager_authentication_authentication, 0);

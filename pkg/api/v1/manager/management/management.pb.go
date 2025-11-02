@@ -27,7 +27,7 @@ type RegisterRequest struct {
 	User          *manager.User          `protobuf:"bytes,1,opt,name=user,proto3" json:"user,omitempty"`
 	CaptchaId     string                 `protobuf:"bytes,2,opt,name=captcha_id,json=captchaId,proto3" json:"captcha_id,omitempty"`
 	CaptchaDigits string                 `protobuf:"bytes,3,opt,name=captcha_digits,json=captchaDigits,proto3" json:"captcha_digits,omitempty"`
-	Verifier      string                 `protobuf:"bytes,4,opt,name=verifier,proto3" json:"verifier,omitempty"`
+	Verifier      *manager.Verifier      `protobuf:"bytes,4,opt,name=verifier,proto3" json:"verifier,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -83,11 +83,11 @@ func (x *RegisterRequest) GetCaptchaDigits() string {
 	return ""
 }
 
-func (x *RegisterRequest) GetVerifier() string {
+func (x *RegisterRequest) GetVerifier() *manager.Verifier {
 	if x != nil {
 		return x.Verifier
 	}
-	return ""
+	return nil
 }
 
 type RegisterResponse struct {
@@ -304,7 +304,7 @@ func (*UpdateResponse) Descriptor() ([]byte, []int) {
 
 type DeleteRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Verifier      string                 `protobuf:"bytes,1,opt,name=verifier,proto3" json:"verifier,omitempty"`
+	Verifier      *manager.Verifier      `protobuf:"bytes,1,opt,name=verifier,proto3" json:"verifier,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -339,11 +339,11 @@ func (*DeleteRequest) Descriptor() ([]byte, []int) {
 	return file_v1_manager_management_management_proto_rawDescGZIP(), []int{6}
 }
 
-func (x *DeleteRequest) GetVerifier() string {
+func (x *DeleteRequest) GetVerifier() *manager.Verifier {
 	if x != nil {
 		return x.Verifier
 	}
-	return ""
+	return nil
 }
 
 type DeleteResponse struct {
@@ -386,13 +386,13 @@ var File_v1_manager_management_management_proto protoreflect.FileDescriptor
 
 const file_v1_manager_management_management_proto_rawDesc = "" +
 	"\n" +
-	"&v1/manager/management/management.proto\x12\x15v1.manager.management\x1a\x15v1/manager/user.proto\"\x99\x01\n" +
+	"&v1/manager/management/management.proto\x12\x15v1.manager.management\x1a\x15v1/manager/user.proto\x1a\x19v1/manager/verifier.proto\"\xaf\x01\n" +
 	"\x0fRegisterRequest\x12$\n" +
 	"\x04user\x18\x01 \x01(\v2\x10.v1.manager.UserR\x04user\x12\x1d\n" +
 	"\n" +
 	"captcha_id\x18\x02 \x01(\tR\tcaptchaId\x12%\n" +
-	"\x0ecaptcha_digits\x18\x03 \x01(\tR\rcaptchaDigits\x12\x1a\n" +
-	"\bverifier\x18\x04 \x01(\tR\bverifier\"T\n" +
+	"\x0ecaptcha_digits\x18\x03 \x01(\tR\rcaptchaDigits\x120\n" +
+	"\bverifier\x18\x04 \x01(\v2\x14.v1.manager.VerifierR\bverifier\"T\n" +
 	"\x10RegisterResponse\x12\x1d\n" +
 	"\n" +
 	"captcha_id\x18\x01 \x01(\tR\tcaptchaId\x12!\n" +
@@ -403,9 +403,9 @@ const file_v1_manager_management_management_proto_rawDesc = "" +
 	"\x04user\x18\x01 \x01(\v2\x10.v1.manager.UserR\x04user\"5\n" +
 	"\rUpdateRequest\x12$\n" +
 	"\x04user\x18\x01 \x01(\v2\x10.v1.manager.UserR\x04user\"\x10\n" +
-	"\x0eUpdateResponse\"+\n" +
-	"\rDeleteRequest\x12\x1a\n" +
-	"\bverifier\x18\x01 \x01(\tR\bverifier\"\x10\n" +
+	"\x0eUpdateResponse\"A\n" +
+	"\rDeleteRequest\x120\n" +
+	"\bverifier\x18\x01 \x01(\v2\x14.v1.manager.VerifierR\bverifier\"\x10\n" +
 	"\x0eDeleteResponse2\xf4\x02\n" +
 	"\x11ManagementService\x12]\n" +
 	"\bRegister\x12&.v1.manager.management.RegisterRequest\x1a'.v1.manager.management.RegisterResponse\"\x00\x12N\n" +
@@ -436,24 +436,27 @@ var file_v1_manager_management_management_proto_goTypes = []any{
 	(*DeleteRequest)(nil),    // 6: v1.manager.management.DeleteRequest
 	(*DeleteResponse)(nil),   // 7: v1.manager.management.DeleteResponse
 	(*manager.User)(nil),     // 8: v1.manager.User
+	(*manager.Verifier)(nil), // 9: v1.manager.Verifier
 }
 var file_v1_manager_management_management_proto_depIdxs = []int32{
 	8, // 0: v1.manager.management.RegisterRequest.user:type_name -> v1.manager.User
-	8, // 1: v1.manager.management.GetResponse.user:type_name -> v1.manager.User
-	8, // 2: v1.manager.management.UpdateRequest.user:type_name -> v1.manager.User
-	0, // 3: v1.manager.management.ManagementService.Register:input_type -> v1.manager.management.RegisterRequest
-	2, // 4: v1.manager.management.ManagementService.Get:input_type -> v1.manager.management.GetRequest
-	4, // 5: v1.manager.management.ManagementService.Update:input_type -> v1.manager.management.UpdateRequest
-	6, // 6: v1.manager.management.ManagementService.Delete:input_type -> v1.manager.management.DeleteRequest
-	1, // 7: v1.manager.management.ManagementService.Register:output_type -> v1.manager.management.RegisterResponse
-	3, // 8: v1.manager.management.ManagementService.Get:output_type -> v1.manager.management.GetResponse
-	5, // 9: v1.manager.management.ManagementService.Update:output_type -> v1.manager.management.UpdateResponse
-	7, // 10: v1.manager.management.ManagementService.Delete:output_type -> v1.manager.management.DeleteResponse
-	7, // [7:11] is the sub-list for method output_type
-	3, // [3:7] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	9, // 1: v1.manager.management.RegisterRequest.verifier:type_name -> v1.manager.Verifier
+	8, // 2: v1.manager.management.GetResponse.user:type_name -> v1.manager.User
+	8, // 3: v1.manager.management.UpdateRequest.user:type_name -> v1.manager.User
+	9, // 4: v1.manager.management.DeleteRequest.verifier:type_name -> v1.manager.Verifier
+	0, // 5: v1.manager.management.ManagementService.Register:input_type -> v1.manager.management.RegisterRequest
+	2, // 6: v1.manager.management.ManagementService.Get:input_type -> v1.manager.management.GetRequest
+	4, // 7: v1.manager.management.ManagementService.Update:input_type -> v1.manager.management.UpdateRequest
+	6, // 8: v1.manager.management.ManagementService.Delete:input_type -> v1.manager.management.DeleteRequest
+	1, // 9: v1.manager.management.ManagementService.Register:output_type -> v1.manager.management.RegisterResponse
+	3, // 10: v1.manager.management.ManagementService.Get:output_type -> v1.manager.management.GetResponse
+	5, // 11: v1.manager.management.ManagementService.Update:output_type -> v1.manager.management.UpdateResponse
+	7, // 12: v1.manager.management.ManagementService.Delete:output_type -> v1.manager.management.DeleteResponse
+	9, // [9:13] is the sub-list for method output_type
+	5, // [5:9] is the sub-list for method input_type
+	5, // [5:5] is the sub-list for extension type_name
+	5, // [5:5] is the sub-list for extension extendee
+	0, // [0:5] is the sub-list for field type_name
 }
 
 func init() { file_v1_manager_management_management_proto_init() }

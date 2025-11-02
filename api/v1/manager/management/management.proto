@@ -5,13 +5,13 @@ package v1.manager.management;
 option go_package = "github.com/megakuul/zen/pkg/api/v1/manager/management";
 
 import "v1/manager/user.proto";
-
+import "v1/manager/verifier.proto";
 
 message RegisterRequest {
   User user = 1;
   string captcha_id = 2;
   string captcha_digits = 3;
-  string verifier = 4;
+  Verifier verifier = 4;
 }
 
 message RegisterResponse {
@@ -32,7 +32,7 @@ message UpdateRequest {
 message UpdateResponse { }
 
 message DeleteRequest { 
-  string verifier = 1;
+  Verifier verifier = 1;
 }
 
 message DeleteResponse { }

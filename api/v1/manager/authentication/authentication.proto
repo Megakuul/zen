@@ -4,20 +4,22 @@ package v1.manager.authentication;
 
 option go_package = "github.com/megakuul/zen/pkg/api/v1/manager/authentication";
 
-message GetRequest { 
-  string verifier = 1;
+import "v1/manager/verifier.proto";
+
+message LoginRequest { 
+  Verifier verifier = 1;
   bool auto_refresh = 2; 
 }
 
-message GetResponse {
+message LoginResponse {
   string token = 1;
 }
 
-message RevokeRequest { }
+message LogoutRequest { }
 
-message RevokeResponse { }
+message LogoutResponse { }
 
 service AuthenticationService {
-  rpc Get(GetRequest) returns (GetResponse) {}
-  rpc Revoke(RevokeRequest) returns (RevokeResponse) {}
+  rpc Login(LoginRequest) returns (LoginResponse) {}
+  rpc Logout(LogoutRequest) returns (LogoutResponse) {}
 }

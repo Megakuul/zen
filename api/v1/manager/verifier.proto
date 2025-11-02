@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package v1.manager;
+
+option go_package = "github.com/megakuul/zen/pkg/api/v1/manager";
+
+enum VerifierStage {
+  VERIFIER_STAGE_EMAIL = 0;
+  VERIFIER_STAGE_CODE = 1;
+}
+
+message Verifier {
+  VerifierStage stage = 1;
+  string email = 2;
+  string code = 3;
+}

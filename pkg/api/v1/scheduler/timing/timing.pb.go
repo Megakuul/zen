@@ -24,7 +24,6 @@ const (
 
 type StartRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	StartTime     int64                  `protobuf:"varint,2,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -58,13 +57,6 @@ func (x *StartRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use StartRequest.ProtoReflect.Descriptor instead.
 func (*StartRequest) Descriptor() ([]byte, []int) {
 	return file_v1_scheduler_timing_timing_proto_rawDescGZIP(), []int{0}
-}
-
-func (x *StartRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
 }
 
 func (x *StartRequest) GetStartTime() int64 {
@@ -112,7 +104,6 @@ func (*StartResponse) Descriptor() ([]byte, []int) {
 
 type StopRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Id            string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
 	StopTime      int64                  `protobuf:"varint,2,opt,name=stop_time,json=stopTime,proto3" json:"stop_time,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -146,13 +137,6 @@ func (x *StopRequest) ProtoReflect() protoreflect.Message {
 // Deprecated: Use StopRequest.ProtoReflect.Descriptor instead.
 func (*StopRequest) Descriptor() ([]byte, []int) {
 	return file_v1_scheduler_timing_timing_proto_rawDescGZIP(), []int{2}
-}
-
-func (x *StopRequest) GetId() string {
-	if x != nil {
-		return x.Id
-	}
-	return ""
 }
 
 func (x *StopRequest) GetStopTime() int64 {
@@ -202,14 +186,12 @@ var File_v1_scheduler_timing_timing_proto protoreflect.FileDescriptor
 
 const file_v1_scheduler_timing_timing_proto_rawDesc = "" +
 	"\n" +
-	" v1/scheduler/timing/timing.proto\x12\x13v1.scheduler.timing\x1a\x18v1/scheduler/event.proto\"=\n" +
-	"\fStartRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1d\n" +
+	" v1/scheduler/timing/timing.proto\x12\x13v1.scheduler.timing\x1a\x18v1/scheduler/event.proto\"-\n" +
+	"\fStartRequest\x12\x1d\n" +
 	"\n" +
 	"start_time\x18\x02 \x01(\x03R\tstartTime\"\x0f\n" +
-	"\rStartResponse\":\n" +
-	"\vStopRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1b\n" +
+	"\rStartResponse\"*\n" +
+	"\vStopRequest\x12\x1b\n" +
 	"\tstop_time\x18\x02 \x01(\x03R\bstopTime\"\x0e\n" +
 	"\fStopResponse2\xb0\x01\n" +
 	"\rTimingService\x12P\n" +

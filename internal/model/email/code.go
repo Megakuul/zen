@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"connectrpc.com/connect"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -30,14 +31,14 @@ func (c *Controller) GetCode(ctx context.Context, email string) (*Code, bool, er
 		FilterExpression:       aws.String("expires_at > :now"),
 	})
 	if err != nil {
-		return nil, false, err
+		return nil, false, connect.NewError(connect.CodeInternal, err)
 	} else if len(result.Items) < 1 {
 		return nil, false, nil
 	}
 
 	code := &Code{}
 	if err := attributevalue.UnmarshalMap(result.Items[0], code); err != nil {
-		return nil, false, err
+		return nil, false, connect.NewError(connect.CodeInternal, err)
 	}
 	return code, true, nil
 }
@@ -47,7 +48,7 @@ func (c *Controller) PutCode(ctx context.Context, email string, code *Code) erro
 	code.SK = "CODE"
 	item, err := attributevalue.MarshalMap(code)
 	if err != nil {
-		return err
+		return connect.NewError(connect.CodeInvalidArgument, err)
 	}
 	_, err = c.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(c.table),
@@ -57,5 +58,8 @@ func (c *Controller) PutCode(ctx context.Context, email string, code *Code) erro
 		},
 		ConditionExpression: aws.String("expires_at < :now"),
 	})
-	return err
+	if err!=nil {
+		return connect.NewError(connect.CodeInternal, err)
+	}
+	return nil
 }

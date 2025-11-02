@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"connectrpc.com/connect"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/feature/dynamodb/attributevalue"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
@@ -29,14 +30,14 @@ func (c *Controller) GetProfile(ctx context.Context, id string) (*Profile, bool,
 		KeyConditionExpression: aws.String("pk = :pk AND sk = :sk"),
 	})
 	if err != nil {
-		return nil, false, err
+		return nil, false, connect.NewError(connect.CodeInternal, err)
 	} else if len(result.Items) < 1 {
 		return nil, false, nil
 	}
 
 	profile := &Profile{}
 	if err := attributevalue.UnmarshalMap(result.Items[0], profile); err != nil {
-		return nil, false, err
+		return nil, false, connect.NewError(connect.CodeInternal, err)
 	}
 	return profile, true, nil
 }
@@ -46,11 +47,28 @@ func (c *Controller) PutProfile(ctx context.Context, id string, profile *Profile
 	profile.SK = "PROFILE"
 	item, err := attributevalue.MarshalMap(profile)
 	if err != nil {
-		return err
+		return connect.NewError(connect.CodeInvalidArgument, err)
 	}
 	_, err = c.client.PutItem(ctx, &dynamodb.PutItemInput{
 		TableName: aws.String(c.table),
 		Item:      item,
 	})
-	return err
+	if err != nil {
+		return connect.NewError(connect.CodeInternal, err)
+	}
+	return nil
+}
+
+func (c *Controller) DeleteProfile(ctx context.Context, id string) error {
+	_, err := c.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(c.table),
+		Key: map[string]types.AttributeValue{
+			"pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", id)},
+			"sk": &types.AttributeValueMemberS{Value: "PROFILE"},
+		},
+	})
+	if err != nil {
+		return connect.NewError(connect.CodeInternal, err)
+	}
+	return nil
 }

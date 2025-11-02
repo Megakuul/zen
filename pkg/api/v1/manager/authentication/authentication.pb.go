@@ -7,6 +7,7 @@
 package authentication
 
 import (
+	manager "github.com/megakuul/zen/pkg/api/v1/manager"
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
 	protoimpl "google.golang.org/protobuf/runtime/protoimpl"
 	reflect "reflect"
@@ -21,28 +22,28 @@ const (
 	_ = protoimpl.EnforceVersion(protoimpl.MaxVersion - 20)
 )
 
-type GetRequest struct {
+type LoginRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Verifier      string                 `protobuf:"bytes,1,opt,name=verifier,proto3" json:"verifier,omitempty"`
+	Verifier      *manager.Verifier      `protobuf:"bytes,1,opt,name=verifier,proto3" json:"verifier,omitempty"`
 	AutoRefresh   bool                   `protobuf:"varint,2,opt,name=auto_refresh,json=autoRefresh,proto3" json:"auto_refresh,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetRequest) Reset() {
-	*x = GetRequest{}
+func (x *LoginRequest) Reset() {
+	*x = LoginRequest{}
 	mi := &file_v1_manager_authentication_authentication_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetRequest) String() string {
+func (x *LoginRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetRequest) ProtoMessage() {}
+func (*LoginRequest) ProtoMessage() {}
 
-func (x *GetRequest) ProtoReflect() protoreflect.Message {
+func (x *LoginRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_manager_authentication_authentication_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -54,46 +55,46 @@ func (x *GetRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetRequest.ProtoReflect.Descriptor instead.
-func (*GetRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use LoginRequest.ProtoReflect.Descriptor instead.
+func (*LoginRequest) Descriptor() ([]byte, []int) {
 	return file_v1_manager_authentication_authentication_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetRequest) GetVerifier() string {
+func (x *LoginRequest) GetVerifier() *manager.Verifier {
 	if x != nil {
 		return x.Verifier
 	}
-	return ""
+	return nil
 }
 
-func (x *GetRequest) GetAutoRefresh() bool {
+func (x *LoginRequest) GetAutoRefresh() bool {
 	if x != nil {
 		return x.AutoRefresh
 	}
 	return false
 }
 
-type GetResponse struct {
+type LoginResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Token         string                 `protobuf:"bytes,1,opt,name=token,proto3" json:"token,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *GetResponse) Reset() {
-	*x = GetResponse{}
+func (x *LoginResponse) Reset() {
+	*x = LoginResponse{}
 	mi := &file_v1_manager_authentication_authentication_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *GetResponse) String() string {
+func (x *LoginResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*GetResponse) ProtoMessage() {}
+func (*LoginResponse) ProtoMessage() {}
 
-func (x *GetResponse) ProtoReflect() protoreflect.Message {
+func (x *LoginResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_manager_authentication_authentication_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -105,38 +106,38 @@ func (x *GetResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use GetResponse.ProtoReflect.Descriptor instead.
-func (*GetResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use LoginResponse.ProtoReflect.Descriptor instead.
+func (*LoginResponse) Descriptor() ([]byte, []int) {
 	return file_v1_manager_authentication_authentication_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *GetResponse) GetToken() string {
+func (x *LoginResponse) GetToken() string {
 	if x != nil {
 		return x.Token
 	}
 	return ""
 }
 
-type RevokeRequest struct {
+type LogoutRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *RevokeRequest) Reset() {
-	*x = RevokeRequest{}
+func (x *LogoutRequest) Reset() {
+	*x = LogoutRequest{}
 	mi := &file_v1_manager_authentication_authentication_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RevokeRequest) String() string {
+func (x *LogoutRequest) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RevokeRequest) ProtoMessage() {}
+func (*LogoutRequest) ProtoMessage() {}
 
-func (x *RevokeRequest) ProtoReflect() protoreflect.Message {
+func (x *LogoutRequest) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_manager_authentication_authentication_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -148,31 +149,31 @@ func (x *RevokeRequest) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RevokeRequest.ProtoReflect.Descriptor instead.
-func (*RevokeRequest) Descriptor() ([]byte, []int) {
+// Deprecated: Use LogoutRequest.ProtoReflect.Descriptor instead.
+func (*LogoutRequest) Descriptor() ([]byte, []int) {
 	return file_v1_manager_authentication_authentication_proto_rawDescGZIP(), []int{2}
 }
 
-type RevokeResponse struct {
+type LogoutResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
-func (x *RevokeResponse) Reset() {
-	*x = RevokeResponse{}
+func (x *LogoutResponse) Reset() {
+	*x = LogoutResponse{}
 	mi := &file_v1_manager_authentication_authentication_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
 
-func (x *RevokeResponse) String() string {
+func (x *LogoutResponse) String() string {
 	return protoimpl.X.MessageStringOf(x)
 }
 
-func (*RevokeResponse) ProtoMessage() {}
+func (*LogoutResponse) ProtoMessage() {}
 
-func (x *RevokeResponse) ProtoReflect() protoreflect.Message {
+func (x *LogoutResponse) ProtoReflect() protoreflect.Message {
 	mi := &file_v1_manager_authentication_authentication_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
@@ -184,8 +185,8 @@ func (x *RevokeResponse) ProtoReflect() protoreflect.Message {
 	return mi.MessageOf(x)
 }
 
-// Deprecated: Use RevokeResponse.ProtoReflect.Descriptor instead.
-func (*RevokeResponse) Descriptor() ([]byte, []int) {
+// Deprecated: Use LogoutResponse.ProtoReflect.Descriptor instead.
+func (*LogoutResponse) Descriptor() ([]byte, []int) {
 	return file_v1_manager_authentication_authentication_proto_rawDescGZIP(), []int{3}
 }
 
@@ -193,18 +194,17 @@ var File_v1_manager_authentication_authentication_proto protoreflect.FileDescrip
 
 const file_v1_manager_authentication_authentication_proto_rawDesc = "" +
 	"\n" +
-	".v1/manager/authentication/authentication.proto\x12\x19v1.manager.authentication\"K\n" +
-	"\n" +
-	"GetRequest\x12\x1a\n" +
-	"\bverifier\x18\x01 \x01(\tR\bverifier\x12!\n" +
-	"\fauto_refresh\x18\x02 \x01(\bR\vautoRefresh\"#\n" +
-	"\vGetResponse\x12\x14\n" +
+	".v1/manager/authentication/authentication.proto\x12\x19v1.manager.authentication\x1a\x19v1/manager/verifier.proto\"c\n" +
+	"\fLoginRequest\x120\n" +
+	"\bverifier\x18\x01 \x01(\v2\x14.v1.manager.VerifierR\bverifier\x12!\n" +
+	"\fauto_refresh\x18\x02 \x01(\bR\vautoRefresh\"%\n" +
+	"\rLoginResponse\x12\x14\n" +
 	"\x05token\x18\x01 \x01(\tR\x05token\"\x0f\n" +
-	"\rRevokeRequest\"\x10\n" +
-	"\x0eRevokeResponse2\xd0\x01\n" +
-	"\x15AuthenticationService\x12V\n" +
-	"\x03Get\x12%.v1.manager.authentication.GetRequest\x1a&.v1.manager.authentication.GetResponse\"\x00\x12_\n" +
-	"\x06Revoke\x12(.v1.manager.authentication.RevokeRequest\x1a).v1.manager.authentication.RevokeResponse\"\x00B;Z9github.com/megakuul/zen/pkg/api/v1/manager/authenticationb\x06proto3"
+	"\rLogoutRequest\"\x10\n" +
+	"\x0eLogoutResponse2\xd6\x01\n" +
+	"\x15AuthenticationService\x12\\\n" +
+	"\x05Login\x12'.v1.manager.authentication.LoginRequest\x1a(.v1.manager.authentication.LoginResponse\"\x00\x12_\n" +
+	"\x06Logout\x12(.v1.manager.authentication.LogoutRequest\x1a).v1.manager.authentication.LogoutResponse\"\x00B;Z9github.com/megakuul/zen/pkg/api/v1/manager/authenticationb\x06proto3"
 
 var (
 	file_v1_manager_authentication_authentication_proto_rawDescOnce sync.Once
@@ -220,21 +220,23 @@ func file_v1_manager_authentication_authentication_proto_rawDescGZIP() []byte {
 
 var file_v1_manager_authentication_authentication_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_v1_manager_authentication_authentication_proto_goTypes = []any{
-	(*GetRequest)(nil),     // 0: v1.manager.authentication.GetRequest
-	(*GetResponse)(nil),    // 1: v1.manager.authentication.GetResponse
-	(*RevokeRequest)(nil),  // 2: v1.manager.authentication.RevokeRequest
-	(*RevokeResponse)(nil), // 3: v1.manager.authentication.RevokeResponse
+	(*LoginRequest)(nil),     // 0: v1.manager.authentication.LoginRequest
+	(*LoginResponse)(nil),    // 1: v1.manager.authentication.LoginResponse
+	(*LogoutRequest)(nil),    // 2: v1.manager.authentication.LogoutRequest
+	(*LogoutResponse)(nil),   // 3: v1.manager.authentication.LogoutResponse
+	(*manager.Verifier)(nil), // 4: v1.manager.Verifier
 }
 var file_v1_manager_authentication_authentication_proto_depIdxs = []int32{
-	0, // 0: v1.manager.authentication.AuthenticationService.Get:input_type -> v1.manager.authentication.GetRequest
-	2, // 1: v1.manager.authentication.AuthenticationService.Revoke:input_type -> v1.manager.authentication.RevokeRequest
-	1, // 2: v1.manager.authentication.AuthenticationService.Get:output_type -> v1.manager.authentication.GetResponse
-	3, // 3: v1.manager.authentication.AuthenticationService.Revoke:output_type -> v1.manager.authentication.RevokeResponse
-	2, // [2:4] is the sub-list for method output_type
-	0, // [0:2] is the sub-list for method input_type
-	0, // [0:0] is the sub-list for extension type_name
-	0, // [0:0] is the sub-list for extension extendee
-	0, // [0:0] is the sub-list for field type_name
+	4, // 0: v1.manager.authentication.LoginRequest.verifier:type_name -> v1.manager.Verifier
+	0, // 1: v1.manager.authentication.AuthenticationService.Login:input_type -> v1.manager.authentication.LoginRequest
+	2, // 2: v1.manager.authentication.AuthenticationService.Logout:input_type -> v1.manager.authentication.LogoutRequest
+	1, // 3: v1.manager.authentication.AuthenticationService.Login:output_type -> v1.manager.authentication.LoginResponse
+	3, // 4: v1.manager.authentication.AuthenticationService.Logout:output_type -> v1.manager.authentication.LogoutResponse
+	3, // [3:5] is the sub-list for method output_type
+	1, // [1:3] is the sub-list for method input_type
+	1, // [1:1] is the sub-list for extension type_name
+	1, // [1:1] is the sub-list for extension extendee
+	0, // [0:1] is the sub-list for field type_name
 }
 
 func init() { file_v1_manager_authentication_authentication_proto_init() }
