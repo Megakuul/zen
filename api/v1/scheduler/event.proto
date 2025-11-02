@@ -20,7 +20,8 @@ message Event {
   int64 timer_start_time = 6;
   int64 timer_stop_time = 7;
   double rating_change = 8;
-  bool immutable = 9;
-  string description = 10;
-  string music_url = 11;
+  string rating_algorithm = 9;
+  bool immutable = 10;
+  string description = 11;
+  string music_url = 12;
 }

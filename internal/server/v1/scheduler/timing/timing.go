@@ -2,36 +2,37 @@ package timing
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"log/slog"
 	"strings"
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/aws/aws-sdk-go-v2/aws"
-	"github.com/aws/aws-sdk-go-v2/service/sqs"
 	"github.com/megakuul/zen/internal/auth"
+	"github.com/megakuul/zen/internal/model/leaderboard"
 	"github.com/megakuul/zen/internal/model/user"
+	"github.com/megakuul/zen/internal/rating"
 	"github.com/megakuul/zen/internal/token"
 	"github.com/megakuul/zen/pkg/api/v1/scheduler/timing"
 )
 
 type Service struct {
-	logger           *slog.Logger
-	verificator      *token.Verificator
-	authenticator    *auth.Authenticator
-	userCtrl         *user.Controller
-	sqsClient        *sqs.Client
-	leaderboardQueue string
+	logger          *slog.Logger
+	verificator     *token.Verificator
+	authenticator   *auth.Authenticator
+	userCtrl        *user.Controller
+	leaderboardCtrl *leaderboard.Controller
+	ratingAnchor    time.Duration
 }
 
-func New(logger *slog.Logger, verify *token.Verificator, auth *auth.Authenticator, user *user.Controller) *Service {
+func New(logger *slog.Logger, verify *token.Verificator, auth *auth.Authenticator, user *user.Controller, leaderboard *leaderboard.Controller, ratingAnchor time.Duration) *Service {
 	return &Service{
-		logger:        logger,
-		verificator:   verify,
-		authenticator: auth,
-		userCtrl:      user,
+		logger:          logger,
+		verificator:     verify,
+		authenticator:   auth,
+		userCtrl:        user,
+		leaderboardCtrl: leaderboard,
+		ratingAnchor:    ratingAnchor,
 	}
 }
 
@@ -40,7 +41,17 @@ func (s *Service) Start(ctx context.Context, r *connect.Request[timing.StartRequ
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	err = s.userCtrl.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id, time.Now(), time.Unix(0, 0), 0, false)
+	event, found, err := s.userCtrl.GetEvent(ctx, claims.Subject, r.Msg.Id)
+	if err != nil {
+		return nil, err
+	} else if !found {
+		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("event does not exist"))
+	} else if event.Immutable {
+		// just a precheck to provide a userfriendly error (the check is also supplied as atomic operation in the update)
+		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("event already concluded"))
+	}
+	err = s.userCtrl.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id, 
+		time.Now(), time.Unix(event.StartTime, 0), event.RatingChange, event.RatingAlgorithm, false)
 	if err != nil {
 		return nil, err
 	}
@@ -55,6 +66,14 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
+	profile, found, err := s.userCtrl.GetProfile(ctx, claims.Subject)
+	if err != nil {
+		return nil, err
+	} else if !found {
+		// invalid accesstoken -> return unauthenticated to trigger re-authentication
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid access token"))
+	}
+
 	event, found, err := s.userCtrl.GetEvent(ctx, claims.Subject, r.Msg.Id)
 	if err != nil {
 		return nil, err
@@ -65,33 +84,27 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("event already concluded"))
 	}
 
-	ratingChange := 0.0
+	timerStopTime := time.Now()
+	algorithm, ratingChange := rating.CalculateRatingChange(
+		time.Unix(event.StartTime, 0),
+		time.Unix(event.StopTime, 0),
+		time.Unix(event.TimerStartTime, 0),
+		timerStopTime,
+		s.ratingAnchor,
+	)
 
-	type Update struct {
-		UserId   string  `json:"user_id"`
-		Username string  `json:"username"`
-		Change   float64 `json:"change"`
-	}
-
-	msg, err := json.Marshal(&Update{
-		UserId: claims.Subject,
-		Username: "",
-		Change: ratingChange,
+	err = s.leaderboardCtrl.SendUpdate(ctx, &leaderboard.Update{
+		UserId:       claims.Subject,
+		Username:     profile.Username,
+		Algorithm:    algorithm,
+		RatingChange: ratingChange,
 	})
-	if err!=nil {
+	if err != nil {
 		return nil, err
 	}
 
-	_, err = s.sqsClient.SendMessage(ctx, &sqs.SendMessageInput{
-		QueueUrl:    aws.String(s.leaderboardQueue),
-		MessageBody: aws.String(string(msg)),
-	})
-	if err != nil {
-		return nil, connect.NewError(connect.CodeInternal, err)
-	}
-
 	err = s.userCtrl.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id,
-		time.Unix(event.TimerStartTime, 0), time.Now(), ratingChange, true)
+		time.Unix(event.TimerStartTime, 0), timerStopTime, ratingChange, algorithm, true)
 	if err != nil {
 		return nil, err
 	}

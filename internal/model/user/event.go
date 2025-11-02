@@ -15,18 +15,19 @@ import (
 )
 
 type Event struct {
-	PK             string  `dynamodbav:"pk"`
-	SK             string  `dynamodbav:"sk"`
-	Type           int64   `dynamodbav:"type"`
-	Name           string  `dynamodbav:"name"`
-	StartTime      int64   `dynamodbav:"start_time"`
-	StopTime       int64   `dynamodbav:"stop_time"`
-	TimerStartTime int64   `dynamodbav:"timer_start_time"`
-	TimerStopTime  int64   `dynamodbav:"timer_stop_time"`
-	RatingChange   float64 `dynamodbav:"rating_change"`
-	Immutable      bool    `dynamodbav:"immutable"`
-	Description    string  `dynamodbav:"description"`
-	MusicUrl       string  `dynamodbav:"music_url"`
+	PK              string  `dynamodbav:"pk"`
+	SK              string  `dynamodbav:"sk"`
+	Type            int64   `dynamodbav:"type"`
+	Name            string  `dynamodbav:"name"`
+	StartTime       int64   `dynamodbav:"start_time"`
+	StopTime        int64   `dynamodbav:"stop_time"`
+	TimerStartTime  int64   `dynamodbav:"timer_start_time"`
+	TimerStopTime   int64   `dynamodbav:"timer_stop_time"`
+	RatingChange    float64 `dynamodbav:"rating_change"`
+	RatingAlgorithm string  `dynamodbav:"rating_algorithm"`
+	Immutable       bool    `dynamodbav:"immutable"`
+	Description     string  `dynamodbav:"description"`
+	MusicUrl        string  `dynamodbav:"music_url"`
 }
 
 func (c *Controller) GetEvent(ctx context.Context, sub, id string) (*Event, bool, error) {
@@ -105,7 +106,7 @@ func (c *Controller) PutEvent(ctx context.Context, sub string, event *Event) err
 	return nil
 }
 
-func (c *Controller) UpdateEventTimer(ctx context.Context, sub, id string, start, stop time.Time, rating float64, immutable bool) error {
+func (c *Controller) UpdateEventTimer(ctx context.Context, sub, id string, start, stop time.Time, rating float64, ratingAlgorithm string, immutable bool) error {
 	_, err := c.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(c.table),
 		Key: map[string]types.AttributeValue{
@@ -116,10 +117,16 @@ func (c *Controller) UpdateEventTimer(ctx context.Context, sub, id string, start
 			":timer_start_time": &types.AttributeValueMemberN{Value: strconv.Itoa(int(start.Unix()))},
 			":timer_stop_time":  &types.AttributeValueMemberN{Value: strconv.Itoa(int(stop.Unix()))},
 			":rating_change":    &types.AttributeValueMemberN{Value: strconv.FormatFloat(rating, 'f', 2, 64)},
+			":rating_algorithm": &types.AttributeValueMemberS{Value: ratingAlgorithm},
 			":immutable":        &types.AttributeValueMemberBOOL{Value: immutable},
 			":false":            &types.AttributeValueMemberBOOL{Value: false},
 		},
-		UpdateExpression:    aws.String("SET timer_start_time = :timer_start_time, timer_stop_time = :timer_stop_time, rating_change = :rating_change"),
+		UpdateExpression: aws.String(fmt.Sprint("SET",
+			"timer_start_time = :timer_start_time,",
+			"timer_stop_time = :timer_stop_time,",
+			"rating_change = :rating_change,",
+			"rating_algorithm = :rating_algorithm,",
+		)),
 		ConditionExpression: aws.String("attribute_exists(sk) AND immutable = :false"),
 	})
 	if err != nil {

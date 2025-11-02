@@ -74,20 +74,21 @@ func (EventType) EnumDescriptor() ([]byte, []int) {
 }
 
 type Event struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	Id             string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
-	Type           EventType              `protobuf:"varint,2,opt,name=type,proto3,enum=v1.scheduler.EventType" json:"type,omitempty"`
-	Name           string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
-	StartTime      int64                  `protobuf:"varint,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
-	StopTime       int64                  `protobuf:"varint,5,opt,name=stop_time,json=stopTime,proto3" json:"stop_time,omitempty"`
-	TimerStartTime int64                  `protobuf:"varint,6,opt,name=timer_start_time,json=timerStartTime,proto3" json:"timer_start_time,omitempty"`
-	TimerStopTime  int64                  `protobuf:"varint,7,opt,name=timer_stop_time,json=timerStopTime,proto3" json:"timer_stop_time,omitempty"`
-	RatingChange   float64                `protobuf:"fixed64,8,opt,name=rating_change,json=ratingChange,proto3" json:"rating_change,omitempty"`
-	Immutable      bool                   `protobuf:"varint,9,opt,name=immutable,proto3" json:"immutable,omitempty"`
-	Description    string                 `protobuf:"bytes,10,opt,name=description,proto3" json:"description,omitempty"`
-	MusicUrl       string                 `protobuf:"bytes,11,opt,name=music_url,json=musicUrl,proto3" json:"music_url,omitempty"`
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state           protoimpl.MessageState `protogen:"open.v1"`
+	Id              string                 `protobuf:"bytes,1,opt,name=id,proto3" json:"id,omitempty"`
+	Type            EventType              `protobuf:"varint,2,opt,name=type,proto3,enum=v1.scheduler.EventType" json:"type,omitempty"`
+	Name            string                 `protobuf:"bytes,3,opt,name=name,proto3" json:"name,omitempty"`
+	StartTime       int64                  `protobuf:"varint,4,opt,name=start_time,json=startTime,proto3" json:"start_time,omitempty"`
+	StopTime        int64                  `protobuf:"varint,5,opt,name=stop_time,json=stopTime,proto3" json:"stop_time,omitempty"`
+	TimerStartTime  int64                  `protobuf:"varint,6,opt,name=timer_start_time,json=timerStartTime,proto3" json:"timer_start_time,omitempty"`
+	TimerStopTime   int64                  `protobuf:"varint,7,opt,name=timer_stop_time,json=timerStopTime,proto3" json:"timer_stop_time,omitempty"`
+	RatingChange    float64                `protobuf:"fixed64,8,opt,name=rating_change,json=ratingChange,proto3" json:"rating_change,omitempty"`
+	RatingAlgorithm string                 `protobuf:"bytes,9,opt,name=rating_algorithm,json=ratingAlgorithm,proto3" json:"rating_algorithm,omitempty"`
+	Immutable       bool                   `protobuf:"varint,10,opt,name=immutable,proto3" json:"immutable,omitempty"`
+	Description     string                 `protobuf:"bytes,11,opt,name=description,proto3" json:"description,omitempty"`
+	MusicUrl        string                 `protobuf:"bytes,12,opt,name=music_url,json=musicUrl,proto3" json:"music_url,omitempty"`
+	unknownFields   protoimpl.UnknownFields
+	sizeCache       protoimpl.SizeCache
 }
 
 func (x *Event) Reset() {
@@ -176,6 +177,13 @@ func (x *Event) GetRatingChange() float64 {
 	return 0
 }
 
+func (x *Event) GetRatingAlgorithm() string {
+	if x != nil {
+		return x.RatingAlgorithm
+	}
+	return ""
+}
+
 func (x *Event) GetImmutable() bool {
 	if x != nil {
 		return x.Immutable
@@ -201,7 +209,7 @@ var File_v1_scheduler_event_proto protoreflect.FileDescriptor
 
 const file_v1_scheduler_event_proto_rawDesc = "" +
 	"\n" +
-	"\x18v1/scheduler/event.proto\x12\fv1.scheduler\"\xe8\x02\n" +
+	"\x18v1/scheduler/event.proto\x12\fv1.scheduler\"\x93\x03\n" +
 	"\x05Event\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12+\n" +
 	"\x04type\x18\x02 \x01(\x0e2\x17.v1.scheduler.EventTypeR\x04type\x12\x12\n" +
@@ -211,11 +219,12 @@ const file_v1_scheduler_event_proto_rawDesc = "" +
 	"\tstop_time\x18\x05 \x01(\x03R\bstopTime\x12(\n" +
 	"\x10timer_start_time\x18\x06 \x01(\x03R\x0etimerStartTime\x12&\n" +
 	"\x0ftimer_stop_time\x18\a \x01(\x03R\rtimerStopTime\x12#\n" +
-	"\rrating_change\x18\b \x01(\x01R\fratingChange\x12\x1c\n" +
-	"\timmutable\x18\t \x01(\bR\timmutable\x12 \n" +
-	"\vdescription\x18\n" +
-	" \x01(\tR\vdescription\x12\x1b\n" +
-	"\tmusic_url\x18\v \x01(\tR\bmusicUrl*?\n" +
+	"\rrating_change\x18\b \x01(\x01R\fratingChange\x12)\n" +
+	"\x10rating_algorithm\x18\t \x01(\tR\x0fratingAlgorithm\x12\x1c\n" +
+	"\timmutable\x18\n" +
+	" \x01(\bR\timmutable\x12 \n" +
+	"\vdescription\x18\v \x01(\tR\vdescription\x12\x1b\n" +
+	"\tmusic_url\x18\f \x01(\tR\bmusicUrl*?\n" +
 	"\tEventType\x12\t\n" +
 	"\x05CHILL\x10\x00\x12\t\n" +
 	"\x05PAUSE\x10\x01\x12\r\n" +

@@ -36,7 +36,7 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[planning.GetReques
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	events, err := s.userCtrl.GetEvents(ctx, claims.Subject, time.Unix(r.Msg.Since, 0), time.Unix(r.Msg.Until, 0))
+	events, err := s.userCtrl.ListEvents(ctx, claims.Subject, time.Unix(r.Msg.Since, 0), time.Unix(r.Msg.Until, 0))
 	if err != nil {
 		return nil, err
 	}
@@ -45,17 +45,18 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[planning.GetReques
 	}
 	for _, event := range events {
 		resp.Msg.Events = append(resp.Msg.Events, &scheduler.Event{
-			Id:             strconv.Itoa(int(event.StartTime)),
-			Type:           scheduler.EventType(event.Type),
-			Name:           event.Name,
-			StartTime:      event.StartTime,
-			StopTime:       event.StopTime,
-			TimerStartTime: event.TimerStartTime,
-			TimerStopTime:  event.TimerStopTime,
-			RatingChange:   event.RatingChange,
-			Immutable:      event.Immutable,
-			Description:    event.Description,
-			MusicUrl:       event.MusicUrl,
+			Id:              strconv.Itoa(int(event.StartTime)),
+			Type:            scheduler.EventType(event.Type),
+			Name:            event.Name,
+			StartTime:       event.StartTime,
+			StopTime:        event.StopTime,
+			TimerStartTime:  event.TimerStartTime,
+			TimerStopTime:   event.TimerStopTime,
+			RatingChange:    event.RatingChange,
+			RatingAlgorithm: event.RatingAlgorithm,
+			Immutable:       event.Immutable,
+			Description:     event.Description,
+			MusicUrl:        event.MusicUrl,
 		})
 	}
 	return resp, nil
@@ -67,16 +68,17 @@ func (s *Service) Upsert(ctx context.Context, r *connect.Request[planning.Upsert
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 	err = s.userCtrl.PutEvent(ctx, claims.Subject, &user.Event{
-		Type:           int64(r.Msg.Event.Type),
-		Name:           r.Msg.Event.Name,
-		StartTime:      r.Msg.Event.StartTime,
-		StopTime:       r.Msg.Event.StopTime,
-		TimerStartTime: r.Msg.Event.TimerStartTime,
-		TimerStopTime:  r.Msg.Event.TimerStopTime,
-		RatingChange:   r.Msg.Event.RatingChange,
-		Immutable:      r.Msg.Event.Immutable,
-		Description:    r.Msg.Event.Description,
-		MusicUrl:       r.Msg.Event.MusicUrl,
+		Type:            int64(r.Msg.Event.Type),
+		Name:            r.Msg.Event.Name,
+		StartTime:       r.Msg.Event.StartTime,
+		StopTime:        r.Msg.Event.StopTime,
+		TimerStartTime:  r.Msg.Event.TimerStartTime,
+		TimerStopTime:   r.Msg.Event.TimerStopTime,
+		RatingChange:    r.Msg.Event.RatingChange,
+		RatingAlgorithm: r.Msg.Event.RatingAlgorithm,
+		Immutable:       r.Msg.Event.Immutable,
+		Description:     r.Msg.Event.Description,
+		MusicUrl:        r.Msg.Event.MusicUrl,
 	})
 	if err != nil {
 		return nil, err
