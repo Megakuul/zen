@@ -11,16 +11,16 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/scheduler/timing/timing.proto.
  */
 export const file_v1_scheduler_timing_timing: GenFile = /*@__PURE__*/
-  fileDesc("CiB2MS9zY2hlZHVsZXIvdGltaW5nL3RpbWluZy5wcm90bxITdjEuc2NoZWR1bGVyLnRpbWluZyIiCgxTdGFydFJlcXVlc3QSEgoKc3RhcnRfdGltZRgCIAEoAyIPCg1TdGFydFJlc3BvbnNlIiAKC1N0b3BSZXF1ZXN0EhEKCXN0b3BfdGltZRgCIAEoAyIOCgxTdG9wUmVzcG9uc2UysAEKDVRpbWluZ1NlcnZpY2USUAoFU3RhcnQSIS52MS5zY2hlZHVsZXIudGltaW5nLlN0YXJ0UmVxdWVzdBoiLnYxLnNjaGVkdWxlci50aW1pbmcuU3RhcnRSZXNwb25zZSIAEk0KBFN0b3ASIC52MS5zY2hlZHVsZXIudGltaW5nLlN0b3BSZXF1ZXN0GiEudjEuc2NoZWR1bGVyLnRpbWluZy5TdG9wUmVzcG9uc2UiAEI1WjNnaXRodWIuY29tL21lZ2FrdXVsL3plbi9wa2cvYXBpL3YxL3NjaGVkdWxlci90aW1pbmdiBnByb3RvMw", [file_v1_scheduler_event]);
+  fileDesc("CiB2MS9zY2hlZHVsZXIvdGltaW5nL3RpbWluZy5wcm90bxITdjEuc2NoZWR1bGVyLnRpbWluZyIaCgxTdGFydFJlcXVlc3QSCgoCaWQYASABKAkiDwoNU3RhcnRSZXNwb25zZSIZCgtTdG9wUmVxdWVzdBIKCgJpZBgBIAEoCSIOCgxTdG9wUmVzcG9uc2UysAEKDVRpbWluZ1NlcnZpY2USUAoFU3RhcnQSIS52MS5zY2hlZHVsZXIudGltaW5nLlN0YXJ0UmVxdWVzdBoiLnYxLnNjaGVkdWxlci50aW1pbmcuU3RhcnRSZXNwb25zZSIAEk0KBFN0b3ASIC52MS5zY2hlZHVsZXIudGltaW5nLlN0b3BSZXF1ZXN0GiEudjEuc2NoZWR1bGVyLnRpbWluZy5TdG9wUmVzcG9uc2UiAEI1WjNnaXRodWIuY29tL21lZ2FrdXVsL3plbi9wa2cvYXBpL3YxL3NjaGVkdWxlci90aW1pbmdiBnByb3RvMw", [file_v1_scheduler_event]);
 
 /**
  * @generated from message v1.scheduler.timing.StartRequest
  */
 export type StartRequest = Message<"v1.scheduler.timing.StartRequest"> & {
   /**
-   * @generated from field: int64 start_time = 2;
+   * @generated from field: string id = 1;
    */
-  startTime: bigint;
+  id: string;
 };
 
 /**
@@ -48,9 +48,9 @@ export const StartResponseSchema: GenMessage<StartResponse> = /*@__PURE__*/
  */
 export type StopRequest = Message<"v1.scheduler.timing.StopRequest"> & {
   /**
-   * @generated from field: int64 stop_time = 2;
+   * @generated from field: string id = 1;
    */
-  stopTime: bigint;
+  id: string;
 };
 
 /**

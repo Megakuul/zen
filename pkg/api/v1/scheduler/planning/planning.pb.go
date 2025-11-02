@@ -24,7 +24,8 @@ const (
 
 type GetRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Day           int64                  `protobuf:"varint,1,opt,name=day,proto3" json:"day,omitempty"`
+	Since         int64                  `protobuf:"varint,1,opt,name=since,proto3" json:"since,omitempty"`
+	Until         int64                  `protobuf:"varint,2,opt,name=until,proto3" json:"until,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -59,9 +60,16 @@ func (*GetRequest) Descriptor() ([]byte, []int) {
 	return file_v1_scheduler_planning_planning_proto_rawDescGZIP(), []int{0}
 }
 
-func (x *GetRequest) GetDay() int64 {
+func (x *GetRequest) GetSince() int64 {
 	if x != nil {
-		return x.Day
+		return x.Since
+	}
+	return 0
+}
+
+func (x *GetRequest) GetUntil() int64 {
+	if x != nil {
+		return x.Until
 	}
 	return 0
 }
@@ -274,10 +282,11 @@ var File_v1_scheduler_planning_planning_proto protoreflect.FileDescriptor
 
 const file_v1_scheduler_planning_planning_proto_rawDesc = "" +
 	"\n" +
-	"$v1/scheduler/planning/planning.proto\x12\x15v1.scheduler.planning\x1a\x18v1/scheduler/event.proto\"\x1e\n" +
+	"$v1/scheduler/planning/planning.proto\x12\x15v1.scheduler.planning\x1a\x18v1/scheduler/event.proto\"8\n" +
 	"\n" +
-	"GetRequest\x12\x10\n" +
-	"\x03day\x18\x01 \x01(\x03R\x03day\":\n" +
+	"GetRequest\x12\x14\n" +
+	"\x05since\x18\x01 \x01(\x03R\x05since\x12\x14\n" +
+	"\x05until\x18\x02 \x01(\x03R\x05until\":\n" +
 	"\vGetResponse\x12+\n" +
 	"\x06events\x18\x01 \x03(\v2\x13.v1.scheduler.EventR\x06events\":\n" +
 	"\rUpsertRequest\x12)\n" +

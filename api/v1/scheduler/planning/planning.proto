@@ -7,7 +7,8 @@ option go_package = "github.com/megakuul/zen/pkg/api/v1/scheduler/planning";
 import "v1/scheduler/event.proto";
 
 message GetRequest {
-  int64 day = 1;
+  int64 since = 1;
+  int64 until = 2;
 }
 
 message GetResponse {

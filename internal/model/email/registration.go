@@ -14,7 +14,7 @@ import (
 type Registration struct {
 	PK   string `dynamodbav:"pk"`
 	SK   string `dynamodbav:"sk"`
-	User string `dynamodbav:"user"`
+	User string `dynamodbav:"user,omitempty"`
 }
 
 func (c *Controller) GetRegistration(ctx context.Context, email string) (*Registration, bool, error) {

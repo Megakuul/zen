@@ -21,15 +21,15 @@ const (
 	refreshTokenTTL  = 720 * time.Hour  // 30 days
 )
 
-type Authentication struct {
+type Service struct {
 	logger        *slog.Logger
 	verificator   *token.Verificator
 	authenticator *auth.Authenticator
 	emailCtrl     *email.Controller
 }
 
-func New(logger *slog.Logger, verify *token.Verificator, auth *auth.Authenticator, email *email.Controller) *Authentication {
-	return &Authentication{
+func New(logger *slog.Logger, verify *token.Verificator, auth *auth.Authenticator, email *email.Controller) *Service {
+	return &Service{
 		logger:        logger,
 		verificator:   verify,
 		authenticator: auth,
@@ -37,16 +37,16 @@ func New(logger *slog.Logger, verify *token.Verificator, auth *auth.Authenticato
 	}
 }
 
-func (a *Authentication) Login(ctx context.Context, r *connect.Request[authentication.LoginRequest]) (*connect.Response[authentication.LoginResponse], error) {
+func (s *Service) Login(ctx context.Context, r *connect.Request[authentication.LoginRequest]) (*connect.Response[authentication.LoginResponse], error) {
 	refreshCookie := findRefreshCookie(r.Header())
 	if refreshCookie != nil {
-		claims, err := a.verificator.Verify(ctx, refreshCookie.Value)
+		claims, err := s.verificator.Verify(ctx, refreshCookie.Value)
 		if err != nil {
 			return nil, err
 		} else if !claims.Refresh {
 			return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("invalid token; expected refresh_token"))
 		}
-		token, err := a.verificator.Issue(ctx, claims.Subject, r.Msg.Verifier.Email, false, time.Now().Add(accessTokenTTL))
+		token, err := s.verificator.Issue(ctx, claims.Subject, r.Msg.Verifier.Email, false, time.Now().Add(accessTokenTTL))
 		if err != nil {
 			return nil, err
 		}
@@ -57,14 +57,14 @@ func (a *Authentication) Login(ctx context.Context, r *connect.Request[authentic
 		}, nil
 	}
 
-	registration, found, err := a.emailCtrl.GetRegistration(ctx, r.Msg.Verifier.Email)
+	registration, found, err := s.emailCtrl.GetRegistration(ctx, r.Msg.Verifier.Email)
 	if err != nil {
 		return nil, err
 	} else if !found {
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("email is not registered"))
 	}
 
-	verified, err := a.authenticator.Authenticate(ctx, r.Msg.Verifier)
+	verified, err := s.authenticator.Authenticate(ctx, r.Msg.Verifier)
 	if err != nil {
 		return nil, err
 	} else if !verified {
@@ -73,7 +73,7 @@ func (a *Authentication) Login(ctx context.Context, r *connect.Request[authentic
 		}, nil
 	}
 
-	accessToken, err := a.verificator.Issue(ctx, registration.User, r.Msg.Verifier.Email, false, time.Now().Add(accessTokenTTL))
+	accessToken, err := s.verificator.Issue(ctx, registration.User, r.Msg.Verifier.Email, false, time.Now().Add(accessTokenTTL))
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (a *Authentication) Login(ctx context.Context, r *connect.Request[authentic
 	}
 
 	if r.Msg.AutoRefresh {
-		refreshToken, err := a.verificator.Issue(ctx, registration.User, r.Msg.Verifier.Email, true, time.Now().Add(refreshTokenTTL))
+		refreshToken, err := s.verificator.Issue(ctx, registration.User, r.Msg.Verifier.Email, true, time.Now().Add(refreshTokenTTL))
 		if err != nil {
 			return nil, err
 		}
@@ -102,7 +102,7 @@ func (a *Authentication) Login(ctx context.Context, r *connect.Request[authentic
 	return resp, nil
 }
 
-func (s *Authentication) Logout(ctx context.Context, r *connect.Request[authentication.LogoutRequest]) (*connect.Response[authentication.LogoutResponse], error) {
+func (s *Service) Logout(ctx context.Context, r *connect.Request[authentication.LogoutRequest]) (*connect.Response[authentication.LogoutResponse], error) {
 	resp := &connect.Response[authentication.LogoutResponse]{}
 	refreshCookie := findRefreshCookie(r.Header())
 	if refreshCookie == nil {

@@ -15,8 +15,8 @@ import (
 type Code struct {
 	PK        string `dynamodbav:"pk"`
 	SK        string `dynamodbav:"sk"`
-	Code      string `dynamodbav:"code"`
-	ExpiresAt int64  `dynamodbav:"expires_at"`
+	Code      string `dynamodbav:"code,omitempty"`
+	ExpiresAt int64  `dynamodbav:"expires_at,omitempty"`
 }
 
 func (c *Controller) GetCode(ctx context.Context, email string) (*Code, bool, error) {

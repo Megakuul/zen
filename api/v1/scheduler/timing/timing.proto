@@ -7,14 +7,14 @@ option go_package = "github.com/megakuul/zen/pkg/api/v1/scheduler/timing";
 import "v1/scheduler/event.proto";
 
 message StartRequest {
-  int64 start_time = 2;
+  string id = 1;
 }
 
 message StartResponse {
 }
 
 message StopRequest {
-  int64 stop_time = 2;
+  string id = 1;
 }
 
 message StopResponse {

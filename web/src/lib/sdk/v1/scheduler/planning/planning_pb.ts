@@ -12,16 +12,21 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/scheduler/planning/planning.proto.
  */
 export const file_v1_scheduler_planning_planning: GenFile = /*@__PURE__*/
-  fileDesc("CiR2MS9zY2hlZHVsZXIvcGxhbm5pbmcvcGxhbm5pbmcucHJvdG8SFXYxLnNjaGVkdWxlci5wbGFubmluZyIZCgpHZXRSZXF1ZXN0EgsKA2RheRgBIAEoAyIyCgtHZXRSZXNwb25zZRIjCgZldmVudHMYASADKAsyEy52MS5zY2hlZHVsZXIuRXZlbnQiMwoNVXBzZXJ0UmVxdWVzdBIiCgVldmVudBgBIAEoCzITLnYxLnNjaGVkdWxlci5FdmVudCIQCg5VcHNlcnRSZXNwb25zZSIbCg1EZWxldGVSZXF1ZXN0EgoKAmlkGAEgASgJIhAKDkRlbGV0ZVJlc3BvbnNlMpMCCg9QbGFubmluZ1NlcnZpY2USTgoDR2V0EiEudjEuc2NoZWR1bGVyLnBsYW5uaW5nLkdldFJlcXVlc3QaIi52MS5zY2hlZHVsZXIucGxhbm5pbmcuR2V0UmVzcG9uc2UiABJXCgZVcHNlcnQSJC52MS5zY2hlZHVsZXIucGxhbm5pbmcuVXBzZXJ0UmVxdWVzdBolLnYxLnNjaGVkdWxlci5wbGFubmluZy5VcHNlcnRSZXNwb25zZSIAElcKBkRlbGV0ZRIkLnYxLnNjaGVkdWxlci5wbGFubmluZy5EZWxldGVSZXF1ZXN0GiUudjEuc2NoZWR1bGVyLnBsYW5uaW5nLkRlbGV0ZVJlc3BvbnNlIgBCN1o1Z2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9zY2hlZHVsZXIvcGxhbm5pbmdiBnByb3RvMw", [file_v1_scheduler_event]);
+  fileDesc("CiR2MS9zY2hlZHVsZXIvcGxhbm5pbmcvcGxhbm5pbmcucHJvdG8SFXYxLnNjaGVkdWxlci5wbGFubmluZyIqCgpHZXRSZXF1ZXN0Eg0KBXNpbmNlGAEgASgDEg0KBXVudGlsGAIgASgDIjIKC0dldFJlc3BvbnNlEiMKBmV2ZW50cxgBIAMoCzITLnYxLnNjaGVkdWxlci5FdmVudCIzCg1VcHNlcnRSZXF1ZXN0EiIKBWV2ZW50GAEgASgLMhMudjEuc2NoZWR1bGVyLkV2ZW50IhAKDlVwc2VydFJlc3BvbnNlIhsKDURlbGV0ZVJlcXVlc3QSCgoCaWQYASABKAkiEAoORGVsZXRlUmVzcG9uc2UykwIKD1BsYW5uaW5nU2VydmljZRJOCgNHZXQSIS52MS5zY2hlZHVsZXIucGxhbm5pbmcuR2V0UmVxdWVzdBoiLnYxLnNjaGVkdWxlci5wbGFubmluZy5HZXRSZXNwb25zZSIAElcKBlVwc2VydBIkLnYxLnNjaGVkdWxlci5wbGFubmluZy5VcHNlcnRSZXF1ZXN0GiUudjEuc2NoZWR1bGVyLnBsYW5uaW5nLlVwc2VydFJlc3BvbnNlIgASVwoGRGVsZXRlEiQudjEuc2NoZWR1bGVyLnBsYW5uaW5nLkRlbGV0ZVJlcXVlc3QaJS52MS5zY2hlZHVsZXIucGxhbm5pbmcuRGVsZXRlUmVzcG9uc2UiAEI3WjVnaXRodWIuY29tL21lZ2FrdXVsL3plbi9wa2cvYXBpL3YxL3NjaGVkdWxlci9wbGFubmluZ2IGcHJvdG8z", [file_v1_scheduler_event]);
 
 /**
  * @generated from message v1.scheduler.planning.GetRequest
  */
 export type GetRequest = Message<"v1.scheduler.planning.GetRequest"> & {
   /**
-   * @generated from field: int64 day = 1;
+   * @generated from field: int64 since = 1;
    */
-  day: bigint;
+  since: bigint;
+
+  /**
+   * @generated from field: int64 until = 2;
+   */
+  until: bigint;
 };
 
 /**
