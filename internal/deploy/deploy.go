@@ -82,6 +82,9 @@ func WithDeleteProtection(enable bool) Option {
 }
 
 func (o *Operator) Deploy(ctx *pulumi.Context) error {
+	if len(o.domains) < 1 {
+		return fmt.Errorf("expected at least one domain")
+	}
 	leaderboardBuild, err := leaderboard.Build(ctx, &leaderboard.BuildInput{
 		CtxPath:   o.buildCtxPath,
 		CachePath: filepath.Join(o.buildCachePath, "lambda", "leaderboard"),
@@ -155,6 +158,7 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 	}
 	_, err = manager.Deploy(ctx, &manager.DeployInput{
 		Region:          o.region,
+		Domain:          o.domains[0],
 		Handler:         managerBuild.Handler,
 		TableName:       tableDeploy.TableName,
 		TablePolicyArn:  tableDeploy.TablePolicyArn,

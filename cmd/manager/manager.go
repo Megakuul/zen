@@ -10,9 +10,11 @@ import (
 
 	"github.com/dchest/captcha"
 	"github.com/ilyakaznacheev/cleanenv"
+	"github.com/matelang/jwt-go-aws-kms/v2/jwtkms"
 	captchastore "github.com/megakuul/zen/internal/captcha"
 	"github.com/megakuul/zen/internal/httplambda"
 	"github.com/megakuul/zen/internal/server/v1/manager/management"
+	"github.com/megakuul/zen/internal/token"
 	"github.com/megakuul/zen/pkg/api/v1/manager/leaderboard/leaderboardconnect"
 	"github.com/megakuul/zen/pkg/api/v1/manager/management/managementconnect"
 
@@ -44,6 +46,8 @@ func main() {
 		logger, 2 * time.Second, 
 		config.Bucket, "/captcha",
 	))
+
+	token.New("", jwtkms.NewKMSConfig())
 
 	mux := http.NewServeMux()
 	mux.Handle(

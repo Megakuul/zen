@@ -22,9 +22,6 @@ type DeployOutput struct {
 }
 
 func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
-	if len(input.Domains) < 1 {
-		return nil, fmt.Errorf("expected at least one domain")
-	}
 	emailConfig, err := sesv2.NewConfigurationSet(ctx, "email", &sesv2.ConfigurationSetArgs{
 		ConfigurationSetName: pulumi.String("zen-email"),
 		Region:               pulumi.String(input.Region),
