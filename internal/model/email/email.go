@@ -5,11 +5,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 )
 
-type Controller struct {
+type Model struct {
 	client *dynamodb.Client
 	table  string
 }
 
-func New(client *dynamodb.Client, table string) *Controller {
-	return &Controller{client, table}
+func New(client *dynamodb.Client, table string) *Model {
+	return &Model{client, table}
 }

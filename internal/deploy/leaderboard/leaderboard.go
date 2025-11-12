@@ -168,8 +168,9 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		Code: input.Handler,
 		Environment: &lambda.FunctionEnvironmentArgs{
 			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
-				"QUEUE":  queue.Name,
-				"BUCKET": input.BucketName,
+				"LEADERBOARD_QUEUE":         queue.Name,
+				"LEADERBOARD_BUCKET":        input.BucketName,
+				"LEADERBOARD_BUCKET_PREFIX": pulumi.Sprintf("leaderboard/"),
 			}),
 		},
 	})

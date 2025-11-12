@@ -19,20 +19,20 @@ import (
 )
 
 type Service struct {
-	logger        *slog.Logger
-	verificator   *token.Verificator
-	authenticator *auth.Authenticator
-	userCtrl      *user.Controller
-	emailCtrl     *email.Controller
+	logger    *slog.Logger
+	tokenCtrl *token.Controller
+	authCtrl  *auth.Controller
+	userCtrl  *user.Model
+	emailCtrl *email.Model
 }
 
-func New(logger *slog.Logger, verify *token.Verificator, auth *auth.Authenticator, user *user.Controller, email *email.Controller) *Service {
+func New(logger *slog.Logger, token *token.Controller, auth *auth.Controller, user *user.Model, email *email.Model) *Service {
 	return &Service{
-		logger:        logger,
-		verificator:   verify,
-		authenticator: auth,
-		userCtrl:      user,
-		emailCtrl:     email,
+		logger:    logger,
+		tokenCtrl: token,
+		authCtrl:  auth,
+		userCtrl:  user,
+		emailCtrl: email,
 	}
 }
 
@@ -66,7 +66,7 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 		return nil, connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("email already associated with an account"))
 	}
 
-	verified, err := s.authenticator.Authenticate(ctx, r.Msg.Verifier)
+	verified, err := s.authCtrl.Authenticate(ctx, r.Msg.Verifier)
 	if err != nil {
 		return nil, err
 	} else if !verified {
@@ -101,7 +101,7 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 }
 
 func (s *Service) Get(ctx context.Context, r *connect.Request[management.GetRequest]) (*connect.Response[management.GetResponse], error) {
-	claims, err := s.verificator.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
+	claims, err := s.tokenCtrl.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
@@ -127,7 +127,7 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[management.GetRequ
 }
 
 func (s *Service) Update(ctx context.Context, r *connect.Request[management.UpdateRequest]) (*connect.Response[management.UpdateResponse], error) {
-	claims, err := s.verificator.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
+	claims, err := s.tokenCtrl.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
@@ -144,12 +144,12 @@ func (s *Service) Update(ctx context.Context, r *connect.Request[management.Upda
 }
 
 func (s *Service) Delete(ctx context.Context, r *connect.Request[management.DeleteRequest]) (*connect.Response[management.DeleteResponse], error) {
-	claims, err := s.verificator.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
+	claims, err := s.tokenCtrl.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	verified, err := s.authenticator.Authenticate(ctx, r.Msg.Verifier)
+	verified, err := s.authCtrl.Authenticate(ctx, r.Msg.Verifier)
 	if err != nil {
 		return nil, err
 	} else if !verified {

@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/megakuul/zen/internal/auth"
 	"github.com/megakuul/zen/internal/model/leaderboard"
 	"github.com/megakuul/zen/internal/model/user"
 	"github.com/megakuul/zen/internal/rating"
@@ -17,27 +16,25 @@ import (
 )
 
 type Service struct {
-	logger          *slog.Logger
-	verificator     *token.Verificator
-	authenticator   *auth.Authenticator
-	userCtrl        *user.Controller
-	leaderboardCtrl *leaderboard.Controller
-	ratingAnchor    time.Duration
+	logger       *slog.Logger
+	tokenCtrl    *token.Controller
+	userCtrl     *user.Model
+	boardCtrl    *leaderboard.Model
+	ratingAnchor time.Duration
 }
 
-func New(logger *slog.Logger, verify *token.Verificator, auth *auth.Authenticator, user *user.Controller, leaderboard *leaderboard.Controller, ratingAnchor time.Duration) *Service {
+func New(logger *slog.Logger, token *token.Controller, user *user.Model, board *leaderboard.Model, ratingAnchor time.Duration) *Service {
 	return &Service{
-		logger:          logger,
-		verificator:     verify,
-		authenticator:   auth,
-		userCtrl:        user,
-		leaderboardCtrl: leaderboard,
-		ratingAnchor:    ratingAnchor,
+		logger:       logger,
+		tokenCtrl:    token,
+		userCtrl:     user,
+		boardCtrl:    board,
+		ratingAnchor: ratingAnchor,
 	}
 }
 
 func (s *Service) Start(ctx context.Context, r *connect.Request[timing.StartRequest]) (*connect.Response[timing.StartResponse], error) {
-	claims, err := s.verificator.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
+	claims, err := s.tokenCtrl.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
@@ -50,7 +47,7 @@ func (s *Service) Start(ctx context.Context, r *connect.Request[timing.StartRequ
 		// just a precheck to provide a userfriendly error (the check is also supplied as atomic operation in the update)
 		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("event already concluded"))
 	}
-	err = s.userCtrl.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id, 
+	err = s.userCtrl.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id,
 		time.Now(), time.Unix(event.StartTime, 0), event.RatingChange, event.RatingAlgorithm, false)
 	if err != nil {
 		return nil, err
@@ -61,7 +58,7 @@ func (s *Service) Start(ctx context.Context, r *connect.Request[timing.StartRequ
 }
 
 func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopRequest]) (*connect.Response[timing.StopResponse], error) {
-	claims, err := s.verificator.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
+	claims, err := s.tokenCtrl.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
@@ -93,7 +90,7 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		s.ratingAnchor,
 	)
 
-	err = s.leaderboardCtrl.SendUpdate(ctx, &leaderboard.Update{
+	err = s.boardCtrl.SendUpdate(ctx, &leaderboard.Update{
 		UserId:       claims.Subject,
 		Username:     profile.Username,
 		Algorithm:    algorithm,

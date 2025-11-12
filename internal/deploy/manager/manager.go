@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/cloudwatch"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
-	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/kms"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/lambda"
 	"github.com/pulumi/pulumi-command/sdk/go/command/local"
 	"github.com/pulumi/pulumi/sdk/v3/go/pulumi"
@@ -58,11 +57,14 @@ func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
 type DeployInput struct {
 	Region          string
 	Domain          string
+	Issuer          string
 	Handler         pulumi.ArchiveOutput
 	BucketName      pulumi.StringOutput
 	BucketPolicyArn pulumi.StringOutput
 	TableName       pulumi.StringOutput
 	TablePolicyArn  pulumi.StringOutput
+	KmsName         pulumi.StringOutput
+	KmsPolicyArn    pulumi.StringOutput
 	EmailName       pulumi.StringOutput
 	EmailPolicyArn  pulumi.StringOutput
 }
@@ -72,35 +74,6 @@ type DeployOutput struct {
 }
 
 func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
-	kmsKey, err := kms.NewKey(ctx, "manager", &kms.KeyArgs{
-		Region:                pulumi.String(input.Region),
-		Description:           pulumi.String("key used as jwt backend for access tokens"),
-		KeyUsage:              pulumi.String("SIGN_VERIFY"),
-		CustomerMasterKeySpec: pulumi.String("ECC_NIST_P256"),
-	})
-	if err != nil {
-		return nil, err
-	}
-
-	kmsPolicy, err := iam.NewPolicy(ctx, "manager-kms", &iam.PolicyArgs{
-		Name: pulumi.String("zen-manager-kms-rw"),
-		Policy: pulumi.Sprintf(`{
-			"Version": "2012-10-17",
-			"Statement": [{
-				"Effect": "Allow",
-				"Action": [
-					"kms:Sign",
-					"kms:Verify",
-					"kms:GetPublicKey"
-				],
-				"Resource": "%s"
-			}]
-		}`, kmsKey.Arn),
-	})
-	if err != nil {
-		return nil, err
-	}
-
 	managerLogGroup, err := cloudwatch.NewLogGroup(ctx, "manager", &cloudwatch.LogGroupArgs{
 		Name:            pulumi.String("zen-manager"),
 		Region:          pulumi.String(input.Region),
@@ -124,7 +97,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			}]
 		}`),
 		ManagedPolicyArns: pulumi.ToStringArrayOutput([]pulumi.StringOutput{
-			kmsPolicy.Arn,
+			input.KmsPolicyArn,
 			input.TablePolicyArn,
 			input.BucketPolicyArn,
 			input.EmailPolicyArn,
@@ -150,11 +123,12 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		Code: input.Handler,
 		Environment: &lambda.FunctionEnvironmentArgs{
 			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
-				"DOMAIN":     input.Domain,
-				"TABLE":      input.TableName,
-				"BUCKET":     input.BucketName,
-				"EMAIL":      input.EmailName,
-				"KMS_KEY_ID": kmsKey.KeyId,
+				"TABLE":                 input.TableName,
+				"TOKEN_ISSUER":          pulumi.Sprintf(input.Issuer),
+				"TOKEN_KMS_KEY_ID":      input.KmsName,
+				"AUTH_MAIL_SENDER":      input.EmailName,
+				"CAPTCHA_BUCKET":        input.BucketName,
+				"CAPTCHA_BUCKET_PREFIX": pulumi.Sprintf("captcha/"),
 			}),
 		},
 	})

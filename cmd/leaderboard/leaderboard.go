@@ -18,7 +18,8 @@ import (
 )
 
 type Config struct {
-	Project string `env:"PROJECT" env-default:"miam"`
+	LeaderboardBucket       string `env:"LEADERBOARD_BUCKET"`
+	LeaderboardBucketPrefix string `env:"LEADERBOARD_BUCKET_PREFIX"`
 }
 
 func main() {
@@ -41,13 +42,13 @@ func main() {
 
 func createHandler(mux *http.ServeMux) func(ctx context.Context, r events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
 	return func(ctx context.Context, r events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
-		requestor := &httplambda.LambdaRequestor{}	
+		requestor := &httplambda.LambdaRequestor{}
 		request, err := requestor.Request(ctx, r)
-		if err!=nil {
+		if err != nil {
 			return events.LambdaFunctionURLResponse{
 				StatusCode: http.StatusBadRequest,
-				Headers: map[string]string{"Content-Type": "text/plain"},
-				Body: err.Error(),
+				Headers:    map[string]string{"Content-Type": "text/plain"},
+				Body:       err.Error(),
 			}, nil
 		}
 		responder := &httplambda.LambdaResponder{}

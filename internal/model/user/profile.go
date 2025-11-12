@@ -20,9 +20,9 @@ type Profile struct {
 	Score       float64 `dynamodbav:"score,omitempty"`
 }
 
-func (c *Controller) GetProfile(ctx context.Context, sub string) (*Profile, bool, error) {
-	result, err := c.client.Query(ctx, &dynamodb.QueryInput{
-		TableName: aws.String(c.table),
+func (m *Model) GetProfile(ctx context.Context, sub string) (*Profile, bool, error) {
+	result, err := m.client.Query(ctx, &dynamodb.QueryInput{
+		TableName: aws.String(m.table),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
 			":sk": &types.AttributeValueMemberS{Value: "PROFILE"},
@@ -42,15 +42,15 @@ func (c *Controller) GetProfile(ctx context.Context, sub string) (*Profile, bool
 	return profile, true, nil
 }
 
-func (c *Controller) PutProfile(ctx context.Context, sub string, profile *Profile) error {
+func (m *Model) PutProfile(ctx context.Context, sub string, profile *Profile) error {
 	profile.PK = fmt.Sprintf("USER#%s", sub)
 	profile.SK = "PROFILE"
 	item, err := attributevalue.MarshalMap(profile)
 	if err != nil {
 		return connect.NewError(connect.CodeInvalidArgument, err)
 	}
-	_, err = c.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName:           aws.String(c.table),
+	_, err = m.client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName:           aws.String(m.table),
 		Item:                item,
 		ConditionExpression: aws.String("attribute_not_exists(pk)"),
 	})
@@ -60,9 +60,9 @@ func (c *Controller) PutProfile(ctx context.Context, sub string, profile *Profil
 	return nil
 }
 
-func (c *Controller) UpdateProfile(ctx context.Context, sub string, profile *Profile) error {
-	_, err := c.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(c.table),
+func (m *Model) UpdateProfile(ctx context.Context, sub string, profile *Profile) error {
+	_, err := m.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(m.table),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
 			"sk": &types.AttributeValueMemberS{Value: "PROFILE"},
@@ -80,9 +80,9 @@ func (c *Controller) UpdateProfile(ctx context.Context, sub string, profile *Pro
 	return nil
 }
 
-func (c *Controller) DeleteProfile(ctx context.Context, sub string) error {
-	_, err := c.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
-		TableName: aws.String(c.table),
+func (m *Model) DeleteProfile(ctx context.Context, sub string) error {
+	_, err := m.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(m.table),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
 			"sk": &types.AttributeValueMemberS{Value: "PROFILE"},

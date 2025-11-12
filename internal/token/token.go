@@ -1,4 +1,4 @@
-// package token provides a verificator used to issue and verify access tokens.
+// package token provides a tokenCtrl used to issue and verify access tokens.
 package token
 
 import (
@@ -14,13 +14,13 @@ import (
 	"github.com/matelang/jwt-go-aws-kms/v2/jwtkms"
 )
 
-type Verificator struct {
+type Controller struct {
 	Issuer    string
 	KmsConfig *jwtkms.Config
 }
 
-func New(issuer string, kms *jwtkms.Config) *Verificator {
-	return &Verificator{
+func New(issuer string, kms *jwtkms.Config) *Controller {
+	return &Controller{
 		Issuer:    issuer,
 		KmsConfig: kms,
 	}
@@ -32,12 +32,12 @@ type TokenClaims struct {
 	Refresh bool   `json:"refresh,omitempty"`
 }
 
-func (v *Verificator) Issue(ctx context.Context, subject, email string, refresh bool, expiresAt time.Time) (string, error) {
+func (c *Controller) Issue(ctx context.Context, subject, email string, refresh bool, expiresAt time.Time) (string, error) {
 	token := jwt.NewWithClaims(jwtkms.SigningMethodECDSA256, &TokenClaims{
 		RegisteredClaims: jwt.RegisteredClaims{
 			ID:        uuid.New().String(),
-			Audience:  jwt.ClaimStrings{v.Issuer}, // rp and resource server are the same entity, so aud == iss
-			Issuer:    v.Issuer,
+			Audience:  jwt.ClaimStrings{c.Issuer}, // rp and resource server are the same entity, so aud == iss
+			Issuer:    c.Issuer,
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 			NotBefore: jwt.NewNumericDate(time.Now()),
 			ExpiresAt: jwt.NewNumericDate(expiresAt),
@@ -46,22 +46,22 @@ func (v *Verificator) Issue(ctx context.Context, subject, email string, refresh 
 		Email:   email,
 		Refresh: refresh,
 	})
-	signedToken, err := token.SignedString(v.KmsConfig.WithContext(ctx))
+	signedToken, err := token.SignedString(c.KmsConfig.WithContext(ctx))
 	if err != nil {
 		return "", connect.NewError(connect.CodeInternal, err)
 	}
 	return signedToken, nil
 }
 
-func (v *Verificator) Verify(ctx context.Context, token string) (*TokenClaims, error) {
+func (c *Controller) Verify(ctx context.Context, token string) (*TokenClaims, error) {
 	claims := &TokenClaims{}
 	_, err := jwt.ParseWithClaims(token, claims, func(t *jwt.Token) (any, error) {
-		return v.KmsConfig, nil
+		return c.KmsConfig, nil
 	})
 	if err != nil {
 		return nil, connect.NewError(connect.CodePermissionDenied, err)
 	}
-	if !slices.Contains(claims.Audience, v.Issuer) {
+	if !slices.Contains(claims.Audience, c.Issuer) {
 		return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("token was not issued for this audience"))
 	}
 	return claims, nil

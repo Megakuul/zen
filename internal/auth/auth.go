@@ -17,15 +17,15 @@ import (
 	"github.com/megakuul/zen/pkg/api/v1/manager"
 )
 
-type Authenticator struct {
-	emailCtrl *email.Controller
+type Controller struct {
+	emailCtrl *email.Model
 
 	sesClient *ses.Client
 	sender    string
 }
 
-func New(emailCtrl *email.Controller, sesClient *ses.Client, sender string) *Authenticator {
-	return &Authenticator{
+func New(emailCtrl *email.Model, sesClient *ses.Client, sender string) *Controller {
+	return &Controller{
 		emailCtrl: emailCtrl,
 		sesClient: sesClient,
 		sender:    sender,
@@ -34,12 +34,12 @@ func New(emailCtrl *email.Controller, sesClient *ses.Client, sender string) *Aut
 
 // Authenticate performs the verification process, it takes a verifier and performs actions based on the verifier stage.
 // Returns a bool that specifies whether the email is verified or not (earlier stages).
-func (a *Authenticator) Authenticate(ctx context.Context, verifier *manager.Verifier) (bool, error) {
+func (c *Controller) Authenticate(ctx context.Context, verifier *manager.Verifier) (bool, error) {
 	switch verifier.Stage {
 	case manager.VerifierStage_VERIFIER_STAGE_EMAIL:
-		return false, a.processEmailStage(ctx, verifier.Email)
+		return false, c.processEmailStage(ctx, verifier.Email)
 	case manager.VerifierStage_VERIFIER_STAGE_CODE:
-		err := a.processCodeStage(ctx, verifier.Email, verifier.Code)
+		err := c.processCodeStage(ctx, verifier.Email, verifier.Code)
 		if err != nil {
 			return false, err
 		}
@@ -51,7 +51,7 @@ func (a *Authenticator) Authenticate(ctx context.Context, verifier *manager.Veri
 
 // processEmailStage is executed if the user provides the email but not the verification code.
 // -> generates a code, stores it in the database and sends it via email.
-func (a *Authenticator) processEmailStage(ctx context.Context, emailAddr string) error {
+func (c *Controller) processEmailStage(ctx context.Context, emailAddr string) error {
 	codeChars := "23456789ABCDEFGHJKLMNOPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
 	code := strings.Builder{}
 	for i := range 8 {
@@ -63,7 +63,7 @@ func (a *Authenticator) processEmailStage(ctx context.Context, emailAddr string)
 		}
 	}
 
-	err := a.emailCtrl.PutCode(ctx, emailAddr, &email.Code{
+	err := c.emailCtrl.PutCode(ctx, emailAddr, &email.Code{
 		Code:      code.String(),
 		ExpiresAt: time.Now().Unix(),
 	})
@@ -71,11 +71,11 @@ func (a *Authenticator) processEmailStage(ctx context.Context, emailAddr string)
 		return connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("email already sent"))
 	}
 
-	_, err = a.sesClient.SendEmail(ctx, &ses.SendEmailInput{
+	_, err = c.sesClient.SendEmail(ctx, &ses.SendEmailInput{
 		Destination: &sestypes.Destination{
 			ToAddresses: []string{emailAddr},
 		},
-		Source: aws.String(a.sender),
+		Source: aws.String(c.sender),
 		Message: &sestypes.Message{
 			Subject: &sestypes.Content{
 				Data: aws.String("Verification Code"), Charset: aws.String("UTF-8"),
@@ -96,8 +96,8 @@ func (a *Authenticator) processEmailStage(ctx context.Context, emailAddr string)
 
 // processCodeStage is executed if the user provides the email and the verification.
 // -> reads the code from database and compares it.
-func (a *Authenticator) processCodeStage(ctx context.Context, emailAddr, submittedCode string) error {
-	code, found, err := a.emailCtrl.GetCode(ctx, emailAddr)
+func (c *Controller) processCodeStage(ctx context.Context, emailAddr, submittedCode string) error {
+	code, found, err := c.emailCtrl.GetCode(ctx, emailAddr)
 	if err != nil {
 		return connect.NewError(connect.CodeInternal, err)
 	} else if !found {

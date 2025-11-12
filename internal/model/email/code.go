@@ -19,9 +19,9 @@ type Code struct {
 	ExpiresAt int64  `dynamodbav:"expires_at,omitempty"`
 }
 
-func (c *Controller) GetCode(ctx context.Context, email string) (*Code, bool, error) {
-	result, err := c.client.Query(ctx, &dynamodb.QueryInput{
-		TableName: aws.String(c.table),
+func (m *Model) GetCode(ctx context.Context, email string) (*Code, bool, error) {
+	result, err := m.client.Query(ctx, &dynamodb.QueryInput{
+		TableName: aws.String(m.table),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk":  &types.AttributeValueMemberS{Value: fmt.Sprintf("EMAIL#%s", email)},
 			":sk":  &types.AttributeValueMemberS{Value: "CODE"},
@@ -43,22 +43,22 @@ func (c *Controller) GetCode(ctx context.Context, email string) (*Code, bool, er
 	return code, true, nil
 }
 
-func (c *Controller) PutCode(ctx context.Context, email string, code *Code) error {
+func (m *Model) PutCode(ctx context.Context, email string, code *Code) error {
 	code.PK = fmt.Sprintf("EMAIL#%s", email)
 	code.SK = "CODE"
 	item, err := attributevalue.MarshalMap(code)
 	if err != nil {
 		return connect.NewError(connect.CodeInvalidArgument, err)
 	}
-	_, err = c.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(c.table),
+	_, err = m.client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(m.table),
 		Item:      item,
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":now": &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", time.Now().Unix())},
 		},
 		ConditionExpression: aws.String("expires_at < :now"),
 	})
-	if err!=nil {
+	if err != nil {
 		return connect.NewError(connect.CodeInternal, err)
 	}
 	return nil

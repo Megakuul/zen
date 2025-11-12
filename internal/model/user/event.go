@@ -30,9 +30,9 @@ type Event struct {
 	MusicUrl        string  `dynamodbav:"music_url"`
 }
 
-func (c *Controller) GetEvent(ctx context.Context, sub, id string) (*Event, bool, error) {
-	result, err := c.client.Query(ctx, &dynamodb.QueryInput{
-		TableName: aws.String(c.table),
+func (m *Model) GetEvent(ctx context.Context, sub, id string) (*Event, bool, error) {
+	result, err := m.client.Query(ctx, &dynamodb.QueryInput{
+		TableName: aws.String(m.table),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
 			":sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("EVENT#%s", id)},
@@ -52,9 +52,9 @@ func (c *Controller) GetEvent(ctx context.Context, sub, id string) (*Event, bool
 	return event, true, nil
 }
 
-func (c *Controller) ListEvents(ctx context.Context, sub string, since, until time.Time) ([]*Event, error) {
-	result, err := c.client.Query(ctx, &dynamodb.QueryInput{
-		TableName: aws.String(c.table),
+func (m *Model) ListEvents(ctx context.Context, sub string, since, until time.Time) ([]*Event, error) {
+	result, err := m.client.Query(ctx, &dynamodb.QueryInput{
+		TableName: aws.String(m.table),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk":        &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
 			":sk_prefix": &types.AttributeValueMemberS{Value: "EVENT#"},
@@ -80,15 +80,15 @@ func (c *Controller) ListEvents(ctx context.Context, sub string, since, until ti
 	return events, nil
 }
 
-func (c *Controller) PutEvent(ctx context.Context, sub string, event *Event) error {
+func (m *Model) PutEvent(ctx context.Context, sub string, event *Event) error {
 	event.PK = fmt.Sprintf("USER#%s", sub)
 	event.SK = fmt.Sprintf("EVENT#%d", event.StartTime)
 	item, err := attributevalue.MarshalMap(event)
 	if err != nil {
 		return connect.NewError(connect.CodeInvalidArgument, err)
 	}
-	_, err = c.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(c.table),
+	_, err = m.client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName: aws.String(m.table),
 		Item:      item,
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":now":   &types.AttributeValueMemberN{Value: strconv.Itoa(int(time.Now().Unix()))},
@@ -106,9 +106,9 @@ func (c *Controller) PutEvent(ctx context.Context, sub string, event *Event) err
 	return nil
 }
 
-func (c *Controller) UpdateEventTimer(ctx context.Context, sub, id string, start, stop time.Time, rating float64, ratingAlgorithm string, immutable bool) error {
-	_, err := c.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
-		TableName: aws.String(c.table),
+func (m *Model) UpdateEventTimer(ctx context.Context, sub, id string, start, stop time.Time, rating float64, ratingAlgorithm string, immutable bool) error {
+	_, err := m.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
+		TableName: aws.String(m.table),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
 			"sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("EVENT#%s", id)},
@@ -139,9 +139,9 @@ func (c *Controller) UpdateEventTimer(ctx context.Context, sub, id string, start
 	return nil
 }
 
-func (c *Controller) DeleteEvent(ctx context.Context, sub, id string) error {
-	_, err := c.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
-		TableName: aws.String(c.table),
+func (m *Model) DeleteEvent(ctx context.Context, sub, id string) error {
+	_, err := m.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(m.table),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
 			"sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("EVENT#%s", id)},

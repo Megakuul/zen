@@ -26,8 +26,8 @@ type BoardEntry struct {
 	Rating   float64 `json:"rating"`
 }
 
-func (c *Controller) GetBoard(ctx context.Context, week time.Time) (*Board, bool, error) {
+func (m *Model) GetBoard(ctx context.Context, week time.Time) (*Board, bool, error) {
 }
 
-func (c *Controller) PutBoard(ctx context.Context, week time.Time, board *Board) error {
+func (m *Model) PutBoard(ctx context.Context, week time.Time, board *Board) error {
 }

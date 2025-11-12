@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 
 	"github.com/megakuul/zen/internal/deploy/email"
+	"github.com/megakuul/zen/internal/deploy/kms"
 	"github.com/megakuul/zen/internal/deploy/leaderboard"
 	"github.com/megakuul/zen/internal/deploy/manager"
 	"github.com/megakuul/zen/internal/deploy/proxy"
@@ -85,6 +86,7 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 	if len(o.domains) < 1 {
 		return fmt.Errorf("expected at least one domain")
 	}
+	issuer := o.domains[0] // jwt token issuer
 	leaderboardBuild, err := leaderboard.Build(ctx, &leaderboard.BuildInput{
 		CtxPath:   o.buildCtxPath,
 		CachePath: filepath.Join(o.buildCachePath, "lambda", "leaderboard"),
@@ -128,6 +130,12 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to deploy storage: %v", err)
 	}
+	kmsDeploy, err := kms.Deploy(ctx, &kms.DeployInput{
+		Region: o.region,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to deploy kms: %v", err)
+	}
 	leaderboardDeploy, err := leaderboard.Deploy(ctx, &leaderboard.DeployInput{
 		Region:          o.region,
 		Handler:         leaderboardBuild.Handler,
@@ -139,9 +147,12 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 	}
 	schedulerDeploy, err := scheduler.Deploy(ctx, &scheduler.DeployInput{
 		Region:         o.region,
+		Issuer:         issuer,
 		Handler:        schedulerBuild.Handler,
 		TableName:      tableDeploy.TableName,
 		TablePolicyArn: tableDeploy.TablePolicyArn,
+		KmsName:        kmsDeploy.KmsName,
+		KmsPolicyArn:   kmsDeploy.KmsPolicyArn,
 		QueueName:      leaderboardDeploy.QueueName,
 		QueuePolicyArn: leaderboardDeploy.QueuePolicyArn,
 	})
@@ -159,9 +170,12 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 	_, err = manager.Deploy(ctx, &manager.DeployInput{
 		Region:          o.region,
 		Domain:          o.domains[0],
+		Issuer:          issuer,
 		Handler:         managerBuild.Handler,
 		TableName:       tableDeploy.TableName,
 		TablePolicyArn:  tableDeploy.TablePolicyArn,
+		KmsName:         kmsDeploy.KmsName,
+		KmsPolicyArn:    kmsDeploy.KmsPolicyArn,
 		BucketName:      storageDeploy.BucketName,
 		BucketPolicyArn: storageDeploy.BucketPolicyArn,
 		EmailName:       emailDeploy.EmailName,

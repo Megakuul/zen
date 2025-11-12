@@ -17,9 +17,9 @@ type Registration struct {
 	User string `dynamodbav:"user,omitempty"`
 }
 
-func (c *Controller) GetRegistration(ctx context.Context, email string) (*Registration, bool, error) {
-	result, err := c.client.Query(ctx, &dynamodb.QueryInput{
-		TableName: aws.String(c.table),
+func (m *Model) GetRegistration(ctx context.Context, email string) (*Registration, bool, error) {
+	result, err := m.client.Query(ctx, &dynamodb.QueryInput{
+		TableName: aws.String(m.table),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("EMAIL#%s", email)},
 			":sk": &types.AttributeValueMemberS{Value: "REGISTRATION"},
@@ -39,33 +39,33 @@ func (c *Controller) GetRegistration(ctx context.Context, email string) (*Regist
 	return registration, true, nil
 }
 
-func (c *Controller) PutRegistration(ctx context.Context, email string, registration *Registration) error {
+func (m *Model) PutRegistration(ctx context.Context, email string, registration *Registration) error {
 	registration.PK = fmt.Sprintf("EMAIL#%s", email)
 	registration.SK = "REGISTRATION"
 	item, err := attributevalue.MarshalMap(registration)
 	if err != nil {
 		return connect.NewError(connect.CodeInvalidArgument, err)
 	}
-	_, err = c.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName:           aws.String(c.table),
+	_, err = m.client.PutItem(ctx, &dynamodb.PutItemInput{
+		TableName:           aws.String(m.table),
 		Item:                item,
 		ConditionExpression: aws.String("attribute_not_exists(pk)"),
 	})
-	if err!=nil {
+	if err != nil {
 		return connect.NewError(connect.CodeInternal, err)
 	}
 	return nil
 }
 
-func (c *Controller) DeleteRegistration(ctx context.Context, email string) error {
-	_, err := c.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
-		TableName: aws.String(c.table),
+func (m *Model) DeleteRegistration(ctx context.Context, email string) error {
+	_, err := m.client.DeleteItem(ctx, &dynamodb.DeleteItemInput{
+		TableName: aws.String(m.table),
 		Key: map[string]types.AttributeValue{
 			"pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("EMAIL#%s", email)},
 			"sk": &types.AttributeValueMemberS{Value: "REGISTRATION"},
 		},
 	})
-	if err!=nil {
+	if err != nil {
 		return connect.NewError(connect.CodeInternal, err)
 	}
 	return nil

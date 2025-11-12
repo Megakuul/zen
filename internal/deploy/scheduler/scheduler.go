@@ -57,10 +57,13 @@ func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
 type DeployInput struct {
 	Region         string
 	Handler        pulumi.ArchiveOutput
+	Issuer         string
 	TableName      pulumi.StringOutput
 	TablePolicyArn pulumi.StringOutput
 	QueueName      pulumi.StringOutput
 	QueuePolicyArn pulumi.StringOutput
+	KmsName        pulumi.StringOutput
+	KmsPolicyArn   pulumi.StringOutput
 }
 
 type DeployOutput struct {
@@ -91,6 +94,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			}]
 		}`),
 		ManagedPolicyArns: pulumi.ToStringArrayOutput([]pulumi.StringOutput{
+			input.KmsPolicyArn,
 			input.TablePolicyArn,
 			input.QueuePolicyArn,
 		}),
@@ -115,8 +119,11 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		Code: input.Handler,
 		Environment: &lambda.FunctionEnvironmentArgs{
 			Variables: pulumi.ToStringMapOutput(map[string]pulumi.StringOutput{
-				"TABLE": input.TableName,
-				"QUEUE": input.QueueName,
+				"TABLE":             input.TableName,
+				"TOKEN_ISSUER":      pulumi.Sprintf(input.Issuer),
+				"TOKEN_KMS_KEY_ID":  input.KmsName,
+				"LEADERBOARD_QUEUE": input.QueueName,
+				"RATING_ANCHOR":     pulumi.Sprintf("2m"),
 			}),
 		},
 	})

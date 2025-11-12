@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/megakuul/zen/internal/auth"
 	"github.com/megakuul/zen/internal/model/user"
 	"github.com/megakuul/zen/internal/token"
 	"github.com/megakuul/zen/pkg/api/v1/scheduler"
@@ -16,23 +15,21 @@ import (
 )
 
 type Service struct {
-	logger        *slog.Logger
-	verificator   *token.Verificator
-	authenticator *auth.Authenticator
-	userCtrl      *user.Controller
+	logger    *slog.Logger
+	tokenCtrl *token.Controller
+	userCtrl  *user.Model
 }
 
-func New(logger *slog.Logger, verify *token.Verificator, auth *auth.Authenticator, user *user.Controller) *Service {
+func New(logger *slog.Logger, token *token.Controller, user *user.Model) *Service {
 	return &Service{
-		logger:        logger,
-		verificator:   verify,
-		authenticator: auth,
-		userCtrl:      user,
+		logger:    logger,
+		tokenCtrl: token,
+		userCtrl:  user,
 	}
 }
 
 func (s *Service) Get(ctx context.Context, r *connect.Request[planning.GetRequest]) (*connect.Response[planning.GetResponse], error) {
-	claims, err := s.verificator.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
+	claims, err := s.tokenCtrl.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
@@ -63,7 +60,7 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[planning.GetReques
 }
 
 func (s *Service) Upsert(ctx context.Context, r *connect.Request[planning.UpsertRequest]) (*connect.Response[planning.UpsertResponse], error) {
-	claims, err := s.verificator.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
+	claims, err := s.tokenCtrl.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
@@ -94,7 +91,7 @@ func (s *Service) Upsert(ctx context.Context, r *connect.Request[planning.Upsert
 }
 
 func (s *Service) Delete(ctx context.Context, r *connect.Request[planning.DeleteRequest]) (*connect.Response[planning.DeleteResponse], error) {
-	claims, err := s.verificator.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
+	claims, err := s.tokenCtrl.Verify(ctx, strings.TrimPrefix(r.Header().Get("Authorization"), "Bearer "))
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}

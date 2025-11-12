@@ -12,8 +12,8 @@ type Update struct {
 	RatingChange float64 `json:"rating_change"`
 }
 
-func (c *Controller) SendUpdate(ctx context.Context, update *Update) error {
+func (m *Model) SendUpdate(ctx context.Context, update *Update) error {
 }
 
-func (c *Controller) ReadUpdates(ctx context.Context) ([]*Update, error) {
+func (m *Model) ReadUpdates(ctx context.Context) ([]*Update, error) {
 }
