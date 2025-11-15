@@ -19,20 +19,20 @@ import (
 )
 
 type Service struct {
-	logger    *slog.Logger
-	tokenCtrl *token.Controller
-	authCtrl  *auth.Controller
-	userCtrl  *user.Model
-	emailCtrl *email.Model
+	logger     *slog.Logger
+	tokenCtrl  *token.Controller
+	authCtrl   *auth.Controller
+	userModel  *user.Model
+	emailModel *email.Model
 }
 
 func New(logger *slog.Logger, token *token.Controller, auth *auth.Controller, user *user.Model, email *email.Model) *Service {
 	return &Service{
-		logger:    logger,
-		tokenCtrl: token,
-		authCtrl:  auth,
-		userCtrl:  user,
-		emailCtrl: email,
+		logger:     logger,
+		tokenCtrl:  token,
+		authCtrl:   auth,
+		userModel:  user,
+		emailModel: email,
 	}
 }
 
@@ -59,7 +59,7 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 
 	// precheck registration, even though PutRegistration() is atomic, this is required
 	// to prevent users from sending unnecessary mails and to decrease chance of a userunfriendly registration failure.
-	_, found, err := s.emailCtrl.GetRegistration(ctx, r.Msg.User.Email)
+	_, found, err := s.emailModel.GetRegistration(ctx, r.Msg.User.Email)
 	if err != nil {
 		return nil, err
 	} else if found {
@@ -78,7 +78,7 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 
 	// TODO: to make this super duper clean it should be a transaction, but this makes the code a bit messy.
 	// -> so rn if email registration fails (extremly unlikely) I just leave an orphaned account (but who cares tbh)
-	err = s.userCtrl.PutProfile(ctx, userId, &user.Profile{
+	err = s.userModel.PutProfile(ctx, userId, &user.Profile{
 		Username:    r.Msg.User.Username,
 		Description: r.Msg.User.Description,
 		Streak:      0,
@@ -88,7 +88,7 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 		s.logger.Warn(fmt.Sprintf("profile registration failure: %v", err), "endpoint", "register")
 		return nil, err
 	}
-	err = s.emailCtrl.PutRegistration(ctx, r.Msg.Verifier.Email, &email.Registration{
+	err = s.emailModel.PutRegistration(ctx, r.Msg.Verifier.Email, &email.Registration{
 		User: userId,
 	})
 	if err != nil {
@@ -106,7 +106,7 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[management.GetRequ
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	profile, found, err := s.userCtrl.GetProfile(ctx, claims.Subject)
+	profile, found, err := s.userModel.GetProfile(ctx, claims.Subject)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	} else if !found {
@@ -132,7 +132,7 @@ func (s *Service) Update(ctx context.Context, r *connect.Request[management.Upda
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	err = s.userCtrl.UpdateProfile(ctx, claims.Subject, &user.Profile{
+	err = s.userModel.UpdateProfile(ctx, claims.Subject, &user.Profile{
 		Username:    r.Msg.User.Username,
 		Description: r.Msg.User.Description,
 	})
@@ -157,12 +157,12 @@ func (s *Service) Delete(ctx context.Context, r *connect.Request[management.Dele
 	}
 
 	// TODO transaction would be the super duper clean way here
-	err = s.userCtrl.DeleteProfile(ctx, claims.Subject)
+	err = s.userModel.DeleteProfile(ctx, claims.Subject)
 	if err != nil {
 		s.logger.Warn(fmt.Sprintf("profile deletion failure: %v", err), "endpoint", "delete")
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	err = s.emailCtrl.DeleteRegistration(ctx, claims.Email)
+	err = s.emailModel.DeleteRegistration(ctx, claims.Email)
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("email deletion failure (orphaned email left behind): %v", err), "endpoint", "delete")
 		return nil, connect.NewError(connect.CodeInternal, err)

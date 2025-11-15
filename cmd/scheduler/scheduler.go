@@ -11,7 +11,7 @@ import (
 	"github.com/ilyakaznacheev/cleanenv"
 	"github.com/matelang/jwt-go-aws-kms/v2/jwtkms"
 	"github.com/megakuul/zen/internal/httplambda"
-	"github.com/megakuul/zen/internal/model/leaderboard"
+	"github.com/megakuul/zen/internal/model/rating"
 	"github.com/megakuul/zen/internal/model/user"
 	"github.com/megakuul/zen/internal/server/v1/scheduler/planning"
 	"github.com/megakuul/zen/internal/server/v1/scheduler/timing"
@@ -24,7 +24,6 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
-	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
 
@@ -39,9 +38,7 @@ type Config struct {
 func main() {
 	config := &Config{}
 	if err := cleanenv.ReadEnv(config); err != nil {
-		os.Stderr.WriteString(fmt.Sprintf(
-			"cannot acquire env config: %v", err,
-		))
+		fmt.Fprintf(os.Stderr, "cannot acquire env config: %v", err)
 		os.Exit(1)
 	}
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
@@ -54,7 +51,7 @@ func main() {
 	kmsClient := kms.NewFromConfig(*awsCfg)
 
 	userModel := user.New(dynamoClient, config.Table)
-	boardModel := leaderboard.New(sqsClient, config.LeaderboardQueue)
+	ratingModel := rating.New(sqsClient, config.LeaderboardQueue)
 	tokenCtrl := token.New(config.TokenIssuer, jwtkms.NewKMSConfig(kmsClient, config.TokenKmsKeyId, false))
 
 	mux := http.NewServeMux()
@@ -62,7 +59,7 @@ func main() {
 		planningconnect.NewPlanningServiceHandler(planning.New(logger, tokenCtrl, userModel)),
 	)
 	mux.Handle(
-		timingconnect.NewTimingServiceHandler(timing.New(logger, tokenCtrl, userModel, boardModel, config.RatingAnchor)),
+		timingconnect.NewTimingServiceHandler(timing.New(logger, tokenCtrl, userModel, ratingModel, config.RatingAnchor)),
 	)
 	lambda.Start(createHandler(mux))
 }

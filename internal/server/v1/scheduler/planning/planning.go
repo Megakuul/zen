@@ -17,14 +17,14 @@ import (
 type Service struct {
 	logger    *slog.Logger
 	tokenCtrl *token.Controller
-	userCtrl  *user.Model
+	userModel *user.Model
 }
 
 func New(logger *slog.Logger, token *token.Controller, user *user.Model) *Service {
 	return &Service{
 		logger:    logger,
 		tokenCtrl: token,
-		userCtrl:  user,
+		userModel: user,
 	}
 }
 
@@ -33,7 +33,7 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[planning.GetReques
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	events, err := s.userCtrl.ListEvents(ctx, claims.Subject, time.Unix(r.Msg.Since, 0), time.Unix(r.Msg.Until, 0))
+	events, err := s.userModel.ListEvents(ctx, claims.Subject, time.Unix(r.Msg.Since, 0), time.Unix(r.Msg.Until, 0))
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +64,7 @@ func (s *Service) Upsert(ctx context.Context, r *connect.Request[planning.Upsert
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	err = s.userCtrl.PutEvent(ctx, claims.Subject, &user.Event{
+	err = s.userModel.PutEvent(ctx, claims.Subject, &user.Event{
 		Type:            int64(r.Msg.Event.Type),
 		Name:            r.Msg.Event.Name,
 		StartTime:       r.Msg.Event.StartTime,
@@ -83,7 +83,7 @@ func (s *Service) Upsert(ctx context.Context, r *connect.Request[planning.Upsert
 	// if the event is not new and has a mismatch between id (events are indexed by start time) and start_time
 	// this means the item got moved; as primary keys are immutable, we just upsert the new event and delete the old one.
 	if r.Msg.Event.Id != "" && r.Msg.Event.Id != strconv.Itoa(int(r.Msg.Event.StartTime)) {
-		s.userCtrl.DeleteEvent(ctx, claims.Subject, r.Msg.Event.Id)
+		s.userModel.DeleteEvent(ctx, claims.Subject, r.Msg.Event.Id)
 	}
 	return &connect.Response[planning.UpsertResponse]{
 		Msg: &planning.UpsertResponse{},
@@ -95,7 +95,7 @@ func (s *Service) Delete(ctx context.Context, r *connect.Request[planning.Delete
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	err = s.userCtrl.DeleteEvent(ctx, claims.Subject, r.Msg.Id)
+	err = s.userModel.DeleteEvent(ctx, claims.Subject, r.Msg.Id)
 	if err != nil {
 		return nil, err
 	}

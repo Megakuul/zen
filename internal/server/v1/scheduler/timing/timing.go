@@ -8,9 +8,9 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"github.com/megakuul/zen/internal/model/leaderboard"
+	"github.com/megakuul/zen/internal/model/rating"
 	"github.com/megakuul/zen/internal/model/user"
-	"github.com/megakuul/zen/internal/rating"
+	ratingalgo "github.com/megakuul/zen/internal/rating"
 	"github.com/megakuul/zen/internal/token"
 	"github.com/megakuul/zen/pkg/api/v1/scheduler/timing"
 )
@@ -18,17 +18,17 @@ import (
 type Service struct {
 	logger       *slog.Logger
 	tokenCtrl    *token.Controller
-	userCtrl     *user.Model
-	boardCtrl    *leaderboard.Model
+	userModel    *user.Model
+	ratingModel  *rating.Model
 	ratingAnchor time.Duration
 }
 
-func New(logger *slog.Logger, token *token.Controller, user *user.Model, board *leaderboard.Model, ratingAnchor time.Duration) *Service {
+func New(logger *slog.Logger, token *token.Controller, user *user.Model, rating *rating.Model, ratingAnchor time.Duration) *Service {
 	return &Service{
 		logger:       logger,
 		tokenCtrl:    token,
-		userCtrl:     user,
-		boardCtrl:    board,
+		userModel:    user,
+		ratingModel:  rating,
 		ratingAnchor: ratingAnchor,
 	}
 }
@@ -38,7 +38,7 @@ func (s *Service) Start(ctx context.Context, r *connect.Request[timing.StartRequ
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	event, found, err := s.userCtrl.GetEvent(ctx, claims.Subject, r.Msg.Id)
+	event, found, err := s.userModel.GetEvent(ctx, claims.Subject, r.Msg.Id)
 	if err != nil {
 		return nil, err
 	} else if !found {
@@ -47,7 +47,7 @@ func (s *Service) Start(ctx context.Context, r *connect.Request[timing.StartRequ
 		// just a precheck to provide a userfriendly error (the check is also supplied as atomic operation in the update)
 		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("event already concluded"))
 	}
-	err = s.userCtrl.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id,
+	err = s.userModel.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id,
 		time.Now(), time.Unix(event.StartTime, 0), event.RatingChange, event.RatingAlgorithm, false)
 	if err != nil {
 		return nil, err
@@ -63,7 +63,7 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
 
-	profile, found, err := s.userCtrl.GetProfile(ctx, claims.Subject)
+	profile, found, err := s.userModel.GetProfile(ctx, claims.Subject)
 	if err != nil {
 		return nil, err
 	} else if !found {
@@ -71,7 +71,7 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("invalid access token"))
 	}
 
-	event, found, err := s.userCtrl.GetEvent(ctx, claims.Subject, r.Msg.Id)
+	event, found, err := s.userModel.GetEvent(ctx, claims.Subject, r.Msg.Id)
 	if err != nil {
 		return nil, err
 	} else if !found {
@@ -82,7 +82,7 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 	}
 
 	timerStopTime := time.Now()
-	algorithm, ratingChange := rating.CalculateRatingChange(
+	algorithm, ratingChange := ratingalgo.CalculateRatingChange(
 		time.Unix(event.StartTime, 0),
 		time.Unix(event.StopTime, 0),
 		time.Unix(event.TimerStartTime, 0),
@@ -90,7 +90,7 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		s.ratingAnchor,
 	)
 
-	err = s.boardCtrl.SendUpdate(ctx, &leaderboard.Update{
+	err = s.ratingModel.SendUpdate(ctx, &rating.Update{
 		UserId:       claims.Subject,
 		Username:     profile.Username,
 		Algorithm:    algorithm,
@@ -100,7 +100,7 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		return nil, err
 	}
 
-	err = s.userCtrl.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id,
+	err = s.userModel.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id,
 		time.Unix(event.TimerStartTime, 0), timerStopTime, ratingChange, algorithm, true)
 	if err != nil {
 		return nil, err

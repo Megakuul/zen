@@ -43,9 +43,7 @@ type Config struct {
 func main() {
 	config := &Config{}
 	if err := cleanenv.ReadEnv(config); err != nil {
-		os.Stderr.WriteString(fmt.Sprintf(
-			"cannot acquire env config: %v", err,
-		))
+		fmt.Fprintf(os.Stderr, "cannot acquire env config: %v", err)
 		os.Exit(1)
 	}
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{

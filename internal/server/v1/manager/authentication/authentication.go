@@ -22,18 +22,18 @@ const (
 )
 
 type Service struct {
-	logger    *slog.Logger
-	tokenCtrl *token.Controller
-	authCtrl  *auth.Controller
-	emailCtrl *email.Model
+	logger     *slog.Logger
+	tokenCtrl  *token.Controller
+	authCtrl   *auth.Controller
+	emailModel *email.Model
 }
 
 func New(logger *slog.Logger, token *token.Controller, auth *auth.Controller, email *email.Model) *Service {
 	return &Service{
-		logger:    logger,
-		tokenCtrl: token,
-		authCtrl:  auth,
-		emailCtrl: email,
+		logger:     logger,
+		tokenCtrl:  token,
+		authCtrl:   auth,
+		emailModel: email,
 	}
 }
 
@@ -57,7 +57,7 @@ func (s *Service) Login(ctx context.Context, r *connect.Request[authentication.L
 		}, nil
 	}
 
-	registration, found, err := s.emailCtrl.GetRegistration(ctx, r.Msg.Verifier.Email)
+	registration, found, err := s.emailModel.GetRegistration(ctx, r.Msg.Verifier.Email)
 	if err != nil {
 		return nil, err
 	} else if !found {
