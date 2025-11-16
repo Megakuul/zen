@@ -72,8 +72,8 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	queue, err := sqs.NewQueue(ctx, "leaderboard", &sqs.QueueArgs{
 		Name:                     pulumi.String("zen-leaderboard"),
 		Region:                   pulumi.String(input.Region),
-		MessageRetentionSeconds:  pulumi.IntPtr(1209600), // 14 days -> max
-		VisibilityTimeoutSeconds: pulumi.IntPtr(120),     // this also defines the lambda timeout
+		MessageRetentionSeconds:  pulumi.IntPtr(86400), // 1 day
+		VisibilityTimeoutSeconds: pulumi.IntPtr(300),   // this also defines the lambda timeout and batch window
 	})
 	if err != nil {
 		return nil, err
@@ -182,8 +182,8 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		FunctionName:                   leaderboard.Arn,
 		EventSourceArn:                 queue.Arn,
 		MaximumRetryAttempts:           pulumi.IntPtr(1),
-		BatchSize:                      pulumi.IntPtr(10),
-		MaximumBatchingWindowInSeconds: pulumi.IntPtr(60),
+		BatchSize:                      pulumi.IntPtr(10000),
+		MaximumBatchingWindowInSeconds: queue.VisibilityTimeoutSeconds,
 	})
 	if err != nil {
 		return nil, err

@@ -46,6 +46,15 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 					ExpiredObjectDeleteMarker: pulumi.BoolPtr(true),
 				},
 			},
+			s3.BucketLifecycleConfigurationV2RuleArgs{
+				Id:     pulumi.String("leaderboard-cleanup"),
+				Prefix: pulumi.String("leaderboard/"),
+				Status: pulumi.String("Enabled"),
+				Expiration: &s3.BucketLifecycleConfigurationV2RuleExpirationArgs{
+					Days:                      pulumi.IntPtr(365),
+					ExpiredObjectDeleteMarker: pulumi.BoolPtr(true),
+				},
+			},
 		},
 	})
 	if err != nil {

@@ -304,7 +304,7 @@ func (*UpdateResponse) Descriptor() ([]byte, []int) {
 
 type DeleteRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Verifier      *manager.Verifier      `protobuf:"bytes,1,opt,name=verifier,proto3" json:"verifier,omitempty"`
+	Verifier      *manager.Verifier      `protobuf:"bytes,1,opt,name=verifier,proto3" json:"verifier,omitempty"` // bool delete_history = 2;
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }

@@ -81,6 +81,7 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 	err = s.userModel.PutProfile(ctx, userId, &user.Profile{
 		Username:    r.Msg.User.Username,
 		Description: r.Msg.User.Description,
+		Leaderboard: r.Msg.User.Leaderboard,
 		Streak:      0,
 		Score:       0,
 	})
@@ -116,11 +117,12 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[management.GetRequ
 	return &connect.Response[management.GetResponse]{
 		Msg: &management.GetResponse{
 			User: &manager.User{
-				Id:       claims.Subject,
-				Email:    claims.Email,
-				Username: profile.Username,
-				Score:    profile.Score,
-				Streak:   profile.Streak,
+				Id:          claims.Subject,
+				Email:       claims.Email,
+				Username:    profile.Username,
+				Leaderboard: profile.Leaderboard,
+				Score:       profile.Score,
+				Streak:      profile.Streak,
 			},
 		},
 	}, nil
@@ -135,6 +137,7 @@ func (s *Service) Update(ctx context.Context, r *connect.Request[management.Upda
 	err = s.userModel.UpdateProfile(ctx, claims.Subject, &user.Profile{
 		Username:    r.Msg.User.Username,
 		Description: r.Msg.User.Description,
+		Leaderboard: r.Msg.User.Leaderboard,
 	})
 	if err != nil {
 		s.logger.Warn(fmt.Sprintf("profile update failure: %v", err), "endpoint", "update")

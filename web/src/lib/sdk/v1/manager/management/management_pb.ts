@@ -135,6 +135,8 @@ export const UpdateResponseSchema: GenMessage<UpdateResponse> = /*@__PURE__*/
  */
 export type DeleteRequest = Message<"v1.manager.management.DeleteRequest"> & {
   /**
+   * bool delete_history = 2;
+   *
    * @generated from field: v1.manager.Verifier verifier = 1;
    */
   verifier?: Verifier;

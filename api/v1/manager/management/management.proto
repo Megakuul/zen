@@ -33,6 +33,7 @@ message UpdateResponse { }
 
 message DeleteRequest { 
   Verifier verifier = 1;
+  // bool delete_history = 2;
 }
 
 message DeleteResponse { }

@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/manager/user.proto.
  */
 export const file_v1_manager_user: GenFile = /*@__PURE__*/
-  fileDesc("ChV2MS9tYW5hZ2VyL3VzZXIucHJvdG8SCnYxLm1hbmFnZXIiZwoEVXNlchIKCgJpZBgBIAEoCRIQCgh1c2VybmFtZRgCIAEoCRITCgtkZXNjcmlwdGlvbhgDIAEoCRINCgVlbWFpbBgEIAEoCRIOCgZzdHJlYWsYBSABKAMSDQoFc2NvcmUYBiABKAFCLFoqZ2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyYgZwcm90bzM");
+  fileDesc("ChV2MS9tYW5hZ2VyL3VzZXIucHJvdG8SCnYxLm1hbmFnZXIikAEKBFVzZXISCgoCaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSDQoFZW1haWwYBCABKAkSEwoLbGVhZGVyYm9hcmQYBSABKAgSEgoKY3JlYXRlZF9hdBgGIAEoAxIOCgZzdHJlYWsYByABKAMSDQoFc2NvcmUYCCABKAFCLFoqZ2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyYgZwcm90bzM");
 
 /**
  * @generated from message v1.manager.User
@@ -37,12 +37,22 @@ export type User = Message<"v1.manager.User"> & {
   email: string;
 
   /**
-   * @generated from field: int64 streak = 5;
+   * @generated from field: bool leaderboard = 5;
+   */
+  leaderboard: boolean;
+
+  /**
+   * @generated from field: int64 created_at = 6;
+   */
+  createdAt: bigint;
+
+  /**
+   * @generated from field: int64 streak = 7;
    */
   streak: bigint;
 
   /**
-   * @generated from field: double score = 6;
+   * @generated from field: double score = 8;
    */
   score: number;
 };

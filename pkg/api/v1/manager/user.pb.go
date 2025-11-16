@@ -27,8 +27,10 @@ type User struct {
 	Username      string                 `protobuf:"bytes,2,opt,name=username,proto3" json:"username,omitempty"`
 	Description   string                 `protobuf:"bytes,3,opt,name=description,proto3" json:"description,omitempty"`
 	Email         string                 `protobuf:"bytes,4,opt,name=email,proto3" json:"email,omitempty"`
-	Streak        int64                  `protobuf:"varint,5,opt,name=streak,proto3" json:"streak,omitempty"`
-	Score         float64                `protobuf:"fixed64,6,opt,name=score,proto3" json:"score,omitempty"`
+	Leaderboard   bool                   `protobuf:"varint,5,opt,name=leaderboard,proto3" json:"leaderboard,omitempty"`
+	CreatedAt     int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
+	Streak        int64                  `protobuf:"varint,7,opt,name=streak,proto3" json:"streak,omitempty"`
+	Score         float64                `protobuf:"fixed64,8,opt,name=score,proto3" json:"score,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -91,6 +93,20 @@ func (x *User) GetEmail() string {
 	return ""
 }
 
+func (x *User) GetLeaderboard() bool {
+	if x != nil {
+		return x.Leaderboard
+	}
+	return false
+}
+
+func (x *User) GetCreatedAt() int64 {
+	if x != nil {
+		return x.CreatedAt
+	}
+	return 0
+}
+
 func (x *User) GetStreak() int64 {
 	if x != nil {
 		return x.Streak
@@ -110,14 +126,17 @@ var File_v1_manager_user_proto protoreflect.FileDescriptor
 const file_v1_manager_user_proto_rawDesc = "" +
 	"\n" +
 	"\x15v1/manager/user.proto\x12\n" +
-	"v1.manager\"\x98\x01\n" +
+	"v1.manager\"\xd9\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12 \n" +
 	"\vdescription\x18\x03 \x01(\tR\vdescription\x12\x14\n" +
-	"\x05email\x18\x04 \x01(\tR\x05email\x12\x16\n" +
-	"\x06streak\x18\x05 \x01(\x03R\x06streak\x12\x14\n" +
-	"\x05score\x18\x06 \x01(\x01R\x05scoreB,Z*github.com/megakuul/zen/pkg/api/v1/managerb\x06proto3"
+	"\x05email\x18\x04 \x01(\tR\x05email\x12 \n" +
+	"\vleaderboard\x18\x05 \x01(\bR\vleaderboard\x12\x1d\n" +
+	"\n" +
+	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12\x16\n" +
+	"\x06streak\x18\a \x01(\x03R\x06streak\x12\x14\n" +
+	"\x05score\x18\b \x01(\x01R\x05scoreB,Z*github.com/megakuul/zen/pkg/api/v1/managerb\x06proto3"
 
 var (
 	file_v1_manager_user_proto_rawDescOnce sync.Once

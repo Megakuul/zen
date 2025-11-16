@@ -14,18 +14,19 @@ import (
 )
 
 type Board struct {
-	ETag       string   `json:"-"`
-	Year       string   `json:"year"`
-	Week       string   `json:"week"`
-	Algorithms []string `json:"algorithms"`
+	ETag       string           `json:"-"`
+	Year       string           `json:"year"`
+	Week       string           `json:"week"`
+	Algorithms map[string]int64 `json:"algorithms"`
 
-	Entries BoardEntry `json:"entries"`
+	Entries map[string]BoardEntry `json:"entries"`
 }
 
 type BoardEntry struct {
-	UserId   string  `json:"user_id"`
-	Username string  `json:"username"`
-	Rating   float64 `json:"rating"`
+	UserId   string            `json:"user_id"`
+	Username string            `json:"username"`
+	Streak   int64             `json:"streak"`
+	Rating   map[int64]float64 `json:"rating"`
 }
 
 func (m *Model) GetBoard(ctx context.Context, date time.Time) (*Board, bool, error) {
@@ -60,13 +61,19 @@ func (m *Model) PutBoard(ctx context.Context, date time.Time, board *Board) erro
 	}
 
 	year, week := date.ISOWeek()
-	key := fmt.Sprintf("%d-%d.json", year, week)
-	_, err = m.s3Client.PutObject(ctx, &s3.PutObjectInput{
+	key := fmt.Sprintf("%s%d-%d.json", m.prefix, year, week)
+	input := &s3.PutObjectInput{
 		Bucket:  aws.String(m.bucket),
-		Key:     aws.String(fmt.Sprint(m.prefix, key)),
+		Key:     aws.String(key),
 		Body:    bytes.NewReader(rawBoard),
 		IfMatch: aws.String(board.ETag),
-	})
+	}
+	if board.ETag == "" {
+		input.IfNoneMatch = aws.String(key)
+	} else {
+		input.IfMatch = aws.String(board.ETag)
+	}
+	_, err = m.s3Client.PutObject(ctx, input)
 	if err != nil {
 		return connect.NewError(connect.CodeInternal, err)
 	}

@@ -9,6 +9,8 @@ message User {
   string username = 2;
   string description = 3;
   string email = 4;
-  int64 streak = 5;
-  double score = 6;
+  bool leaderboard = 5;
+  int64 created_at = 6;
+  int64 streak = 7;
+  double score = 8;
 }

@@ -126,13 +126,14 @@ func (m *Model) UpdateEventTimer(ctx context.Context, sub, id string, start, sto
 			"timer_stop_time = :timer_stop_time,",
 			"rating_change = :rating_change,",
 			"rating_algorithm = :rating_algorithm,",
+			"immutable = :immutable",
 		)),
 		ConditionExpression: aws.String("attribute_exists(sk) AND immutable = :false"),
 	})
 	if err != nil {
 		var cErr *types.ConditionalCheckFailedException
 		if errors.As(err, &cErr) {
-			return connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("event is immutable  or does not exist"))
+			return connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("event is immutable or does not exist"))
 		}
 		return connect.NewError(connect.CodeInternal, err)
 	}

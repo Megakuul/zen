@@ -11,51 +11,25 @@ import (
 )
 
 type Update struct {
-	ReceiptHandle string    `json:"-"`
-	Deadline      time.Time `json:"-"`
-	UserId        string    `json:"user_id"`
-	Username      string    `json:"username"`
-	Algorithm     string    `json:"algorithm"`
-	RatingChange  float64   `json:"rating_change"`
+	Time         time.Time `json:"time"`
+	UserId       string    `json:"user_id"`
+	Username     string    `json:"username"`
+	Streak       int64     `json:"streak"`
+	Algorithm    string    `json:"algorithm"`
+	RatingChange float64   `json:"rating_change"`
 }
 
-func (m *Model) ReadUpdates(ctx context.Context) ([]*Update, error) {
-	timeout := 30 * time.Second
-	deadline := time.Now().Add(timeout)
-	result, err := m.sqsClient.ReceiveMessage(ctx, &sqs.ReceiveMessageInput{
-		QueueUrl:            aws.String(m.queue),
-		MaxNumberOfMessages: 10,
-		VisibilityTimeout:   int32(timeout.Seconds()),
-	})
+func (m *Model) ParseUpdate(body string) (*Update, error) {
+	update := &Update{}
+	err := json.Unmarshal([]byte(body), update)
 	if err != nil {
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	updates := []*Update{}
-	for _, message := range result.Messages {
-		update := &Update{
-			ReceiptHandle: *message.ReceiptHandle,
-			Deadline:      deadline,
-		}
-		err = json.Unmarshal([]byte(*message.Body), update)
-		if err != nil {
-			return nil, err
-		}
-		updates = append(updates, update)
-	}
-	return updates, nil
+	return update, nil
 }
 
-func (m *Model) DeleteUpdate(ctx context.Context, update *Update) error {
-	_, err := m.sqsClient.DeleteMessage(ctx, &sqs.DeleteMessageInput{
-		QueueUrl:      aws.String(m.queue),
-		ReceiptHandle: aws.String(update.ReceiptHandle),
-	})
-	if err != nil {
-		return connect.NewError(connect.CodeInternal, err)
-	}
-	return nil
-}
-
+// Caution: if you do not plan to find shelter under a bridge,
+// consider NEVER calling this on the leaderboard function triggered by the update...
 func (m *Model) SendUpdate(ctx context.Context, update *Update) error {
 	rawUpdate, err := json.Marshal(update)
 	if err != nil {

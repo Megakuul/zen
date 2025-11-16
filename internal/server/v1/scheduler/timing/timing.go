@@ -87,24 +87,35 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		time.Unix(event.StopTime, 0),
 		time.Unix(event.TimerStartTime, 0),
 		timerStopTime,
+		profile.Streak,
 		s.ratingAnchor,
 	)
-
-	err = s.ratingModel.SendUpdate(ctx, &rating.Update{
-		UserId:       claims.Subject,
-		Username:     profile.Username,
-		Algorithm:    algorithm,
-		RatingChange: ratingChange,
-	})
-	if err != nil {
-		return nil, err
-	}
 
 	err = s.userModel.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id,
 		time.Unix(event.TimerStartTime, 0), timerStopTime, ratingChange, algorithm, true)
 	if err != nil {
 		return nil, err
 	}
+
+	err = s.userModel.UpdateProfileRating(ctx, claims.Subject, ratingChange)
+	if err != nil {
+		return nil, err
+	}
+
+	if profile.Leaderboard {
+		err = s.ratingModel.SendUpdate(ctx, &rating.Update{
+			Time:         timerStopTime,
+			UserId:       claims.Subject,
+			Username:     profile.Username,
+			Streak:       profile.Streak,
+			Algorithm:    algorithm,
+			RatingChange: ratingChange,
+		})
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &connect.Response[timing.StopResponse]{
 		Msg: &timing.StopResponse{},
 	}, nil
