@@ -4,7 +4,6 @@ package deploy
 import (
 	"fmt"
 	"net/url"
-	"path/filepath"
 
 	"github.com/megakuul/zen/internal/deploy/email"
 	"github.com/megakuul/zen/internal/deploy/kms"
@@ -25,7 +24,6 @@ type Operator struct {
 	certificateArn   string
 	deleteProtection bool
 	buildCtxPath     string
-	buildCachePath   string
 }
 
 type Option func(*Operator)
@@ -38,7 +36,6 @@ func New(region string, opts ...Option) *Operator {
 		certificateArn:   "",
 		deleteProtection: false,
 		buildCtxPath:     ".",
-		buildCachePath:   "./.buildcache",
 	}
 	for _, opt := range opts {
 		opt(operator)
@@ -46,12 +43,11 @@ func New(region string, opts ...Option) *Operator {
 	return operator
 }
 
-// WithBuildPath defines a custom context and cache directory for the build step in the deployment.
+// WithBuildPath defines a custom context directory for the build step in the deployment.
 // The context path is expected to contain the repository root (cmd/<handler>/<handler>.go).
-func WithBuildPath(ctx, cache string) Option {
+func WithBuildPath(ctx string) Option {
 	return func(o *Operator) {
 		o.buildCtxPath = ctx
-		o.buildCachePath = cache
 	}
 }
 
@@ -88,29 +84,25 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 	}
 	issuer := o.domains[0] // jwt token issuer
 	leaderboardBuild, err := leaderboard.Build(ctx, &leaderboard.BuildInput{
-		CtxPath:   o.buildCtxPath,
-		CachePath: filepath.Join(o.buildCachePath, "lambda", "leaderboard"),
+		CtxPath: o.buildCtxPath,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to build leaderboard function: %v", err)
 	}
 	managerBuild, err := manager.Build(ctx, &manager.BuildInput{
-		CtxPath:   o.buildCtxPath,
-		CachePath: filepath.Join(o.buildCachePath, "lambda", "manager"),
+		CtxPath: o.buildCtxPath,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to build manager function: %v", err)
 	}
 	schedulerBuild, err := scheduler.Build(ctx, &scheduler.BuildInput{
-		CtxPath:   o.buildCtxPath,
-		CachePath: filepath.Join(o.buildCachePath, "lambda", "scheduler"),
+		CtxPath: o.buildCtxPath,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to build scheduler function: %v", err)
 	}
 	webBuild, err := web.Build(ctx, &web.BuildInput{
-		CtxPath:   o.buildCtxPath,
-		CachePath: filepath.Join(o.buildCachePath, "web"),
+		CtxPath: o.buildCtxPath,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to build web assets: %v", err)
@@ -139,7 +131,7 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 	leaderboardDeploy, err := leaderboard.Deploy(ctx, &leaderboard.DeployInput{
 		Region:          o.region,
 		Handler:         leaderboardBuild.Handler,
-		BucketPolicyArn: storageDeploy.BucketArn,
+		BucketPolicyArn: storageDeploy.BucketPolicyArn,
 		BucketName:      storageDeploy.BucketName,
 	})
 	if err != nil {

@@ -1,8 +1,14 @@
-// router used to map sveltekit pages to static html files on cdn.
-import cf from "cloudfront";
-
+// cloudfront cdn router that ensures static sveltekit pages (e.g. /leaderboard) are routed to the exact s3 key (/leaderboard/index.html).
 async function handler(event) {
-  let request = event.request;
-  // TODO
-
+  const request = event.request;
+  // don't manipulate any assets
+  if (request.uri.startsWith("/_app/") || /\.[^\/.]+$/.test(request.uri)) {
+    return request;
+  }
+  if (request.uri.endsWith("/")) {
+    request.uri += "index.html";
+  } else {
+    request.uri += "/index.html";
+  }
+  return request;
 }

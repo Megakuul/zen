@@ -1,21 +1,34 @@
-import { create } from '@bufbuild/protobuf';
-import { GetRequestSchema } from "$lib/sdk/v1/manager/authentication/authentication_pb";
-import { AuthenticationClient } from './client.svelte';
+import { create } from "@bufbuild/protobuf";
+import {
+  LoginRequestSchema,
+  LogoutRequestSchema,
+} from "$lib/sdk/v1/manager/authentication/authentication_pb";
+import { AuthenticationClient } from "./client.svelte";
+import { VerifierSchema, type Verifier } from "$lib/sdk/v1/manager/verifier_pb";
 
 /**
  * Login to the system (usually needed if GetToken() fails with status 16 "UNAUTHENTICATED").
- * Provide a message channel as verifier to send a code to the user (e.g. email:salami.brot@gmail.com).
- * After the user received a message, insert the message code to the verifier (e.g. code:1234-6789)
+ * Provide a verifier with the email of the user followed by a second call with the received code.
  * @param verifier channel to send verification code OR verification code
  */
-export async function Login(verifier: string) {
-	const response = await AuthenticationClient().get(create(GetRequestSchema, {
-    verifier: verifier,
-		autoRefresh: true,
-	}))
-	if (response.token) {
-		localStorage.setItem("auth_token", response.token)
-	}
+export async function Login(verifier: Verifier) {
+  const response = await AuthenticationClient().login(
+    create(LoginRequestSchema, {
+      verifier: verifier,
+      autoRefresh: true,
+    }),
+  );
+  if (response.token) {
+    localStorage.setItem("auth_token", response.token);
+  }
+}
+
+/**
+ * Logout from the system
+ */
+export async function Logout() {
+  await AuthenticationClient().logout(create(LogoutRequestSchema, {}));
+  localStorage.removeItem("auth_token");
 }
 
 /**
@@ -23,14 +36,17 @@ export async function Login(verifier: string) {
  * @returns auth token
  */
 export async function GetToken(): Promise<string> {
-	const token = localStorage.getItem("auth_token")
-	if (token) {
-		return token
-	}
-	const response = await AuthenticationClient().get(create(GetRequestSchema, {
-    verifier: "",
-		autoRefresh: true,
-	}))
-	localStorage.setItem("auth_token", response.token)
-	return response.token
+  const token = localStorage.getItem("auth_token");
+  if (token) {
+    return token;
+  }
+  const response = await AuthenticationClient().login(
+    create(LoginRequestSchema, {
+      verifier: create(VerifierSchema, {}),
+      autoRefresh: true,
+    }),
+  );
+  localStorage.setItem("auth_token", response.token);
+  return response.token;
 }
+

@@ -13,8 +13,7 @@ import (
 )
 
 type BuildInput struct {
-	CtxPath   string
-	CachePath string
+	CtxPath string
 }
 
 type BuildOutput struct {
@@ -26,22 +25,21 @@ func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
 	if err != nil {
 		return nil, err
 	}
-	outputPath, err := filepath.Abs(input.CachePath)
-	if err != nil {
-		return nil, err
-	}
-	command := fmt.Sprintf("go build -o '%s' ./cmd/scheduler/scheduler.go", outputPath)
+	cachePath := ".cache/lambda"
+	outputPath := "scheduler"
+	command := fmt.Sprintf("go build -o %s ../../cmd/scheduler/scheduler.go", outputPath)
 	build, err := local.NewCommand(ctx, "scheduler", &local.CommandArgs{
-		Create:       pulumi.String(command),
-		Update:       pulumi.String(command),
-		Dir:          pulumi.String(contextPath),
+		Create: pulumi.String(command),
+		Update: pulumi.String(command),
+		// must be inside cache otherwise the output archive contains cache paths
+		Dir:          pulumi.String(filepath.Join(contextPath, cachePath)),
 		ArchivePaths: pulumi.ToStringArray([]string{outputPath}),
 		Environment: pulumi.ToStringMap(map[string]string{
 			"CGO_ENABLED": "0",
 			"GOOS":        "linux",
 			"GOARCH":      "arm64",
 		}),
-		Logging: local.LoggingStdoutAndStderr,
+		Logging: local.LoggingStderr,
 		// not rebuilding causes the empty archive to trigger a rebuild of the function deployment.
 		// therefore, rebuild is always triggered.
 		Triggers: pulumi.ToArray([]any{uuid.New().String()}),
@@ -134,7 +132,6 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	schedulerUrl, err := lambda.NewFunctionUrl(ctx, "scheduler", &lambda.FunctionUrlArgs{
 		FunctionName:      scheduler.Arn,
 		InvokeMode:        pulumi.String("BUFFERED"),
-		Qualifier:         pulumi.String("$LATEST"),
 		Region:            pulumi.String(input.Region),
 		AuthorizationType: pulumi.String("NONE"),
 	})

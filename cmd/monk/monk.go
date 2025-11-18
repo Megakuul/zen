@@ -74,11 +74,11 @@ func run(ctx context.Context) error {
 	s3Client := s3.NewFromConfig(cfg)
 	kmsClient := kms.NewFromConfig(cfg)
 
-	bucket, prefix, err := setupBucket(ctx, s3Client)
+	bucket, err := setupBucket(ctx, s3Client)
 	if err != nil {
 		return fmt.Errorf("failed to setup bucket: %v", err)
 	}
-	configKey := fmt.Sprint(strings.TrimPrefix(prefix, "/"), "zen-app-config.json")
+	configKey := "zen-app-config.json"
 
 	var config appConfig
 	configObject, err := s3Client.GetObject(ctx, &s3.GetObjectInput{
@@ -153,7 +153,7 @@ func run(ctx context.Context) error {
 			WithDefaultValue("arn:aws:acm:us-east-1:...").Show("Enter acm certificate arn (must have SAN's for each domains)")
 		operatorOptions = append(operatorOptions, deploy.WithDnsSetup(certArn))
 	}
-	operatorOptions = append(operatorOptions, deploy.WithBuildPath(".", ".buildcache"))
+	operatorOptions = append(operatorOptions, deploy.WithBuildPath("."))
 	operatorOptions = append(operatorOptions, deploy.WithDomain(config.Domains))
 	operator := deploy.New(cfg.Region, operatorOptions...)
 
@@ -162,7 +162,7 @@ func run(ctx context.Context) error {
 		Author:  aws.String("zen monk bootstrapper"),
 		Runtime: workspace.NewProjectRuntimeInfo("go", map[string]any{}),
 		Backend: &workspace.ProjectBackend{
-			URL: fmt.Sprintf("s3://%s%s", bucket, prefix),
+			URL: fmt.Sprintf("s3://%s/", bucket),
 		},
 	}),
 		auto.SecretsProvider(fmt.Sprintf("awskms://%s", config.StateKey)),
@@ -216,7 +216,9 @@ func run(ctx context.Context) error {
 					return err
 				}
 			}
-			return nil
+			err = errors.Join(err, deleteKey(ctx, kmsClient, config.StateKey))
+			err = errors.Join(err, deleteBucket(ctx, s3Client, bucket))
+			return err
 		default:
 			return fmt.Errorf("not a valid action")
 		}
@@ -234,7 +236,7 @@ func setupKey(ctx context.Context, client *kms.Client) (string, error) {
 	createResp, err := client.CreateKey(ctx, &kms.CreateKeyInput{
 		KeySpec:     types.KeySpecSymmetricDefault,
 		KeyUsage:    kmstypes.KeyUsageTypeEncryptDecrypt,
-		Description: aws.String("Key used to encrypt sensitive pulumi stack data"),
+		Description: aws.String("Key used to encrypt sensitive pulumi stack data for the zen system"),
 	})
 	if err != nil {
 		return "", err
@@ -246,7 +248,38 @@ func setupKey(ctx context.Context, client *kms.Client) (string, error) {
 	return alias, err
 }
 
-func setupBucket(ctx context.Context, client *s3.Client) (string, string, error) {
+func deleteKey(ctx context.Context, client *kms.Client, keyAlias string) error {
+	ok, _ := pterm.DefaultInteractiveConfirm.
+		WithDefaultValue(true).Show("Delete kms state encryption key?")
+	if !ok {
+		return nil
+	}
+	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
+		Start("Scheduling kms key deletion...")
+	defer spinner.Stop()
+
+	result, err := client.DescribeKey(ctx, &kms.DescribeKeyInput{
+		KeyId: aws.String(keyAlias),
+	})
+	if err != nil {
+		return err
+	}
+	keyId := result.KeyMetadata.KeyId
+
+	_, err = client.DeleteAlias(ctx, &kms.DeleteAliasInput{
+		AliasName: aws.String(keyAlias),
+	})
+	if err != nil {
+		return err
+	}
+	_, err = client.ScheduleKeyDeletion(ctx, &kms.ScheduleKeyDeletionInput{
+		KeyId:               keyId,
+		PendingWindowInDays: aws.Int32(7),
+	})
+	return err
+}
+
+func setupBucket(ctx context.Context, client *s3.Client) (string, error) {
 	ok, _ := pterm.DefaultInteractiveConfirm.
 		WithDefaultValue(true).Show("Create new project?")
 	if ok {
@@ -264,13 +297,13 @@ func setupBucket(ctx context.Context, client *s3.Client) (string, string, error)
 			},
 		})
 		if err != nil {
-			return "", "", err
+			return "", err
 		}
-		return name, "/", nil
+		return name, nil
 	} else {
 		listResp, err := client.ListBuckets(ctx, &s3.ListBucketsInput{})
 		if err != nil {
-			return "", "", err
+			return "", err
 		}
 		buckets := []string{}
 		for _, bucket := range listResp.Buckets {
@@ -280,9 +313,53 @@ func setupBucket(ctx context.Context, client *s3.Client) (string, string, error)
 			WithOptions(buckets).
 			Show("Select bucket")
 		if err != nil {
-			return "", "", err
+			return "", err
 		}
-		prefix, _ := pterm.DefaultInteractiveTextInput.WithDefaultValue("/").Show("Specify bucket prefix")
-		return selected, prefix, nil
+		return selected, nil
 	}
+}
+
+func deleteBucket(ctx context.Context, client *s3.Client, bucket string) error {
+	ok, _ := pterm.DefaultInteractiveConfirm.
+		WithDefaultValue(true).Show("Delete and empty state bucket?")
+	if !ok {
+		return nil
+	}
+	spinner, _ := pterm.DefaultSpinner.WithRemoveWhenDone(true).
+		Start("Deleting state bucket...")
+	defer spinner.Stop()
+
+	var continuationToken *string
+	for {
+		list, err := client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
+			Bucket:            aws.String(bucket),
+			Prefix:            aws.String("/"),
+			ContinuationToken: continuationToken,
+		})
+		if err != nil {
+			return err
+		}
+		objectIds := []s3types.ObjectIdentifier{}
+		for _, object := range list.Contents {
+			objectIds = append(objectIds, s3types.ObjectIdentifier{Key: object.Key})
+		}
+		_, err = client.DeleteObjects(ctx, &s3.DeleteObjectsInput{
+			Bucket: aws.String(bucket),
+			Delete: &s3types.Delete{
+				Objects: objectIds,
+			},
+		})
+		if err != nil {
+			return err
+		}
+		if !*list.IsTruncated {
+			break
+		}
+		continuationToken = list.NextContinuationToken
+	}
+
+	_, err := client.DeleteBucket(ctx, &s3.DeleteBucketInput{
+		Bucket: aws.String(bucket),
+	})
+	return err
 }

@@ -33,7 +33,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	if !input.AutoDns {
 		viewerCertificate = cloudfront.DistributionViewerCertificateArgs{
 			AcmCertificateArn:      pulumi.String(input.CertificateArn),
-			MinimumProtocolVersion: pulumi.String("TLSv1.2"),
+			MinimumProtocolVersion: pulumi.String("TLSv1.2_2019"),
 			SslSupportMethod:       pulumi.String("sni-only"),
 		}
 	} else {
@@ -89,7 +89,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		}
 		viewerCertificate = cloudfront.DistributionViewerCertificateArgs{
 			AcmCertificateArn:      certValidation.CertificateArn,
-			MinimumProtocolVersion: pulumi.String("TLSv1.2"),
+			MinimumProtocolVersion: pulumi.String("TLSv1.2_2019"),
 			SslSupportMethod:       pulumi.String("sni-only"),
 		}
 	}
@@ -222,6 +222,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				OriginId: pulumi.String("scheduler-api"),
 				CustomOriginConfig: &cloudfront.DistributionOriginCustomOriginConfigArgs{
 					HttpsPort:            pulumi.Int(443),
+					HttpPort:             pulumi.Int(80),
 					OriginProtocolPolicy: pulumi.String("https-only"),
 					OriginSslProtocols:   pulumi.ToStringArray([]string{"TLSv1.2"}),
 				},
@@ -231,6 +232,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				OriginId: pulumi.String("manager-api"),
 				CustomOriginConfig: &cloudfront.DistributionOriginCustomOriginConfigArgs{
 					HttpsPort:            pulumi.Int(443),
+					HttpPort:             pulumi.Int(80),
 					OriginProtocolPolicy: pulumi.String("https-only"),
 					OriginSslProtocols:   pulumi.ToStringArray([]string{"TLSv1.2"}),
 				},
@@ -253,7 +255,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		},
 		OrderedCacheBehaviors: cloudfront.DistributionOrderedCacheBehaviorArray{
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
-				PathPattern:          pulumi.String("/leaderboard"),
+				PathPattern:          pulumi.String("/leaderboard/*"),
 				AllowedMethods:       pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS"}),
 				CachedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS"}),
 				Compress:             pulumi.BoolPtr(true),
@@ -262,8 +264,8 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				CachePolicyId:        leaderboardCachePolicy.ID(),
 			},
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
-				PathPattern:           pulumi.String("/api/scheduler"),
-				AllowedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST"}),
+				PathPattern:           pulumi.String("/api/scheduler/*"),
+				AllowedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"}),
 				CachedMethods:         pulumi.ToStringArray([]string{"GET", "HEAD"}),
 				Compress:              pulumi.BoolPtr(false),
 				TargetOriginId:        pulumi.String("scheduler-api"),
@@ -272,8 +274,8 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				OriginRequestPolicyId: apiOriginPolicy.ID(),
 			},
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
-				PathPattern:           pulumi.String("/api/manager"),
-				AllowedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST"}),
+				PathPattern:           pulumi.String("/api/manager/*"),
+				AllowedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"}),
 				CachedMethods:         pulumi.ToStringArray([]string{"GET", "HEAD"}),
 				Compress:              pulumi.BoolPtr(false),
 				TargetOriginId:        pulumi.String("manager-api"),
@@ -289,7 +291,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		Restrictions: cloudfront.DistributionRestrictionsArgs{
 			GeoRestriction: cloudfront.DistributionRestrictionsGeoRestrictionArgs{
 				RestrictionType: pulumi.String("none"),
-				Locations: pulumi.ToStringArray([]string{}),
+				Locations:       pulumi.ToStringArray([]string{}),
 			},
 		},
 	})
@@ -318,8 +320,9 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			Type:   pulumi.String("A"),
 			Aliases: route53.RecordAliasArray{
 				route53.RecordAliasArgs{
-					ZoneId: pulumi.String("Z2FDTNDATAQYW2"), // cloudfront hosted zone id
-					Name:   proxy.DomainName,
+					ZoneId:               pulumi.String("Z2FDTNDATAQYW2"), // cloudfront hosted zone id
+					Name:                 proxy.DomainName,
+					EvaluateTargetHealth: pulumi.Bool(false),
 				},
 			},
 		})
@@ -333,8 +336,9 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			Type:   pulumi.String("AAAA"),
 			Aliases: route53.RecordAliasArray{
 				route53.RecordAliasArgs{
-					ZoneId: pulumi.String("Z2FDTNDATAQYW2"), // cloudfront hosted zone id
-					Name:   proxy.DomainName,
+					ZoneId:               pulumi.String("Z2FDTNDATAQYW2"), // cloudfront hosted zone id
+					Name:                 proxy.DomainName,
+					EvaluateTargetHealth: pulumi.Bool(false),
 				},
 			},
 		})

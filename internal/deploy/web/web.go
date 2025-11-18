@@ -11,8 +11,7 @@ import (
 )
 
 type BuildInput struct {
-	CtxPath   string
-	CachePath string
+	CtxPath string
 }
 
 type BuildOutput struct {
@@ -25,20 +24,18 @@ func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
 	if err != nil {
 		return nil, err
 	}
-	outputPath, err := filepath.Abs(input.CachePath)
-	if err != nil {
-		return nil, err
-	}
-	command := fmt.Sprintf("npm -C ./web run build")
+	cachePath := ".cache/web"
+	command := "npm -C ../../web run build"
 	build, err := local.NewCommand(ctx, "web", &local.CommandArgs{
-		Create:     pulumi.String(command),
-		Update:     pulumi.String(command),
-		Dir:        pulumi.String(contextPath),
-		AssetPaths: pulumi.ToStringArray([]string{fmt.Sprintf("%s/**", outputPath)}),
+		Create: pulumi.String(command),
+		Update: pulumi.String(command),
+		// must be inside cache otherwise the output archive contains cache paths
+		Dir:        pulumi.String(filepath.Join(contextPath, cachePath)),
+		AssetPaths: pulumi.ToStringArray([]string{"**"}),
 		Environment: pulumi.ToStringMap(map[string]string{
-			"BUILD_DIR": outputPath,
+			"BUILD_DIR": fmt.Sprint("../", cachePath),
 		}),
-		Logging: local.LoggingStdoutAndStderr,
+		Logging: local.LoggingStderr,
 		// not rebuilding causes the empty archive to trigger a replacement of the current webassets.
 		// therefore, rebuild is always triggered.
 		Triggers: pulumi.ToArray([]any{uuid.New().String()}),

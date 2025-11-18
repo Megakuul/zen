@@ -108,7 +108,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		for key, artifact := range artifacts {
 			if asset, ok := artifact.(pulumi.Asset); ok {
 				_, err := s3.NewBucketObjectv2(ctx, fmt.Sprintf("storage-web-%s", key), &s3.BucketObjectv2Args{
-					Bucket:      bucket.Arn,
+					Bucket:      bucket.Bucket,
 					Key:         pulumi.Sprintf(path.Join("web", key)),
 					ContentType: pulumi.String(mime.TypeByExtension(asset.Path())),
 					Source:      asset,
