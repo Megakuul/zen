@@ -159,7 +159,7 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to deploy ses email: %v", err)
 	}
-	_, err = manager.Deploy(ctx, &manager.DeployInput{
+	managerDeploy, err := manager.Deploy(ctx, &manager.DeployInput{
 		Region:          o.region,
 		Domain:          o.domains[0],
 		Issuer:          issuer,
@@ -188,7 +188,7 @@ func (o *Operator) Deploy(ctx *pulumi.Context) error {
 			}
 			return url.Host
 		}).(pulumi.StringOutput),
-		ManagerDomain: schedulerDeploy.PublicUrl.ApplyT(func(input string) string {
+		ManagerDomain: managerDeploy.PublicUrl.ApplyT(func(input string) string {
 			url, err := url.Parse(input)
 			if err != nil {
 				return "invalid.domain"

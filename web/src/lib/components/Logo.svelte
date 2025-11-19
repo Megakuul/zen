@@ -1,5 +1,5 @@
 <script>
-    import { cn } from "$lib/utils/cn";
+  import { cn } from '$lib/utils/cn';
 
   /**
    * @type {{
@@ -7,13 +7,11 @@
    *  svgClass?: string
    * }}
    */
-  let {
-    class: className = undefined,
-    svgClass = undefined,
-  } = $props();
+  let { class: className = undefined, svgClass = undefined } = $props();
 </script>
 
-<div class={cn("glass flex justify-center items-center w-min h-min rounded-2xl", className)}>
+<div class={cn('glass flex justify-center items-center w-min h-min rounded-2xl', className)}>
+  <!-- prettier-ignore -->
   <svg class={cn("logo", svgClass)} viewBox="0 0 588 583" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path id="inner" class="layer" d="M126.84 117.601L461.385 117.601L126.841 471.709L461.568 472.717" stroke-width="24"/>
     <path id="center" class="layer" d="M514.436 68.8807L72.7088 68.8807L72.7092 165.238L335.795 165.238L72.7092 417.501L72.7092 521.437L514.437 521.437L514.437 417.501L267.587 417.501L514.437 165.238L514.436 68.8807Z" stroke-width="24"/>
@@ -27,7 +25,8 @@
   }
 
   @keyframes animate-pulse {
-    0%, 100% {
+    0%,
+    100% {
       filter: brightness(40%);
     }
     40% {
@@ -36,7 +35,7 @@
   }
 
   .layer {
-    stroke: rgba(255, 255,255, 0.5);
+    stroke: rgba(255, 255, 255, 0.5);
     stroke-width: 20px;
     stroke-linecap: round;
     stroke-linejoin: round;
@@ -68,3 +67,4 @@
     }
   }
 </style>
+

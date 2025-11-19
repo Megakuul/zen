@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"mime"
 	"path"
+	"path/filepath"
 
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/iam"
 	"github.com/pulumi/pulumi-aws/sdk/v7/go/aws/s3"
@@ -110,7 +111,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				_, err := s3.NewBucketObjectv2(ctx, fmt.Sprintf("storage-web-%s", key), &s3.BucketObjectv2Args{
 					Bucket:      bucket.Bucket,
 					Key:         pulumi.Sprintf(path.Join("web", key)),
-					ContentType: pulumi.String(mime.TypeByExtension(asset.Path())),
+					ContentType: pulumi.String(mime.TypeByExtension(filepath.Ext(asset.Path()))),
 					Source:      asset,
 				})
 				if err != nil {
@@ -118,6 +119,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				}
 			}
 		}
+
 		return "", nil
 	})
 

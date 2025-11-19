@@ -264,7 +264,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				CachePolicyId:        leaderboardCachePolicy.ID(),
 			},
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
-				PathPattern:           pulumi.String("/api/scheduler/*"),
+				PathPattern:           pulumi.String("/v1.scheduler.*"),
 				AllowedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"}),
 				CachedMethods:         pulumi.ToStringArray([]string{"GET", "HEAD"}),
 				Compress:              pulumi.BoolPtr(false),
@@ -274,7 +274,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				OriginRequestPolicyId: apiOriginPolicy.ID(),
 			},
 			cloudfront.DistributionOrderedCacheBehaviorArgs{
-				PathPattern:           pulumi.String("/api/manager/*"),
+				PathPattern:           pulumi.String("/v1.manager.*"),
 				AllowedMethods:        pulumi.ToStringArray([]string{"GET", "HEAD", "OPTIONS", "POST", "PUT", "PATCH", "DELETE"}),
 				CachedMethods:         pulumi.ToStringArray([]string{"GET", "HEAD"}),
 				Compress:              pulumi.BoolPtr(false),
