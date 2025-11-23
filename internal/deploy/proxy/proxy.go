@@ -173,7 +173,10 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			CookieBehavior: pulumi.String("all"),
 		},
 		HeadersConfig: cloudfront.OriginRequestPolicyHeadersConfigArgs{
-			HeaderBehavior: pulumi.String("allViewer"),
+			HeaderBehavior: pulumi.String("allExcept"),
+			Headers: cloudfront.OriginRequestPolicyHeadersConfigHeadersArgs{
+				Items: pulumi.ToStringArray([]string{"host"}),
+			},
 		},
 		QueryStringsConfig: cloudfront.OriginRequestPolicyQueryStringsConfigArgs{
 			QueryStringBehavior: pulumi.String("all"),
@@ -225,6 +228,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 					HttpPort:             pulumi.Int(80),
 					OriginProtocolPolicy: pulumi.String("https-only"),
 					OriginSslProtocols:   pulumi.ToStringArray([]string{"TLSv1.2"}),
+					IpAddressType:        pulumi.String("dualstack"),
 				},
 				DomainName: input.SchedulerDomain,
 			},
@@ -235,6 +239,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 					HttpPort:             pulumi.Int(80),
 					OriginProtocolPolicy: pulumi.String("https-only"),
 					OriginSslProtocols:   pulumi.ToStringArray([]string{"TLSv1.2"}),
+					IpAddressType:        pulumi.String("dualstack"),
 				},
 				DomainName: input.ManagerDomain,
 			},

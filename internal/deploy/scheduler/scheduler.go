@@ -72,8 +72,29 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	schedulerLogGroup, err := cloudwatch.NewLogGroup(ctx, "scheduler", &cloudwatch.LogGroupArgs{
 		Name:            pulumi.String("zen-scheduler"),
 		Region:          pulumi.String(input.Region),
-		LogGroupClass:   pulumi.String("INFREQUENT_ACCESS"),
+		LogGroupClass:   pulumi.String("STANDARD"),
 		RetentionInDays: pulumi.IntPtr(7),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	schedulerLogPolicy, err := iam.NewPolicy(ctx, "scheduler-log", &iam.PolicyArgs{
+		Name: pulumi.String("zen-scheduler-log-emit"),
+		Policy: pulumi.Sprintf(`{
+			"Version": "2012-10-17",
+			"Statement": [{
+				"Effect": "Allow",
+				"Action": [
+					"logs:CreateLogStream",
+					"logs:PutLogEvents"
+				],
+				"Resource": [
+					"%s",
+					"%s:log-stream:*"
+				]
+			}]
+		}`, schedulerLogGroup.Arn, schedulerLogGroup.Arn),
 	})
 	if err != nil {
 		return nil, err
@@ -92,6 +113,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			}]
 		}`),
 		ManagedPolicyArns: pulumi.ToStringArrayOutput([]pulumi.StringOutput{
+			schedulerLogPolicy.Arn,
 			input.KmsPolicyArn,
 			input.TablePolicyArn,
 			input.QueuePolicyArn,

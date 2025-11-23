@@ -121,8 +121,29 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 	leaderboardLogGroup, err := cloudwatch.NewLogGroup(ctx, "leaderboard", &cloudwatch.LogGroupArgs{
 		Name:            pulumi.String("zen-leaderboard"),
 		Region:          pulumi.String(input.Region),
-		LogGroupClass:   pulumi.String("INFREQUENT_ACCESS"),
+		LogGroupClass:   pulumi.String("STANDARD"),
 		RetentionInDays: pulumi.IntPtr(7),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	leaderboardLogPolicy, err := iam.NewPolicy(ctx, "leaderboard-log", &iam.PolicyArgs{
+		Name: pulumi.String("zen-leaderboard-log-emit"),
+		Policy: pulumi.Sprintf(`{
+			"Version": "2012-10-17",
+			"Statement": [{
+				"Effect": "Allow",
+				"Action": [
+					"logs:CreateLogStream",
+					"logs:PutLogEvents"
+				],
+				"Resource": [
+					"%s",
+					"%s:log-stream:*"
+				]
+			}]
+		}`, leaderboardLogGroup.Arn, leaderboardLogGroup.Arn),
 	})
 	if err != nil {
 		return nil, err
@@ -141,6 +162,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 			}]
 		}`),
 		ManagedPolicyArns: pulumi.ToStringArrayOutput([]pulumi.StringOutput{
+			leaderboardLogPolicy.Arn,
 			input.BucketPolicyArn,
 			queuePullPolicy.Arn,
 		}),
