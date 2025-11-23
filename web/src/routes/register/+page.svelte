@@ -3,12 +3,12 @@
   import { onMount } from 'svelte';
   import { GetToken } from '$lib/client/auth.svelte';
   import { goto } from '$app/navigation';
-  import { fade } from 'svelte/transition';
   import Logo from '$lib/components/Logo.svelte';
-  import { ManagementClient } from '$lib/client/client.svelte';
+  import { RegisterClient } from '$lib/client/client.svelte';
   import { UserSchema } from '$lib/sdk/v1/manager/user_pb';
   import { Exec } from '$lib/error/error.svelte';
   import { VerifierSchema, VerifierStage } from '$lib/sdk/v1/manager/verifier_pb';
+  import { fade } from 'svelte/transition';
 
   let sent = $state(false);
   let registered = $state(false);
@@ -20,7 +20,7 @@
   async function register(verifier) {
     await Exec(
       async () => {
-        const response = await ManagementClient().register({
+        const response = await RegisterClient().register({
           user: user,
           captchaId: captchaId,
           captchaDigits: captchaCode,
@@ -36,7 +36,7 @@
         }
       },
       undefined,
-      loading,
+      progressing => (loading = progressing),
     );
   }
 
@@ -48,7 +48,7 @@
       async () => {
         /* ignore unauth errors */
       },
-      loading,
+      progressing => (loading = progressing),
     );
   });
 
@@ -59,9 +59,11 @@
   let captchaBlob = $state('');
   let captchaCode = $state('');
   let code = $state('');
+
+  let consent = $state(false);
 </script>
 
-<div class="flex justify-center items-center w-screen h-screen text-base sm:text-4xl">
+<div class="flex justify-center items-center w-screen text-base sm:text-4xl h-dvh">
   <div class="flex flex-col gap-4 items-center p-4 rounded-2xl sm:gap-8 sm:p-10 glass">
     {#if registered}
       <!-- prettier-ignore -->
@@ -73,14 +75,12 @@
       <h1 class="text-xl font-bold sm:text-5xl text-slate-200/50">Zen Registration</h1>
       {#if sent}
         <input
-          transition:fade
           bind:value={code}
           autocomplete="one-time-code"
           placeholder="Code (XXXX-XXXX)"
           class="p-3 text-center rounded-xl sm:p-5 glass focus:outline-0"
         />
         <button
-          transition:fade
           onclick={() =>
             register(
               create(VerifierSchema, {
@@ -89,7 +89,8 @@
                 code: code,
               }),
             )}
-          class="flex flex-row gap-4 justify-center items-center p-3 w-full rounded-xl transition-all duration-700 cursor-pointer sm:p-4 hover:scale-105 glass"
+          style={code === '' ? 'padding: 0px; height: 0px; opacity: 0;' : ''}
+          class="flex overflow-hidden flex-row gap-4 justify-center items-center p-3 w-full h-12 rounded-xl transition-all duration-700 cursor-pointer sm:p-4 sm:h-24 hover:scale-105 glass"
         >
           {#if loading}
             <!-- prettier-ignore -->
@@ -102,20 +103,45 @@
         </button>
       {:else}
         <input
-          transition:fade
           bind:value={user.username}
           placeholder="Username"
           class="p-3 rounded-xl sm:p-5 glass focus:outline-0"
         />
         <input
-          transition:fade
           type="email"
           bind:value={user.email}
           placeholder="Email"
           class="p-3 rounded-xl sm:p-5 glass focus:outline-0"
         />
+
+        <div class="flex flex-col">
+          <label class="flex flex-row gap-4 justify-center items-center p-3 w-full sm:p-5">
+            <span class="text-xs sm:max-w-full sm:text-base max-w-48">
+              I agree to share my activity stats on a
+              <span class="font-bold">public leaderboard</span>
+            </span>
+            <input
+              type="checkbox"
+              bind:checked={user.leaderboard}
+              class="p-3 rounded-xl sm:p-5 glass focus:outline-0"
+            />
+          </label>
+          <label class="flex flex-row gap-4 justify-center items-center p-3 w-full sm:p-5">
+            <span class="text-xs sm:max-w-full sm:text-base max-w-48">
+              I agree to the
+              <a class="underline" href="/terms-of-service">Terms</a> and acknowledge the
+              <a class="underline" href="/privacy-policy">Privacy Policy</a>
+            </span>
+            <input
+              type="checkbox"
+              bind:checked={consent}
+              class="p-3 rounded-xl sm:p-5 glass focus:outline-0"
+            />
+          </label>
+        </div>
+
         {#if captchaBlob}
-          <div class="flex flex-row gap-4 justify-between items-center">
+          <div transition:fade class="flex flex-row gap-4 justify-between items-center">
             <img src={captchaBlob} alt="captcha" />
             <input
               bind:value={captchaCode}
@@ -125,7 +151,6 @@
           </div>
         {/if}
         <button
-          transition:fade
           onclick={() =>
             register(
               create(VerifierSchema, {
@@ -133,7 +158,8 @@
                 email: user.email,
               }),
             )}
-          class="flex flex-row gap-4 justify-center items-center p-3 w-full rounded-xl transition-all duration-700 cursor-pointer sm:p-4 hover:scale-105 glass"
+          style={consent ? '' : 'padding: 0px; height: 0px; opacity: 0;'}
+          class="flex overflow-hidden flex-row gap-4 justify-center items-center p-3 w-full h-12 rounded-xl transition-all duration-700 cursor-pointer sm:p-4 sm:h-24 hover:scale-105 flow-hidden glass"
         >
           {#if loading}
             <!-- prettier-ignore -->
@@ -148,4 +174,3 @@
     {/if}
   </div>
 </div>
-

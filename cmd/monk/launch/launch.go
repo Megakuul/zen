@@ -47,7 +47,7 @@ func Launch(ctx context.Context, ws auto.Workspace) error {
 		return fmt.Errorf("failed to set default tags: %v", err)
 	}
 
-	opts := []optup.Option{optup.ProgressStreams(stackWriter)}
+	opts := []optup.Option{optup.ProgressStreams(stackWriter), optup.SuppressProgress()}
 	if refresh {
 		opts = append(opts, optup.Refresh())
 	}

@@ -8,7 +8,7 @@
 <Logo class="p-20" svgClass="w-40 h-40 lg:w-96 lg:h-96 xl:w-[588px] xl:h-[588px]"></Logo>
 
 <TextGenerateEffect
-  class="flex flex-col items-center w-9/12 text-center mt-10 sm:mt-20 lg:mt-32 2xl:mt-36"
+  class="flex flex-col items-center mt-10 w-11/12 text-center sm:mt-20 sm:w-9/12 lg:mt-32 2xl:mt-36"
   durationPerWord={2}
   segments={[
     {
@@ -19,9 +19,9 @@
 ></TextGenerateEffect>
 
 <!-- prettier-ignore -->
-<svg class="slow-arrow w-24 h-24 mt-24 sm:mt-64 text-slate-50/30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m12 20l6-6m-6 6l-6-6m6 6V9.5M12 4v2.5"/></svg>
+<svg class="mt-8 w-24 h-24 sm:mt-64 slow-arrow text-slate-50/30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m12 20l6-6m-6 6l-6-6m6 6V9.5M12 4v2.5"/></svg>
 
-<Ripple href="/getting-started" class="mt-24 sm:mt-64"></Ripple>
+<Ripple href="/getting-started" class="mt-12 sm:mt-64"></Ripple>
 
 <TextGenerateEffect
   class="mt-24 sm:mt-64"
@@ -35,7 +35,7 @@
 ></TextGenerateEffect>
 
 <!-- prettier-ignore -->
-<svg class="arrow w-24 h-24 mt-10 sm:mt-40 text-slate-50/30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m12 20l6-6m-6 6l-6-6m6 6V9.5M12 4v2.5"/></svg>
+<svg class="mt-10 w-24 h-24 sm:mt-40 arrow text-slate-50/30" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="m12 20l6-6m-6 6l-6-6m6 6V9.5M12 4v2.5"/></svg>
 
 <AgentTable class="mt-24 sm:mt-64"></AgentTable>
 
@@ -72,4 +72,3 @@
     }
   }
 </style>
-

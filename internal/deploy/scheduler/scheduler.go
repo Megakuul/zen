@@ -2,6 +2,7 @@ package scheduler
 
 import (
 	"fmt"
+	"os"
 	"path/filepath"
 
 	"github.com/google/uuid"
@@ -25,15 +26,17 @@ func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
 	if err != nil {
 		return nil, err
 	}
-	cachePath := ".cache/lambda"
-	outputPath := "scheduler"
-	command := fmt.Sprintf("go build -o %s ../../cmd/scheduler/scheduler.go", outputPath)
+	commandPath := filepath.Join(contextPath, ".cache/scheduler")
+	if err = os.MkdirAll(commandPath, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create cache path: %v", err)
+	}
+	command := "go build -o bootstrap ../../cmd/scheduler/scheduler.go"
 	build, err := local.NewCommand(ctx, "scheduler", &local.CommandArgs{
 		Create: pulumi.String(command),
 		Update: pulumi.String(command),
 		// must be inside cache otherwise the output archive contains cache paths
-		Dir:          pulumi.String(filepath.Join(contextPath, cachePath)),
-		ArchivePaths: pulumi.ToStringArray([]string{outputPath}),
+		Dir:          pulumi.String(commandPath),
+		ArchivePaths: pulumi.ToStringArray([]string{"bootstrap"}),
 		Environment: pulumi.ToStringMap(map[string]string{
 			"CGO_ENABLED": "0",
 			"GOOS":        "linux",
@@ -127,7 +130,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 		Name:          pulumi.String("zen-scheduler"),
 		Description:   pulumi.StringPtr("backend responsible for managing the calendar associated timings"),
 		Region:        pulumi.StringPtr(input.Region),
-		Handler:       pulumi.String("scheduler"),
+		Handler:       pulumi.String("bootstrap"),
 		Runtime:       lambda.RuntimeCustomAL2023,
 		Architectures: pulumi.ToStringArray([]string{"arm64"}),
 		MemorySize:    pulumi.IntPtr(128),

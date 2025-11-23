@@ -25,9 +25,11 @@ type Store struct {
 
 func New(client *s3.Client, logger *slog.Logger, timeout time.Duration, bucket, prefix string) *Store {
 	return &Store{
-		client: client,
-		bucket: bucket,
-		prefix: prefix,
+		client:  client,
+		logger:  logger,
+		bucket:  bucket,
+		prefix:  prefix,
+		timeout: timeout,
 	}
 }
 

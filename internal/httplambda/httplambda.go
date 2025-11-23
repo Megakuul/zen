@@ -10,10 +10,14 @@ import (
 	"github.com/aws/aws-lambda-go/events"
 )
 
-// LambdaRequestor provides operations to convert lambda request events to http.Requests. 
-type LambdaRequestor struct { }
+// Requestor provides operations to convert lambda request events to http.Requests.
+type Requestor struct{}
 
-func (l *LambdaRequestor) Request(ctx context.Context, e events.LambdaFunctionURLRequest) (*http.Request, error) {
+func NewRequestor() *Requestor {
+	return &Requestor{}
+}
+
+func (r *Requestor) Request(ctx context.Context, e events.LambdaFunctionURLRequest) (*http.Request, error) {
 	request, err := http.NewRequestWithContext(ctx, e.RequestContext.HTTP.Method, e.RawPath, strings.NewReader(e.Body))
 	if err != nil {
 		return nil, fmt.Errorf("failed to construct request: %v", err)
@@ -24,33 +28,41 @@ func (l *LambdaRequestor) Request(ctx context.Context, e events.LambdaFunctionUR
 	return request, nil
 }
 
-// LambdaResponder implements http.ResponseWriter to convert an http response to a lambda response event.
-type LambdaResponder struct {
+// Responder implements http.ResponseWriter to convert an http response to a lambda response event.
+type Responder struct {
 	status int
 	body   strings.Builder
 	header http.Header
 }
 
-func (l *LambdaResponder) Header() http.Header {
-	return l.header
+func NewResponder() *Responder {
+	return &Responder{
+		status: 0,
+		body:   strings.Builder{},
+		header: http.Header{},
+	}
 }
 
-func (l *LambdaResponder) Write(input []byte) (int, error) {
-	if l.status == 0 {
-		l.status = http.StatusOK
+func (r *Responder) Header() http.Header {
+	return r.header
+}
+
+func (r *Responder) Write(input []byte) (int, error) {
+	if r.status == 0 {
+		r.status = http.StatusOK
 	}
-	n, err := l.body.Write(input)
+	n, err := r.body.Write(input)
 	if err != nil {
 		return n, err
 	}
 	return n, nil
 }
 
-func (l *LambdaResponder) WriteHeader(statusCode int) {
+func (l *Responder) WriteHeader(statusCode int) {
 	l.status = statusCode
 }
 
-func (l *LambdaResponder) Response() events.LambdaFunctionURLResponse {
+func (l *Responder) Response() events.LambdaFunctionURLResponse {
 	resp := events.LambdaFunctionURLResponse{
 		StatusCode:      l.status,
 		Headers:         map[string]string{},

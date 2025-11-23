@@ -1,82 +1,99 @@
 <!-- caution: extremly ugly code, please immediately forget what you saw here -->
 <script>
-  import { inview } from "svelte-inview";
-  import { Motion } from "svelte-motion";
+  import { inview } from 'svelte-inview';
+  import { Motion } from 'svelte-motion';
 
   /**
    * @type {{
    *  class?: string
    * }}
    */
-  const {
-    class: className = undefined,
-  } = $props();
+  const { class: className = undefined } = $props();
 
   const delay = 0.05;
   let visible = $state(false);
 
   const calc = Object.entries({
-    "Sleep": {total: false, text: "441,504,000 seconds"},
-    "Work": {total: false, text: "441,504,000 seconds"},
-    "Meals": {total: false, text: "110,376,000 seconds"},
-    "Mother": {total: false, text: "55,188,000 seconds"},
-    "Budgerigar": {total: false, text: "13,797,000 seconds"},
-    "Shopping, etc.": {total: false, text: "55,188,000 seconds"},
-    "Friends, etc.": {total: false, text: "165,564,000 seconds"},
-    "Miss Daria": {total: false, text: "27,594,000 seconds"},
-    "Daydreaming": {total: false, text: "13,797,000 seconds"},
-    "Grand Total": {total: true, text: "1,324,512,000 seconds"},
+    Sleep: { total: false, text: '441,504,000 seconds' },
+    Work: { total: false, text: '441,504,000 seconds' },
+    Meals: { total: false, text: '110,376,000 seconds' },
+    Mother: { total: false, text: '55,188,000 seconds' },
+    Budgerigar: { total: false, text: '13,797,000 seconds' },
+    'Shopping, etc.': { total: false, text: '55,188,000 seconds' },
+    'Friends, etc.': { total: false, text: '165,564,000 seconds' },
+    'Miss Daria': { total: false, text: '27,594,000 seconds' },
+    Daydreaming: { total: false, text: '13,797,000 seconds' },
+    'Grand Total': { total: true, text: '1,324,512,000 seconds' },
 
-    "Total time available": {total: false, text: "1,324,512,000 seconds"},
-    "Time lost to date": {total: false, text: "1,324,512,000 seconds"},
-    "Balance": {total: true, text: "0.000,000,000 seconds"},
-  })
+    'Total time available': { total: false, text: '1,324,512,000 seconds' },
+    'Time lost to date': { total: false, text: '1,324,512,000 seconds' },
+    Balance: { total: true, text: '0.000,000,000 seconds' },
+  });
 </script>
 
-<div class="{className}">
-  <div use:inview oninview_enter={() => visible = true} class="chalk-font mirror-glass w-full lg:w-11/12 max-w-[1400px] flex flex-col justify-center items-center gap-4 p-8 rounded-2xl text-xs sm:text-xl lg:text-3xl select-none">
+<div class={className}>
+  <div
+    use:inview
+    oninview_enter={() => (visible = true)}
+    class="flex flex-col gap-4 justify-center items-center p-8 w-full text-xs rounded-2xl select-none sm:text-xl lg:w-11/12 lg:text-3xl chalk-font mirror-glass max-w-[1400px]"
+  >
     {#each calc as [key, value], i}
-      {@const [nextKey, nextValue] = calc[Math.max(Math.min(i+1, calc.length-1), calc.length-1)]}
+      {@const [nextKey, nextValue] =
+        calc[Math.max(Math.min(i + 1, calc.length - 1), calc.length - 1)]}
       {@const cumulativeDelay = i * (nextKey.length + nextValue.text.length) + 2}
       {#if value.total}
-        <Motion         
+        <Motion
           variants={{
             hidden: { opacity: 0 },
-            visible: (i) => ({ opacity: 1, transition: { delay: (cumulativeDelay + nextKey.length) * delay }})
+            visible: i => ({
+              opacity: 1,
+              transition: { delay: (cumulativeDelay + nextKey.length) * delay },
+            }),
           }}
           initial="hidden"
-          animate={visible ? "visible" : "hidden"}
-          let:motion>
-          <hr use:motion style="opacity: 0;" class="w-full h-4 border-dotted">
+          animate={visible ? 'visible' : 'hidden'}
+          let:motion
+        >
+          <hr use:motion style="opacity: 0;" class="w-full h-4 border-dotted" />
         </Motion>
       {/if}
       <span class="flex flex-row justify-start w-full">
-        {#each (key + value.text).split("") as letter, j}
-        <Motion
-          variants={{
-            hidden: { y: 50, opacity: 0 },
-            visible: (i) => ({ y: 0, opacity: 1, transition: { delay: (cumulativeDelay + j) * delay }})
-          }}
-          initial="hidden"
-          animate={visible ? "visible" : "hidden"}
-          let:motion>
-          <span use:motion style="opacity: 0;" class="{j === key.length ? "ml-auto" : ""} {value.total ? "font-bold" : ""}">
-            {#if letter === " "}
-              <span>&nbsp;</span>
-            {:else}
-              {letter}
-            {/if}
-          </span>
-        </Motion>
+        {#each (key + value.text).split('') as letter, j}
+          <Motion
+            variants={{
+              hidden: { y: 50, opacity: 0 },
+              visible: i => ({
+                y: 0,
+                opacity: 1,
+                transition: { delay: (cumulativeDelay + j) * delay },
+              }),
+            }}
+            initial="hidden"
+            animate={visible ? 'visible' : 'hidden'}
+            let:motion
+          >
+            <span
+              use:motion
+              style="opacity: 0;"
+              class="{j === key.length ? 'ml-auto' : ''} {value.total ? 'font-bold' : ''}"
+            >
+              {#if letter === ' '}
+                <span>&nbsp;</span>
+              {:else}
+                {letter}
+              {/if}
+            </span>
+          </Motion>
         {/each}
       </span>
       {#if value.total}
-        <br class="mb-10">
+        <br class="mb-10" />
       {/if}
     {/each}
   </div>
 
   <!-- agent -->
+  <!-- prettier-ignore -->
   <svg class="w-11/12 sm:w-10/12 lg:w-1/2 translate-y-[-50px] sm:translate-y-[-160px]" viewBox="0 0 3139 1500" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g class="agent-hand">
       <path d="M2295.37 686.073C2277.82 679.426 2258.87 691.747 2257.83 710.482L2246.1 921.417C2245.23 936.909 2256.33 950.502 2271.68 952.763L2276.21 953.43C2294.76 956.163 2311.25 941.392 2310.56 922.65L2307.01 826.088L2307 825.765L2307.02 825.442L2313.24 713.565C2313.92 701.484 2306.68 690.36 2295.37 686.073Z" fill="url(#paint0_radial_17_34)" stroke="black" stroke-width="14"/>
@@ -184,25 +201,45 @@
     </defs>
   </svg>
 
-  <div use:inview oninview_enter={(/** @type {any} */ e) => {e.target?.classList.add("pull-up")}} oninview_leave={(/** @type {any} */ e) => {e.target?.classList.remove("pull-up")}} 
-    class="glass bubble w-11/12 lg:w-10/12 max-w-[1200px] translate-y-0 sm:translate-y-[-150px] text-xs sm:text-base lg:text-2xl p-4 sm:p-8" style="clip-path: url(#bubble-clip);">
-    It's like this, my dear sir, you're wasting your life cutting hair, lathering faces and swapping idle chitchat.
-    When you're dead, it'll be as if you'd never existed. 
-    If you only had the time to lead the right kind of life, you'd be quite a different person. <a href="/getting-started" class="underline">Time is all you need, right?</a>
+  <div
+    use:inview
+    oninview_enter={(/** @type {any} */ e) => {
+      e.target?.classList.add('pull-up');
+    }}
+    oninview_leave={(/** @type {any} */ e) => {
+      e.target?.classList.remove('pull-up');
+    }}
+    class="p-4 w-11/12 text-xs translate-y-0 sm:p-8 sm:text-base lg:w-10/12 lg:text-2xl glass bubble max-w-[1200px] sm:translate-y-[-150px]"
+    style="clip-path: url(#bubble-clip);"
+  >
+    It's like this, my dear sir, you're wasting your life cutting hair, lathering faces and swapping
+    idle chitchat. When you're dead, it'll be as if you'd never existed. If you only had the time to
+    lead the right kind of life, you'd be quite a different person. <a
+      href="/getting-started"
+      class="underline">Time is all you need, right?</a
+    >
   </div>
 
-  <p class="text-xs sm:text-base text-center text-slate-200/30 translate-y-[10px] sm:translate-y-[-80px]">didn't get the joke? read <a class="underline" href="https://www.orellfuessli.ch/shop/home/artikeldetails/A1046778073">this</a></p>
+  <p
+    class="text-xs text-center sm:text-base text-slate-200/30 translate-y-[10px] sm:translate-y-[-80px]"
+  >
+    didn't get the joke? read <a class="underline" href="https://en.wikipedia.org/wiki/Momo_(novel)"
+      >this</a
+    >
+  </p>
 </div>
 
 <style>
   .chalk-font {
-    font-family: "Cabin Sketch", sans-serif;
+    font-family: 'Cabin Sketch', sans-serif;
     font-weight: 400;
-    font-style: normal; 
+    font-style: normal;
   }
 
   .mirror-glass {
-    box-shadow: rgba(255, 255, 255, 0.04) 0px 6px 24px 0px, rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
+    box-shadow:
+      rgba(255, 255, 255, 0.04) 0px 6px 24px 0px,
+      rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
     background-color: rgba(255, 255, 255, 0.005);
     backdrop-filter: blur(2px);
   }
@@ -213,7 +250,8 @@
   }
 
   @keyframes shake {
-    0%, 100% {
+    0%,
+    100% {
       transform: rotateZ(0deg);
     }
     25% {
@@ -226,7 +264,7 @@
 
   .bubble {
     transition: all ease 1s;
-    font-family: "Bebas Neue", sans-serif;
+    font-family: 'Bebas Neue', sans-serif;
     font-weight: 400;
     font-style: normal;
   }
@@ -262,3 +300,4 @@
     transform: translateY(-20px);
   }
 </style>
+

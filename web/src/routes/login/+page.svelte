@@ -7,6 +7,7 @@
   import Logo from '$lib/components/Logo.svelte';
   import { Exec } from '$lib/error/error.svelte';
   import { VerifierSchema, VerifierStage } from '$lib/sdk/v1/manager/verifier_pb';
+  import { ConnectError } from '@connectrpc/connect';
 
   let sent = $state(false);
   let loading = $state(false);
@@ -19,7 +20,7 @@
       async () => {
         /* ignore unauth errors */
       },
-      loading,
+      processing => (loading = processing),
     );
   });
 
@@ -27,7 +28,7 @@
   let code = $state('');
 </script>
 
-<div class="flex justify-center items-center w-screen h-screen text-base sm:text-4xl">
+<div class="flex justify-center items-center w-screen text-base sm:text-4xl h-dvh">
   <div class="flex flex-col gap-4 items-center p-4 rounded-2xl sm:gap-8 sm:p-10 glass">
     <Logo class="p-3 sm:p-6" svgClass="w-12 h-12 sm:w-20 sm:h-20"></Logo>
     <h1 class="text-xl font-bold sm:text-5xl text-slate-200/50">Zen Login</h1>
@@ -44,7 +45,7 @@
         onclick={() =>
           Exec(
             async () =>
-              Login(
+              await Login(
                 create(VerifierSchema, {
                   email: email,
                   code: code,
@@ -52,9 +53,10 @@
                 }),
               ),
             undefined,
-            loading,
+            processing => (loading = processing),
           )}
-        class="flex flex-row gap-4 justify-center items-center p-3 w-full rounded-xl transition-all duration-700 cursor-pointer sm:p-4 hover:scale-105 glass"
+        style={code === '' ? 'padding: 0px; height: 0px; opacity: 0;' : ''}
+        class="flex overflow-hidden flex-row gap-4 justify-center items-center p-3 w-full h-12 rounded-xl transition-all duration-700 cursor-pointer sm:p-4 sm:h-24 hover:scale-105 glass"
       >
         {#if loading}
           <!-- prettier-ignore -->
@@ -67,18 +69,16 @@
       </button>
     {:else}
       <input
-        transition:fade
         type="email"
         bind:value={email}
         placeholder="Email"
         class="p-3 rounded-xl sm:p-5 glass focus:outline-0"
       />
       <button
-        transition:fade
         onclick={() =>
           Exec(
             async () => {
-              Login(
+              await Login(
                 create(VerifierSchema, {
                   email: email,
                   stage: VerifierStage.EMAIL,
@@ -87,9 +87,10 @@
               sent = true;
             },
             undefined,
-            loading,
+            processing => (loading = processing),
           )}
-        class="flex flex-row gap-4 justify-center items-center p-3 w-full rounded-xl transition-all duration-700 cursor-pointer sm:p-4 hover:scale-105 glass"
+        style={email === '' ? 'padding: 0px; height: 0px; opacity: 0;' : ''}
+        class="flex overflow-hidden flex-row gap-4 justify-center items-center p-3 w-full h-12 rounded-xl transition-all duration-700 cursor-pointer sm:p-4 sm:h-24 hover:scale-105 glass"
       >
         {#if loading}
           <!-- prettier-ignore -->
@@ -100,7 +101,7 @@
           <span class="text-blue-300/60">Send verification code</span>
         {/if}
       </button>
-      <p transition:fade class="text-xs sm:text-base text-slate-50/40">
+      <p class="text-xs sm:text-base text-slate-50/40">
         No account yet? register <a href="/register" class="underline">here</a>
       </p>
     {/if}

@@ -24,16 +24,19 @@ func Build(ctx *pulumi.Context, input *BuildInput) (*BuildOutput, error) {
 	if err != nil {
 		return nil, err
 	}
-	cachePath := ".cache/web"
+	commandPath := filepath.Join(contextPath, ".cache/web")
+	if err := os.MkdirAll(commandPath, 0755); err != nil {
+		return nil, fmt.Errorf("failed to create cache path: %v", err)
+	}
 	command := "npm -C ../../web run build"
 	build, err := local.NewCommand(ctx, "web", &local.CommandArgs{
 		Create: pulumi.String(command),
 		Update: pulumi.String(command),
 		// must be inside cache otherwise the output archive contains cache paths
-		Dir:        pulumi.String(filepath.Join(contextPath, cachePath)),
+		Dir:        pulumi.String(commandPath),
 		AssetPaths: pulumi.ToStringArray([]string{"**"}),
 		Environment: pulumi.ToStringMap(map[string]string{
-			"BUILD_DIR": fmt.Sprint("../", cachePath),
+			"BUILD_DIR": commandPath,
 		}),
 		Logging: local.LoggingStderr,
 		// not rebuilding causes the empty archive to trigger a replacement of the current webassets.

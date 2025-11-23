@@ -21,7 +21,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
@@ -36,8 +36,8 @@ type Config struct {
 }
 
 func main() {
-	config := &Config{}
-	if err := cleanenv.ReadEnv(config); err != nil {
+	cfg := &Config{}
+	if err := cleanenv.ReadEnv(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "cannot acquire env config: %v", err)
 		os.Exit(1)
 	}
@@ -45,28 +45,32 @@ func main() {
 		AddSource: true,
 	}))
 
-	awsCfg := aws.NewConfig()
-	dynamoClient := dynamodb.NewFromConfig(*awsCfg)
-	sqsClient := sqs.NewFromConfig(*awsCfg)
-	kmsClient := kms.NewFromConfig(*awsCfg)
+	awsCfg, err := config.LoadDefaultConfig(context.Background())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot load aws default config: %v", err)
+		os.Exit(1)
+	}
+	dynamoClient := dynamodb.NewFromConfig(awsCfg)
+	sqsClient := sqs.NewFromConfig(awsCfg)
+	kmsClient := kms.NewFromConfig(awsCfg)
 
-	userModel := user.New(dynamoClient, config.Table)
-	ratingModel := rating.New(sqsClient, config.LeaderboardQueue)
-	tokenCtrl := token.New(config.TokenIssuer, jwtkms.NewKMSConfig(kmsClient, config.TokenKmsKeyId, false))
+	userModel := user.New(dynamoClient, cfg.Table)
+	ratingModel := rating.New(sqsClient, cfg.LeaderboardQueue)
+	tokenCtrl := token.New(cfg.TokenIssuer, jwtkms.NewKMSConfig(kmsClient, cfg.TokenKmsKeyId, false))
 
 	mux := http.NewServeMux()
 	mux.Handle(
 		planningconnect.NewPlanningServiceHandler(planning.New(logger, tokenCtrl, userModel)),
 	)
 	mux.Handle(
-		timingconnect.NewTimingServiceHandler(timing.New(logger, tokenCtrl, userModel, ratingModel, config.RatingAnchor)),
+		timingconnect.NewTimingServiceHandler(timing.New(logger, tokenCtrl, userModel, ratingModel, cfg.RatingAnchor)),
 	)
 	lambda.Start(createHandler(mux))
 }
 
 func createHandler(mux *http.ServeMux) func(ctx context.Context, r events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
 	return func(ctx context.Context, r events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
-		requestor := &httplambda.LambdaRequestor{}
+		requestor := httplambda.NewRequestor()
 		request, err := requestor.Request(ctx, r)
 		if err != nil {
 			return events.LambdaFunctionURLResponse{
@@ -75,7 +79,7 @@ func createHandler(mux *http.ServeMux) func(ctx context.Context, r events.Lambda
 				Body:       err.Error(),
 			}, nil
 		}
-		responder := &httplambda.LambdaResponder{}
+		responder := httplambda.NewResponder()
 		handler, _ := mux.Handler(request)
 		handler.ServeHTTP(responder, request)
 		return responder.Response(), nil

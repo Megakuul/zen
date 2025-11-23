@@ -56,6 +56,9 @@ func (s *Service) Login(ctx context.Context, r *connect.Request[authentication.L
 			},
 		}, nil
 	}
+	if r.Msg.Verifier.Email == "" {
+		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("you are not logged in"))
+	}
 
 	registration, found, err := s.emailModel.GetRegistration(ctx, r.Msg.Verifier.Email)
 	if err != nil {

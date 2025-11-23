@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"os"
@@ -11,7 +12,7 @@ import (
 	"github.com/megakuul/zen/internal/server/v1/leaderboard"
 
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/aws-sdk-go-v2/service/sqs"
 )
@@ -23,8 +24,8 @@ type Config struct {
 }
 
 func main() {
-	config := &Config{}
-	if err := cleanenv.ReadEnv(config); err != nil {
+	cfg := &Config{}
+	if err := cleanenv.ReadEnv(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "cannot acquire env config: %v", err)
 		os.Exit(1)
 	}
@@ -32,12 +33,16 @@ func main() {
 		AddSource: true,
 	}))
 
-	awsCfg := aws.NewConfig()
-	s3Client := s3.NewFromConfig(*awsCfg)
-	sqsClient := sqs.NewFromConfig(*awsCfg)
+	awsCfg, err := config.LoadDefaultConfig(context.Background())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot load aws default config: %v", err)
+		os.Exit(1)
+	}
+	s3Client := s3.NewFromConfig(awsCfg)
+	sqsClient := sqs.NewFromConfig(awsCfg)
 
-	boardModel := leaderboardmodel.New(s3Client, config.LeaderboardBucket, config.LeaderboardBucketPrefix)
-	ratingModel := rating.New(sqsClient, config.LeaderboardQueue)
+	boardModel := leaderboardmodel.New(s3Client, cfg.LeaderboardBucket, cfg.LeaderboardBucketPrefix)
+	ratingModel := rating.New(sqsClient, cfg.LeaderboardQueue)
 	service := leaderboard.New(logger, boardModel, ratingModel)
 
 	lambda.Start(service.Process)

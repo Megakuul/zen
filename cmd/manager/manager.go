@@ -24,7 +24,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/aws/aws-lambda-go/lambda"
-	"github.com/aws/aws-sdk-go-v2/aws"
+	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/dynamodb"
 	"github.com/aws/aws-sdk-go-v2/service/kms"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
@@ -41,8 +41,8 @@ type Config struct {
 }
 
 func main() {
-	config := &Config{}
-	if err := cleanenv.ReadEnv(config); err != nil {
+	cfg := &Config{}
+	if err := cleanenv.ReadEnv(cfg); err != nil {
 		fmt.Fprintf(os.Stderr, "cannot acquire env config: %v", err)
 		os.Exit(1)
 	}
@@ -50,16 +50,20 @@ func main() {
 		AddSource: true,
 	}))
 
-	awsCfg := aws.NewConfig()
-	dynamoClient := dynamodb.NewFromConfig(*awsCfg)
-	kmsClient := kms.NewFromConfig(*awsCfg)
-	s3Client := s3.NewFromConfig(*awsCfg)
-	sesClient := ses.NewFromConfig(*awsCfg)
+	awsCfg, err := config.LoadDefaultConfig(context.Background())
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "cannot load aws config: %v", err)
+		os.Exit(1)
+	}
+	dynamoClient := dynamodb.NewFromConfig(awsCfg)
+	kmsClient := kms.NewFromConfig(awsCfg)
+	s3Client := s3.NewFromConfig(awsCfg)
+	sesClient := ses.NewFromConfig(awsCfg)
 
-	emailModel := email.New(dynamoClient, config.Table)
-	userModel := user.New(dynamoClient, config.Table)
-	tokenCtrl := token.New(config.TokenIssuer, jwtkms.NewKMSConfig(kmsClient, config.TokenKmsKeyId, false))
-	authCtrl := auth.New(emailModel, sesClient, config.AuthMailSender)
+	emailModel := email.New(dynamoClient, cfg.Table)
+	userModel := user.New(dynamoClient, cfg.Table)
+	tokenCtrl := token.New(cfg.TokenIssuer, jwtkms.NewKMSConfig(kmsClient, cfg.TokenKmsKeyId, false))
+	authCtrl := auth.New(emailModel, sesClient, cfg.AuthMailSender)
 
 	mux := http.NewServeMux()
 	mux.Handle(
@@ -73,7 +77,7 @@ func main() {
 	captcha.SetCustomStore(captchastore.New(
 		s3Client,
 		logger, 2*time.Second,
-		config.CaptchaBucket, config.CaptchaBucketPrefix,
+		cfg.CaptchaBucket, cfg.CaptchaBucketPrefix,
 	))
 
 	lambda.Start(createHandler(mux))
@@ -81,7 +85,7 @@ func main() {
 
 func createHandler(mux *http.ServeMux) func(ctx context.Context, r events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
 	return func(ctx context.Context, r events.LambdaFunctionURLRequest) (events.LambdaFunctionURLResponse, error) {
-		requestor := &httplambda.LambdaRequestor{}
+		requestor := httplambda.NewRequestor()
 		request, err := requestor.Request(ctx, r)
 		if err != nil {
 			return events.LambdaFunctionURLResponse{
@@ -90,7 +94,7 @@ func createHandler(mux *http.ServeMux) func(ctx context.Context, r events.Lambda
 				Body:       err.Error(),
 			}, nil
 		}
-		responder := &httplambda.LambdaResponder{}
+		responder := httplambda.NewResponder()
 		handler, _ := mux.Handler(request)
 		handler.ServeHTTP(responder, request)
 		return responder.Response(), nil

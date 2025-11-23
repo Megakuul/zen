@@ -1,10 +1,10 @@
-import { create } from "@bufbuild/protobuf";
+import { create } from '@bufbuild/protobuf';
 import {
   LoginRequestSchema,
   LogoutRequestSchema,
-} from "$lib/sdk/v1/manager/authentication/authentication_pb";
-import { AuthenticationClient } from "./client.svelte";
-import { VerifierSchema, type Verifier } from "$lib/sdk/v1/manager/verifier_pb";
+} from '$lib/sdk/v1/manager/authentication/authentication_pb';
+import { AuthenticationClient } from './client.svelte';
+import { VerifierSchema, type Verifier } from '$lib/sdk/v1/manager/verifier_pb';
 
 /**
  * Login to the system (usually needed if GetToken() fails with status 16 "UNAUTHENTICATED").
@@ -19,7 +19,7 @@ export async function Login(verifier: Verifier) {
     }),
   );
   if (response.token) {
-    localStorage.setItem("auth_token", response.token);
+    localStorage.setItem('auth_token', response.token);
   }
 }
 
@@ -28,7 +28,7 @@ export async function Login(verifier: Verifier) {
  */
 export async function Logout() {
   await AuthenticationClient().logout(create(LogoutRequestSchema, {}));
-  localStorage.removeItem("auth_token");
+  localStorage.removeItem('auth_token');
 }
 
 /**
@@ -36,7 +36,7 @@ export async function Logout() {
  * @returns auth token
  */
 export async function GetToken(): Promise<string> {
-  const token = localStorage.getItem("auth_token");
+  const token = localStorage.getItem('auth_token');
   if (token) {
     return token;
   }
@@ -46,7 +46,6 @@ export async function GetToken(): Promise<string> {
       autoRefresh: true,
     }),
   );
-  localStorage.setItem("auth_token", response.token);
+  localStorage.setItem('auth_token', response.token);
   return response.token;
 }
-
