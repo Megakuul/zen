@@ -8,6 +8,32 @@ Zen is an application for structuring your daily routine.
 > Zen has no feature to read your mind yet; therefore, cheating your way up the leaderboard is possible.
 > However, keep in mind that doing so does not outsmart the developers, but yourself.
 
+## Deployment
+
+**Tool prerequisites:**
+
+- `pulumi`
+- `go`
+- `npm/nodejs`
+- `awscli`
+
+
+**AWS prerequisites:**
+
+- Create a route53 public hosted zone for your domains if you want `monk` to automatically setup all required records. 
+- To make the Email verification work correctly your AWS account must be [unsandboxed from SES](https://docs.aws.amazon.com/ses/latest/dg/request-production-access.html).
+
+
+The deployment of zen is facilitated via `monk` 🪬, a tiny cli tool that wraps the underlying pulumi process which builds and deploys the software. The process is interactive, so the only command you ever need (for both deployment and upgrades) is this:
+
+```bash
+go run cmd/monk/monk.go
+```
+
+> [!IMPORTANT]
+> If you are not me, you should change the [privacy policy](/web/src/routes/privacy-policy/+page.svelte) and [terms of service](/web/src/routes/privacy-policy/+page.svelte) before deploying. 
+
+
 ## Technical Information
 ---
 
