@@ -71,21 +71,16 @@ func (s *Service) Login(ctx context.Context, r *connect.Request[authentication.L
 	if err != nil {
 		return nil, err
 	} else if !verified {
-		return &connect.Response[authentication.LoginResponse]{
-			Msg: &authentication.LoginResponse{},
-		}, nil
+		return connect.NewResponse(&authentication.LoginResponse{}), nil
 	}
 
 	accessToken, err := s.tokenCtrl.Issue(ctx, registration.User, r.Msg.Verifier.Email, false, time.Now().Add(accessTokenTTL))
 	if err != nil {
 		return nil, err
 	}
-	resp := &connect.Response[authentication.LoginResponse]{
-		Msg: &authentication.LoginResponse{
-			Token: accessToken,
-		},
-	}
-
+	resp := connect.NewResponse(&authentication.LoginResponse{
+		Token: accessToken,
+	})
 	if r.Msg.AutoRefresh {
 		refreshToken, err := s.tokenCtrl.Issue(ctx, registration.User, r.Msg.Verifier.Email, true, time.Now().Add(refreshTokenTTL))
 		if err != nil {
@@ -106,7 +101,7 @@ func (s *Service) Login(ctx context.Context, r *connect.Request[authentication.L
 }
 
 func (s *Service) Logout(ctx context.Context, r *connect.Request[authentication.LogoutRequest]) (*connect.Response[authentication.LogoutResponse], error) {
-	resp := &connect.Response[authentication.LogoutResponse]{}
+	resp := connect.NewResponse(&authentication.LogoutResponse{})
 	refreshCookie := findRefreshCookie(r.Header())
 	if refreshCookie == nil {
 		return resp, nil

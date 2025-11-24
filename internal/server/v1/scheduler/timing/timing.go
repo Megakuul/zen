@@ -52,9 +52,7 @@ func (s *Service) Start(ctx context.Context, r *connect.Request[timing.StartRequ
 	if err != nil {
 		return nil, err
 	}
-	return &connect.Response[timing.StartResponse]{
-		Msg: &timing.StartResponse{},
-	}, nil
+	return connect.NewResponse(&timing.StartResponse{}), nil
 }
 
 func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopRequest]) (*connect.Response[timing.StopResponse], error) {
@@ -116,7 +114,5 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		}
 	}
 
-	return &connect.Response[timing.StopResponse]{
-		Msg: &timing.StopResponse{},
-	}, nil
+	return connect.NewResponse(&timing.StopResponse{}), nil
 }

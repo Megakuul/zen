@@ -44,9 +44,9 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 			s.logger.Warn(fmt.Sprintf("captcha image failure: %v", err), "endpoint", "register")
 			return nil, connect.NewError(connect.CodeInternal, err)
 		}
-		return &connect.Response[management.RegisterResponse]{
-			Msg: &management.RegisterResponse{CaptchaId: id, CaptchaBlob: image.Bytes()},
-		}, nil
+		return connect.NewResponse(&management.RegisterResponse{
+			CaptchaId: id, CaptchaBlob: image.Bytes(),
+		}), nil
 	}
 	if !captcha.VerifyString(r.Msg.CaptchaId, r.Msg.CaptchaDigits) {
 		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("incorrect captcha code"))
@@ -70,9 +70,7 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 	if err != nil {
 		return nil, err
 	} else if !verified {
-		return &connect.Response[management.RegisterResponse]{
-			Msg: &management.RegisterResponse{},
-		}, nil
+		return connect.NewResponse(&management.RegisterResponse{}), nil
 	}
 	userId := uuid.New().String()
 
@@ -96,9 +94,7 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 		s.logger.Error(fmt.Sprintf("email registration failure (orphaned profile left behind): %v", err), "endpoint", "register")
 		return nil, err
 	}
-	return &connect.Response[management.RegisterResponse]{
-		Msg: &management.RegisterResponse{},
-	}, nil
+	return connect.NewResponse(&management.RegisterResponse{}), nil
 }
 
 func (s *Service) Get(ctx context.Context, r *connect.Request[management.GetRequest]) (*connect.Response[management.GetResponse], error) {
@@ -114,18 +110,16 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[management.GetRequ
 		return nil, connect.NewError(connect.CodeNotFound, fmt.Errorf("user not found"))
 	}
 
-	return &connect.Response[management.GetResponse]{
-		Msg: &management.GetResponse{
-			User: &manager.User{
-				Id:          claims.Subject,
-				Email:       claims.Email,
-				Username:    profile.Username,
-				Leaderboard: profile.Leaderboard,
-				Score:       profile.Score,
-				Streak:      profile.Streak,
-			},
+	return connect.NewResponse(&management.GetResponse{
+		User: &manager.User{
+			Id:          claims.Subject,
+			Email:       claims.Email,
+			Username:    profile.Username,
+			Leaderboard: profile.Leaderboard,
+			Score:       profile.Score,
+			Streak:      profile.Streak,
 		},
-	}, nil
+	}), nil
 }
 
 func (s *Service) Update(ctx context.Context, r *connect.Request[management.UpdateRequest]) (*connect.Response[management.UpdateResponse], error) {
@@ -143,7 +137,7 @@ func (s *Service) Update(ctx context.Context, r *connect.Request[management.Upda
 		s.logger.Warn(fmt.Sprintf("profile update failure: %v", err), "endpoint", "update")
 		return nil, err
 	}
-	return &connect.Response[management.UpdateResponse]{}, nil
+	return connect.NewResponse(&management.UpdateResponse{}), nil
 }
 
 func (s *Service) Delete(ctx context.Context, r *connect.Request[management.DeleteRequest]) (*connect.Response[management.DeleteResponse], error) {
@@ -156,7 +150,7 @@ func (s *Service) Delete(ctx context.Context, r *connect.Request[management.Dele
 	if err != nil {
 		return nil, err
 	} else if !verified {
-		return &connect.Response[management.DeleteResponse]{}, nil
+		return connect.NewResponse(&management.DeleteResponse{}), nil
 	}
 
 	// TODO transaction would be the super duper clean way here
@@ -170,5 +164,5 @@ func (s *Service) Delete(ctx context.Context, r *connect.Request[management.Dele
 		s.logger.Error(fmt.Sprintf("email deletion failure (orphaned email left behind): %v", err), "endpoint", "delete")
 		return nil, connect.NewError(connect.CodeInternal, err)
 	}
-	return nil, nil
+	return connect.NewResponse(&management.DeleteResponse{}), nil
 }

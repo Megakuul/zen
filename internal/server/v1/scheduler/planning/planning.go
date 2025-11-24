@@ -37,9 +37,7 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[planning.GetReques
 	if err != nil {
 		return nil, err
 	}
-	resp := &connect.Response[planning.GetResponse]{
-		Msg: &planning.GetResponse{Events: []*scheduler.Event{}},
-	}
+	resp := connect.NewResponse(&planning.GetResponse{Events: []*scheduler.Event{}})
 	for _, event := range events {
 		resp.Msg.Events = append(resp.Msg.Events, &scheduler.Event{
 			Id:              strconv.Itoa(int(event.StartTime)),
@@ -85,9 +83,7 @@ func (s *Service) Upsert(ctx context.Context, r *connect.Request[planning.Upsert
 	if r.Msg.Event.Id != "" && r.Msg.Event.Id != strconv.Itoa(int(r.Msg.Event.StartTime)) {
 		s.userModel.DeleteEvent(ctx, claims.Subject, r.Msg.Event.Id)
 	}
-	return &connect.Response[planning.UpsertResponse]{
-		Msg: &planning.UpsertResponse{},
-	}, nil
+	return connect.NewResponse(&planning.UpsertResponse{}), nil
 }
 
 func (s *Service) Delete(ctx context.Context, r *connect.Request[planning.DeleteRequest]) (*connect.Response[planning.DeleteResponse], error) {
@@ -99,7 +95,5 @@ func (s *Service) Delete(ctx context.Context, r *connect.Request[planning.Delete
 	if err != nil {
 		return nil, err
 	}
-	return &connect.Response[planning.DeleteResponse]{
-		Msg: &planning.DeleteResponse{},
-	}, nil
+	return connect.NewResponse(&planning.DeleteResponse{}), nil
 }

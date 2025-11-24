@@ -2,7 +2,9 @@
 package httplambda
 
 import (
+	"bytes"
 	"context"
+	"encoding/base64"
 	"fmt"
 	"net/http"
 	"strings"
@@ -31,14 +33,14 @@ func (r *Requestor) Request(ctx context.Context, e events.LambdaFunctionURLReque
 // Responder implements http.ResponseWriter to convert an http response to a lambda response event.
 type Responder struct {
 	status int
-	body   strings.Builder
+	body   bytes.Buffer
 	header http.Header
 }
 
 func NewResponder() *Responder {
 	return &Responder{
 		status: 0,
-		body:   strings.Builder{},
+		body:   bytes.Buffer{},
 		header: http.Header{},
 	}
 }
@@ -67,8 +69,8 @@ func (l *Responder) Response() events.LambdaFunctionURLResponse {
 		StatusCode:      l.status,
 		Headers:         map[string]string{},
 		Cookies:         []string{},
-		Body:            l.body.String(),
-		IsBase64Encoded: false,
+		Body:            base64.StdEncoding.EncodeToString(l.body.Bytes()),
+		IsBase64Encoded: true,
 	}
 	for k, v := range l.header {
 		if len(v) > 0 {
