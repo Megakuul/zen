@@ -154,9 +154,12 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				"Action": [
 					"ses:SendEmail"
 				],
-				"Resource": "%s"
+				"Resource": [
+					"%s",
+					"%s"
+				]
 			}]
-		}`, emailIdentity.Arn),
+		}`, emailIdentity.Arn, emailConfig.Arn),
 	})
 	if err != nil {
 		return nil, err

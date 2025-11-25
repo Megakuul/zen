@@ -65,10 +65,10 @@ func (c *Controller) processEmailStage(ctx context.Context, emailAddr string) er
 
 	err := c.emailCtrl.PutCode(ctx, emailAddr, &email.Code{
 		Code:      code.String(),
-		ExpiresAt: time.Now().Unix(),
+		ExpiresAt: time.Now().Add(15 * time.Minute).Unix(),
 	})
 	if err != nil {
-		return connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("email already sent"))
+		return err
 	}
 
 	_, err = c.sesClient.SendEmail(ctx, &ses.SendEmailInput{

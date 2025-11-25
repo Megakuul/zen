@@ -26,7 +26,9 @@
           captchaDigits: captchaCode,
           verifier: verifier,
         });
-        if (captchaId && captchaCode) {
+        if (verifier.code) {
+          goto('/login');
+        } else if (captchaId && captchaCode) {
           sent = true;
         } else {
           captchaId = response.captchaId;
@@ -83,11 +85,7 @@
         <button
           onclick={() =>
             register(
-              create(VerifierSchema, {
-                stage: VerifierStage.CODE,
-                email: user.email,
-                code: code,
-              }),
+              create(VerifierSchema, { stage: VerifierStage.CODE, email: user.email, code: code }),
             )}
           style={code === '' ? 'padding: 0px; height: 0px; opacity: 0;' : ''}
           class="flex overflow-hidden flex-row gap-4 justify-center items-center p-3 w-full h-12 rounded-xl transition-all duration-700 cursor-pointer sm:p-4 sm:h-24 hover:scale-105 glass"
@@ -152,18 +150,17 @@
         {/if}
         <button
           onclick={() =>
-            register(
-              create(VerifierSchema, {
-                stage: VerifierStage.EMAIL,
-                email: user.email,
-              }),
-            )}
+            register(create(VerifierSchema, { stage: VerifierStage.EMAIL, email: user.email }))}
           style={consent ? '' : 'padding: 0px; height: 0px; opacity: 0;'}
           class="flex overflow-hidden flex-row gap-4 justify-center items-center p-3 w-full h-12 rounded-xl transition-all duration-700 cursor-pointer sm:p-4 sm:h-24 hover:scale-105 flow-hidden glass"
         >
           {#if loading}
             <!-- prettier-ignore -->
             <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
+          {:else if captchaBlob}
+            <span class="text-emerald-300/60">Confirm catpcha</span>
+            <!-- prettier-ignore -->
+            <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none"><path fill="url(#SVGdI3q65FX)" d="M12 2c5.523 0 10 4.477 10 10s-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2"/><path fill="url(#SVGma2GpbcA)" d="m15.22 8.97l-4.47 4.47l-1.97-1.97a.75.75 0 0 0-1.06 1.06l2.5 2.5a.75.75 0 0 0 1.06 0l5-5a.75.75 0 1 0-1.06-1.06"/><defs><linearGradient id="SVGdI3q65FX" x1="2.714" x2="16.517" y1="5.75" y2="20.09" gradientUnits="userSpaceOnUse"><stop stop-color="#52d17c"/><stop offset="1" stop-color="#22918b"/></linearGradient><linearGradient id="SVGma2GpbcA" x1="9.188" x2="10.681" y1="9.413" y2="16.713" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#e3ffd9"/></linearGradient></defs></g></svg>
           {:else}
             <!-- prettier-ignore -->
             <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g fill="none"><path fill="url(#SVG09UKqbVr)" d="M8.805 8.958L1.994 11l.896-3l-.896-3l6.811 2.042c.95.285.95 1.63 0 1.916"/><path fill="url(#SVGH7ybqcCB)" d="M1.724 1.053a.5.5 0 0 0-.714.545l1.403 4.85a.5.5 0 0 0 .397.354l5.69.953c.268.053.268.437 0 .49l-5.69.953a.5.5 0 0 0-.397.354l-1.403 4.85a.5.5 0 0 0 .714.545l13-6.5a.5.5 0 0 0 0-.894z"/><path fill="url(#SVGUgu7sepB)" d="M1.724 1.053a.5.5 0 0 0-.714.545l1.403 4.85a.5.5 0 0 0 .397.354l5.69.953c.268.053.268.437 0 .49l-5.69.953a.5.5 0 0 0-.397.354l-1.403 4.85a.5.5 0 0 0 .714.545l13-6.5a.5.5 0 0 0 0-.894z"/><defs><linearGradient id="SVGH7ybqcCB" x1="1" x2="12.99" y1="-4.688" y2="11.244" gradientUnits="userSpaceOnUse"><stop stop-color="#3bd5ff"/><stop offset="1" stop-color="#0094f0"/></linearGradient><linearGradient id="SVGUgu7sepB" x1="8" x2="11.641" y1="4.773" y2="14.624" gradientUnits="userSpaceOnUse"><stop offset=".125" stop-color="#dcf8ff" stop-opacity="0"/><stop offset=".769" stop-color="#ff6ce8" stop-opacity="0.7"/></linearGradient><radialGradient id="SVG09UKqbVr" cx="0" cy="0" r="1" gradientTransform="matrix(7.43807 0 0 1.12359 .5 8)" gradientUnits="userSpaceOnUse"><stop stop-color="#0094f0"/><stop offset="1" stop-color="#2052cb"/></radialGradient></defs></g></svg>

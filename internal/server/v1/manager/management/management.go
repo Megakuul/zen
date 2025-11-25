@@ -37,6 +37,12 @@ func New(logger *slog.Logger, token *token.Controller, auth *auth.Controller, us
 }
 
 func (s *Service) Register(ctx context.Context, r *connect.Request[management.RegisterRequest]) (*connect.Response[management.RegisterResponse], error) {
+	if r.Msg.User == nil || r.Msg.Verifier == nil {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no valid user configuration provided"))
+	} else if r.Msg.User.Email == "" || r.Msg.Verifier.Email != r.Msg.User.Email {
+		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("verifier email does not match with the user email"))
+	}
+
 	if r.Msg.CaptchaId == "" {
 		id := captcha.New()
 		image := bytes.NewBuffer(nil)
@@ -48,13 +54,9 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 			CaptchaId: id, CaptchaBlob: image.Bytes(),
 		}), nil
 	}
-	if !captcha.VerifyString(r.Msg.CaptchaId, r.Msg.CaptchaDigits) {
+	// captcha check is only skipped when the user is in the code stage.
+	if r.Msg.Verifier.Stage != manager.VerifierStage_VERIFIER_STAGE_CODE && !captcha.VerifyString(r.Msg.CaptchaId, r.Msg.CaptchaDigits) {
 		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("incorrect captcha code"))
-	}
-	if r.Msg.User == nil || r.Msg.Verifier == nil {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("no valid user configuration provided"))
-	} else if r.Msg.User.Email == "" || r.Msg.Verifier.Email != r.Msg.User.Email {
-		return nil, connect.NewError(connect.CodeInvalidArgument, fmt.Errorf("verified email does not match with the user email"))
 	}
 
 	// precheck registration, even though PutRegistration() is atomic, this is required

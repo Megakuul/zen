@@ -2,6 +2,7 @@ package email
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -56,9 +57,13 @@ func (m *Model) PutCode(ctx context.Context, email string, code *Code) error {
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":now": &types.AttributeValueMemberN{Value: fmt.Sprintf("%d", time.Now().Unix())},
 		},
-		ConditionExpression: aws.String("expires_at < :now"),
+		ConditionExpression: aws.String("attribute_not_exists(pk) or expires_at < :now"),
 	})
 	if err != nil {
+		var cErr *types.ConditionalCheckFailedException
+		if errors.As(err, &cErr) {
+			return connect.NewError(connect.CodeAlreadyExists, fmt.Errorf("email already sent"))
+		}
 		return connect.NewError(connect.CodeInternal, err)
 	}
 	return nil

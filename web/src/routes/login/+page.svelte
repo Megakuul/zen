@@ -7,7 +7,7 @@
   import Logo from '$lib/components/Logo.svelte';
   import { Exec } from '$lib/error/error.svelte';
   import { VerifierSchema, VerifierStage } from '$lib/sdk/v1/manager/verifier_pb';
-  import { ConnectError } from '@connectrpc/connect';
+  import { Code, ConnectError } from '@connectrpc/connect';
 
   let sent = $state(false);
   let loading = $state(false);
@@ -44,14 +44,12 @@
         transition:fade
         onclick={() =>
           Exec(
-            async () =>
+            async () => {
               await Login(
-                create(VerifierSchema, {
-                  email: email,
-                  code: code,
-                  stage: VerifierStage.CODE,
-                }),
-              ),
+                create(VerifierSchema, { email: email, code: code, stage: VerifierStage.CODE }),
+              );
+              goto('/profile');
+            },
             undefined,
             processing => (loading = processing),
           )}
@@ -78,12 +76,14 @@
         onclick={() =>
           Exec(
             async () => {
-              await Login(
-                create(VerifierSchema, {
-                  email: email,
-                  stage: VerifierStage.EMAIL,
-                }),
-              );
+              try {
+                await Login(create(VerifierSchema, { email: email, stage: VerifierStage.EMAIL }));
+              } catch (e) {
+                const err = ConnectError.from(e);
+                if (err.code === Code.AlreadyExists)
+                  sent = true; // code already sent
+                else throw e;
+              }
               sent = true;
             },
             undefined,
