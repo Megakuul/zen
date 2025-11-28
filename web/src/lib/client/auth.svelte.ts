@@ -1,3 +1,4 @@
+import { jwtDecode } from 'jwt-decode';
 import { create } from '@bufbuild/protobuf';
 import {
   LoginRequestSchema,
@@ -28,7 +29,7 @@ export async function Login(verifier: Verifier) {
  */
 export async function Logout() {
   await AuthenticationClient().logout(create(LogoutRequestSchema, {}));
-  localStorage.removeItem('auth_token');
+  ClearToken();
 }
 
 /**
@@ -37,7 +38,7 @@ export async function Logout() {
  */
 export async function GetToken(): Promise<string> {
   const token = localStorage.getItem('auth_token');
-  if (token) {
+  if (token && (jwtDecode(token, {}).exp ?? 0) * 1000 > Date.now()) {
     return token;
   }
   const response = await AuthenticationClient().login(
@@ -48,4 +49,11 @@ export async function GetToken(): Promise<string> {
   );
   localStorage.setItem('auth_token', response.token);
   return response.token;
+}
+
+/**
+ * Clears the auth token from localstore.
+ */
+export function ClearToken() {
+  localStorage.removeItem('auth_token');
 }

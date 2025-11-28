@@ -57,6 +57,8 @@ func (s *Service) Login(ctx context.Context, r *connect.Request[authentication.L
 		}, nil
 	}
 	if r.Msg.Verifier.Email == "" {
+		// 401 seems a bit weird here, but the point is that the user tries to log in without
+		// making a verification attempt to acquire new credentials, so he expected to use a refresh_token which he does not have.
 		return nil, connect.NewError(connect.CodeUnauthenticated, fmt.Errorf("you are not logged in"))
 	}
 
@@ -86,12 +88,16 @@ func (s *Service) Login(ctx context.Context, r *connect.Request[authentication.L
 		if err != nil {
 			return nil, err
 		}
+
+		// for simplicity there is no strict path enforcement (yeah its not optimal I know)
+		// due to the nature of the api design, functions are top level which would require one cookie per service...
+		// one could argue that this means the api was designed incorrectly and maybe he is right and maybe I'll refactor it in the future.
 		cookie := http.Cookie{
 			Name:     refreshTokenName,
 			Expires:  time.Now().Add(refreshTokenTTL),
-			Path:     "/api/", // TODO make this more specific
 			Secure:   true,
 			HttpOnly: true,
+			Path:     "/", // <- read the text above :(
 			SameSite: http.SameSiteStrictMode,
 			Value:    refreshToken,
 		}
