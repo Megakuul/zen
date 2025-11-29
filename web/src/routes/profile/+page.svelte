@@ -12,6 +12,8 @@
   import { ClearToken, Logout } from '$lib/client/auth.svelte';
   import { VerifierStage } from '$lib/sdk/v1/manager/verifier_pb';
   import { GetScoreDecorator } from '$lib/color/color';
+  import Streak from '$lib/components/Streak.svelte';
+  import { Code, ConnectError } from '@connectrpc/connect';
 
   let loading = $state(true);
 
@@ -127,12 +129,19 @@
         onclick={async () =>
           Exec(
             async () => {
-              await ManagementClient().delete(
-                create(DeleteRequestSchema, {
-                  verifier: { stage: VerifierStage.EMAIL, email: user?.email },
-                }),
-              );
-              sentDelete = true;
+              try {
+                await ManagementClient().delete(
+                  create(DeleteRequestSchema, {
+                    verifier: { stage: VerifierStage.EMAIL, email: user?.email },
+                  }),
+                );
+                sentDelete = true;
+              } catch (e) {
+                const err = ConnectError.from(e);
+                if (err.code === Code.AlreadyExists)
+                  sentDelete = true; // code already sent
+                else throw e;
+              }
             },
             undefined,
             processing => (loading = processing),
@@ -179,7 +188,7 @@
             undefined,
             processing => (loading = processing),
           )}
-        style={deleteCode === '' && deleteConfirmation
+        style={deleteCode === '' || !deleteConfirmation
           ? 'padding: 0px; height: 0px; opacity: 0;'
           : ''}
         class="flex overflow-hidden flex-row gap-4 justify-center items-center p-3 w-full h-12 rounded-xl transition-all duration-700 cursor-pointer sm:p-4 sm:h-24 hover:scale-105 glass"
@@ -208,11 +217,16 @@
       </p>
     {/if}
     <div class="flex flex-row gap-4 justify-center items-center min-h-96">
-      <p class="text-5xl font-bold sm:text-9xl">
+      <p class="text-5xl font-bold select-none sm:text-9xl">
         Score
         <span class={GetScoreDecorator(user.score)}>{user.score}</span>
       </p>
-      <p>{user.streak}</p>
+      {#if user.streak > 0}
+        <Streak streak={Number(user.streak)} enabled={true} title="current streak" />
+      {/if}
+      {#if user.maxStreak > 0}
+        <Streak streak={Number(user.maxStreak)} enabled={false} title="highest streak overall" />
+      {/if}
     </div>
 
     <button
