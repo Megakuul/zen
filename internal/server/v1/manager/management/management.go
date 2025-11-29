@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"strings"
+	"time"
 
 	"connectrpc.com/connect"
 	"github.com/dchest/captcha"
@@ -82,8 +83,10 @@ func (s *Service) Register(ctx context.Context, r *connect.Request[management.Re
 		Username:    r.Msg.User.Username,
 		Description: r.Msg.User.Description,
 		Leaderboard: r.Msg.User.Leaderboard,
+		CreatedAt:   time.Now().Unix(),
 		Streak:      0,
 		Score:       0,
+		MaxStreak:   0,
 	})
 	if err != nil {
 		s.logger.Warn(fmt.Sprintf("profile registration failure: %v", err), "endpoint", "register")
@@ -117,9 +120,12 @@ func (s *Service) Get(ctx context.Context, r *connect.Request[management.GetRequ
 			Id:          claims.Subject,
 			Email:       claims.Email,
 			Username:    profile.Username,
+			Description: profile.Description,
 			Leaderboard: profile.Leaderboard,
+			CreatedAt:   profile.CreatedAt,
 			Score:       profile.Score,
 			Streak:      profile.Streak,
+			MaxStreak:   profile.MaxStreak,
 		},
 	}), nil
 }

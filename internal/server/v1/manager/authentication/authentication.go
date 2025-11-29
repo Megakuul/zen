@@ -46,7 +46,7 @@ func (s *Service) Login(ctx context.Context, r *connect.Request[authentication.L
 		} else if !claims.Refresh {
 			return nil, connect.NewError(connect.CodePermissionDenied, fmt.Errorf("invalid token; expected refresh_token"))
 		}
-		token, err := s.tokenCtrl.Issue(ctx, claims.Subject, r.Msg.Verifier.Email, false, time.Now().Add(accessTokenTTL))
+		token, err := s.tokenCtrl.Issue(ctx, claims.Subject, claims.Email, false, time.Now().Add(accessTokenTTL))
 		if err != nil {
 			return nil, err
 		}

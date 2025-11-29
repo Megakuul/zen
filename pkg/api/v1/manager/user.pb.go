@@ -31,6 +31,7 @@ type User struct {
 	CreatedAt     int64                  `protobuf:"varint,6,opt,name=created_at,json=createdAt,proto3" json:"created_at,omitempty"`
 	Streak        int64                  `protobuf:"varint,7,opt,name=streak,proto3" json:"streak,omitempty"`
 	Score         float64                `protobuf:"fixed64,8,opt,name=score,proto3" json:"score,omitempty"`
+	MaxStreak     int64                  `protobuf:"varint,9,opt,name=max_streak,json=maxStreak,proto3" json:"max_streak,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -121,12 +122,19 @@ func (x *User) GetScore() float64 {
 	return 0
 }
 
+func (x *User) GetMaxStreak() int64 {
+	if x != nil {
+		return x.MaxStreak
+	}
+	return 0
+}
+
 var File_v1_manager_user_proto protoreflect.FileDescriptor
 
 const file_v1_manager_user_proto_rawDesc = "" +
 	"\n" +
 	"\x15v1/manager/user.proto\x12\n" +
-	"v1.manager\"\xd9\x01\n" +
+	"v1.manager\"\xf8\x01\n" +
 	"\x04User\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\x12\x1a\n" +
 	"\busername\x18\x02 \x01(\tR\busername\x12 \n" +
@@ -136,7 +144,9 @@ const file_v1_manager_user_proto_rawDesc = "" +
 	"\n" +
 	"created_at\x18\x06 \x01(\x03R\tcreatedAt\x12\x16\n" +
 	"\x06streak\x18\a \x01(\x03R\x06streak\x12\x14\n" +
-	"\x05score\x18\b \x01(\x01R\x05scoreB,Z*github.com/megakuul/zen/pkg/api/v1/managerb\x06proto3"
+	"\x05score\x18\b \x01(\x01R\x05score\x12\x1d\n" +
+	"\n" +
+	"max_streak\x18\t \x01(\x03R\tmaxStreakB,Z*github.com/megakuul/zen/pkg/api/v1/managerb\x06proto3"
 
 var (
 	file_v1_manager_user_proto_rawDescOnce sync.Once

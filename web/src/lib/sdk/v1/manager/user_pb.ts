@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/manager/user.proto.
  */
 export const file_v1_manager_user: GenFile = /*@__PURE__*/
-  fileDesc("ChV2MS9tYW5hZ2VyL3VzZXIucHJvdG8SCnYxLm1hbmFnZXIikAEKBFVzZXISCgoCaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSDQoFZW1haWwYBCABKAkSEwoLbGVhZGVyYm9hcmQYBSABKAgSEgoKY3JlYXRlZF9hdBgGIAEoAxIOCgZzdHJlYWsYByABKAMSDQoFc2NvcmUYCCABKAFCLFoqZ2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9tYW5hZ2VyYgZwcm90bzM");
+  fileDesc("ChV2MS9tYW5hZ2VyL3VzZXIucHJvdG8SCnYxLm1hbmFnZXIipAEKBFVzZXISCgoCaWQYASABKAkSEAoIdXNlcm5hbWUYAiABKAkSEwoLZGVzY3JpcHRpb24YAyABKAkSDQoFZW1haWwYBCABKAkSEwoLbGVhZGVyYm9hcmQYBSABKAgSEgoKY3JlYXRlZF9hdBgGIAEoAxIOCgZzdHJlYWsYByABKAMSDQoFc2NvcmUYCCABKAESEgoKbWF4X3N0cmVhaxgJIAEoA0IsWipnaXRodWIuY29tL21lZ2FrdXVsL3plbi9wa2cvYXBpL3YxL21hbmFnZXJiBnByb3RvMw");
 
 /**
  * @generated from message v1.manager.User
@@ -55,6 +55,11 @@ export type User = Message<"v1.manager.User"> & {
    * @generated from field: double score = 8;
    */
   score: number;
+
+  /**
+   * @generated from field: int64 max_streak = 9;
+   */
+  maxStreak: bigint;
 };
 
 /**

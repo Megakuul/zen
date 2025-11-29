@@ -13,4 +13,5 @@ message User {
   int64 created_at = 6;
   int64 streak = 7;
   double score = 8;
+  int64 max_streak = 9;
 }
