@@ -56,12 +56,11 @@ func (m *Model) ListEvents(ctx context.Context, sub string, since, until time.Ti
 	result, err := m.client.Query(ctx, &dynamodb.QueryInput{
 		TableName: aws.String(m.table),
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":pk":        &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
-			":sk_prefix": &types.AttributeValueMemberS{Value: "EVENT#"},
-			":since":     &types.AttributeValueMemberS{Value: fmt.Sprintf("EVENT#%d", since.Unix())},
-			":until":     &types.AttributeValueMemberS{Value: fmt.Sprintf("EVENT#%d", until.Unix())},
+			":pk":    &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
+			":since": &types.AttributeValueMemberS{Value: fmt.Sprintf("EVENT#%d", since.Unix())},
+			":until": &types.AttributeValueMemberS{Value: fmt.Sprintf("EVENT#%d", until.Unix())},
 		},
-		KeyConditionExpression: aws.String("pk = :pk AND begins_with(sk, :sk) AND sk >= :since AND sk <= :until"),
+		KeyConditionExpression: aws.String("pk = :pk AND sk BETWEEN :since AND :until"),
 		ScanIndexForward:       aws.Bool(false),
 		Limit:                  aws.Int32(100),
 	})
@@ -94,7 +93,7 @@ func (m *Model) PutEvent(ctx context.Context, sub string, event *Event) error {
 			":now":   &types.AttributeValueMemberN{Value: strconv.Itoa(int(time.Now().Unix()))},
 			":false": &types.AttributeValueMemberBOOL{Value: false},
 		},
-		ConditionExpression: aws.String("stop_time < :now AND immutable = :false"),
+		ConditionExpression: aws.String("attribute_not_exists(pk) OR stop_time < :now AND immutable = :false"),
 	})
 	if err != nil {
 		var cErr *types.ConditionalCheckFailedException

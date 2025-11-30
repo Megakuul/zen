@@ -1,6 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cabin+Sketch:wght@400;700&display=swap");
-@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@300..700&family=Ubuntu:ital,wght@0,300;0,400;0,500;0,700;1,300;1,400;1,500;1,700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cabin+Sketch:wght@400;700&display=swap');
+@import 'tailwindcss';
 
 html,
 body {
@@ -10,16 +10,18 @@ body {
 html {
   position: relative;
   background-color: rgb(17, 16, 16);
-  font-family: "Ubuntu", sans-serif;
+  font-family: 'Ubuntu', sans-serif;
   color: rgba(255, 255, 255, 0.8);
   min-height: 100%;
   overflow-x: hidden;
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 html::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 0;
@@ -30,11 +32,7 @@ html::before {
 
   background-size: 25px 25px;
   background-position: center;
-  background-image: radial-gradient(
-    circle,
-    rgba(210, 210, 210, 0.3) 1px,
-    rgba(0, 0, 0, 0) 1px
-  );
+  background-image: radial-gradient(circle, rgba(210, 210, 210, 0.3) 1px, rgba(0, 0, 0, 0) 1px);
 
   animation: animate-background 5s linear infinite;
 }
@@ -43,13 +41,14 @@ html::before {
   from {
     transform: translate3d(0, 0, 0);
   }
+
   to {
     transform: translate3d(-25px, -25px, 0);
   }
 }
 
 html::after {
-  content: "";
+  content: '';
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -58,12 +57,16 @@ html::after {
 }
 
 .overflow-scroll-hidden::-webkit-scrollbar {
-  display: none; /* Chrome, Safari and Opera */
+  display: none;
+  /* Chrome, Safari and Opera */
 }
+
 .overflow-scroll-hidden {
   overflow: scroll;
-  -ms-overflow-style: none; /* IE and Edge */
-  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }
 
 .glass {
@@ -82,3 +85,71 @@ html::after {
   backdrop-filter: blur(8px);
 }
 
+/* ranges in webkit / blink require modifictions to the range itself, so it's wrapped into a mediaquery that fails if not on webkit */
+@media screen and (-webkit-min-device-pixel-ratio: 0) {
+  input[type='range'] {
+    -webkit-appearance: none;
+  }
+
+  input[type='range']::-webkit-slider-runnable-track {
+    height: 12px;
+    box-shadow:
+      rgba(255, 255, 255, 0.05) 0px 6px 24px 0px,
+      rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
+    background-color: rgba(255, 255, 255, 0.01);
+    border-radius: 25px;
+  }
+
+  input[type='range']::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    box-shadow: rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border-radius: 2px;
+    width: 12px;
+    height: 12px;
+    /* little trick to make it larger without modifying the width which breaks vertical sliders */
+    transform: scaleX(1.5) scaleY(2.5);
+    border: none;
+    backdrop-filter: blur(8px);
+  }
+}
+
+input[type='range']::-moz-range-track,
+input[type='range']::-moz-range-progress {
+  box-shadow:
+    rgba(255, 255, 255, 0.05) 0px 6px 24px 0px,
+    rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
+  background-color: rgba(255, 255, 255, 0.01);
+  border-radius: 25px;
+}
+
+input[type='range']::-ms-fill-upper,
+input[type='range']::-ms-fill-lower {
+  box-shadow:
+    rgba(255, 255, 255, 0.05) 0px 6px 24px 0px,
+    rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 25px;
+}
+
+input[type='range']::-moz-range-thumb {
+  box-shadow:
+    rgba(255, 255, 255, 0.05) 0px 6px 24px 0px,
+    rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  width: 20px;
+  border: none;
+  backdrop-filter: blur(8px);
+}
+
+input[type='range']::-ms-thumb {
+  box-shadow:
+    rgba(255, 255, 255, 0.05) 0px 6px 24px 0px,
+    rgba(255, 255, 255, 0.08) 0px 0px 0px 1px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  width: 20px;
+  border: none;
+  backdrop-filter: blur(8px);
+}
