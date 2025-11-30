@@ -36,4 +36,3 @@
     <a class="underline text-slate-300/30" href="/privacy-policy">Privacy Policy & Legal Notice</a>
   </p>
 </footer>
-
