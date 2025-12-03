@@ -9,6 +9,7 @@
   import { EventSchema, EventType } from '$lib/sdk/v1/scheduler/event_pb';
   import { browser } from '$app/environment';
   import Event from './Event.svelte';
+  import { DeleteRequestSchema } from '$lib/sdk/v1/scheduler/planning/planning_pb';
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -73,6 +74,37 @@
       stopTime: BigInt(newEventStop),
     }),
   );
+
+  // updateEvents applies the user modified event list to the database.
+  // the server automatically drops the old events that are still referenced by the event.id
+  // and creates new events with an id of start_time.
+  function updateEvents() {
+    // update start/stop times so that they align with the sorting order.
+    events.forEach((event, i, events) => {
+      const duration = event.stopTime - event.startTime;
+      if (i < 1) event.startTime = BigInt(morning.getTime() / 1000);
+      else event.startTime = events[i - 1].stopTime;
+      event.stopTime = event.startTime + duration;
+    });
+
+    Exec(
+      async () => {
+        for (let event of events) {
+          await PlanningClient().upsert(
+            create(UpsertRequestSchema, {
+              event: event,
+            }),
+          );
+        }
+        day = new Date(); // reset day to retrigger database load
+        // this is required because when changing the events start_time
+        // there is a mismatch between the id and the start_time
+        // (used by the server to backtrack events even if their start_time changed).
+      },
+      undefined,
+      processing => (loading = processing),
+    );
+  }
 </script>
 
 <div class="flex flex-col gap-2 items-center text-base sm:text-4xl">

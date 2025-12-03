@@ -6,7 +6,7 @@
       "src": ""
     }
   ],
-  "display": "standalone",
+  "display": "fullscreen",
   "shortcuts": [
     {
       "name": "Planner",

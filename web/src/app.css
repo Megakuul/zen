@@ -85,6 +85,10 @@ html::after {
   backdrop-filter: blur(8px);
 }
 
+input[type='range'] {
+  touch-action: none;
+}
+
 /* ranges in webkit / blink require modifictions to the range itself, so it's wrapped into a mediaquery that fails if not on webkit */
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
   input[type='range'] {
