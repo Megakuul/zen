@@ -61,7 +61,7 @@ func (m *Model) ListEvents(ctx context.Context, sub string, since, until time.Ti
 			":until": &types.AttributeValueMemberS{Value: fmt.Sprintf("EVENT#%d", until.Unix())},
 		},
 		KeyConditionExpression: aws.String("pk = :pk AND sk BETWEEN :since AND :until"),
-		ScanIndexForward:       aws.Bool(false),
+		ScanIndexForward:       aws.Bool(true),
 		Limit:                  aws.Int32(100),
 	})
 	if err != nil {

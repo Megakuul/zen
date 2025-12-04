@@ -9,7 +9,7 @@
   import { EventSchema, EventType } from '$lib/sdk/v1/scheduler/event_pb';
   import { browser } from '$app/environment';
   import Event from './Event.svelte';
-  import { DeleteRequestSchema } from '$lib/sdk/v1/scheduler/planning/planning_pb';
+  import { flip } from 'svelte/animate';
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -37,8 +37,8 @@
     new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 23, 59, 59),
   );
 
-  $effect(() => {
-    Exec(
+  async function loadEvents() {
+    await Exec(
       async () => {
         const response = await PlanningClient().get(
           create(GetRequestSchema, {
@@ -51,6 +51,10 @@
       undefined,
       processing => (loading = processing),
     );
+  }
+
+  $effect(() => {
+    loadEvents();
   });
 
   let newEventName = $state('');
@@ -78,7 +82,7 @@
   // updateEvents applies the user modified event list to the database.
   // the server automatically drops the old events that are still referenced by the event.id
   // and creates new events with an id of start_time.
-  function updateEvents() {
+  async function updateEvents() {
     // update start/stop times so that they align with the sorting order.
     events.forEach((event, i, events) => {
       const duration = event.stopTime - event.startTime;
@@ -87,7 +91,7 @@
       event.stopTime = event.startTime + duration;
     });
 
-    Exec(
+    await Exec(
       async () => {
         for (let event of events) {
           await PlanningClient().upsert(
@@ -96,20 +100,49 @@
             }),
           );
         }
-        day = new Date(); // reset day to retrigger database load
-        // this is required because when changing the events start_time
-        // there is a mismatch between the id and the start_time
-        // (used by the server to backtrack events even if their start_time changed).
+        await loadEvents();
       },
       undefined,
       processing => (loading = processing),
     );
   }
+
+  /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event | undefined} */
+  let dragged = $state(undefined);
+
+  let dragX = $state(0);
+  let dragY = $state(0);
+
+  /** @param {import("$lib/sdk/v1/scheduler/event_pb").Event} event  */
+  function handleDown(event) {
+    dragged = event;
+    dragX = 0;
+    dragY = 0;
+  }
+
+  function handleUp() {
+    if (dragged) {
+      events = events.sort((a, b) => Number(a.startTime - b.startTime));
+    }
+    dragged = undefined;
+  }
+
+  /** @param {MouseEvent} e */
+  function handleMove(e) {
+    if (dragged) {
+      dragX = e.x;
+      dragY = e.y;
+      dragged.startTime += BigInt(Math.floor(e.movementY / shrinkFactor));
+      dragged.stopTime += BigInt(Math.floor(e.movementY / shrinkFactor));
+    }
+  }
 </script>
+
+<svelte:window onmouseup={handleUp} onmousemove={handleMove} />
 
 <div class="flex flex-col gap-2 items-center text-base sm:text-4xl">
   <div class="flex flex-row justify-between w-full">
-    <div class="w-full h-[700px] overflow-scroll-hidden">
+    <div class="w-full h-[700px] max-h-[70dvh] overflow-scroll-hidden">
       <div
         style="height: {((+evening - +morning + 1 * 60 * 60 * 1000) / 1000) * shrinkFactor}px"
         class="flex relative flex-col gap-1 items-center py-3 pr-4 pl-10 w-full"
@@ -126,8 +159,18 @@
             <hr class="w-full rounded-full border-none h-[2px] bg-slate-50/5" />
           </div>
         {/each}
-        {#each events as event}
-          <Event {event} height={Number(event.stopTime - event.startTime) * shrinkFactor} />
+        {#each events as event (event.id)}
+          <div
+            animate:flip
+            style={event.id === dragged?.id
+              ? `position: fixed; width: 300px; top: ${dragY}px; left: ${dragX}px;`
+              : 'width: 100%;'}
+            role="row"
+            tabindex={0}
+            onmousedown={() => handleDown(event)}
+          >
+            <Event {event} height={Number(event.stopTime - event.startTime) * shrinkFactor} />
+          </div>
         {/each}
         {#if newEventName}
           <Event event={newEvent} height={Number(newEventStop - newEventStart) * shrinkFactor} />
@@ -183,6 +226,31 @@
         </p>
       {/if}
     </button>
+    <button
+      onclick={async () =>
+        Exec(
+          async () => {
+            await PlanningClient().upsert(
+              create(UpsertRequestSchema, {
+                event: newEvent,
+              }),
+            );
+            newEventName = '';
+            await loadEvents();
+          },
+          undefined,
+          processing => (loading = processing),
+        )}
+      class="p-4 text-center rounded-xl cursor-pointer sm:p-6 glass"
+    >
+      {#if loading}
+        <!-- prettier-ignore -->
+        <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
+      {:else}
+        <!-- prettier-ignore -->
+        <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none"><path fill="url(#SVG3sxK6chn)" d="M12.793 1.383a1 1 0 0 0-1.579 0L9.801 3.2a.25.25 0 0 1-.291.079L7.378 2.41a1 1 0 0 0-1.367.79l-.315 2.28a.25.25 0 0 1-.213.213l-2.28.315a1 1 0 0 0-.79 1.367l.868 2.132a.25.25 0 0 1-.079.291l-1.816 1.413a1 1 0 0 0 0 1.579l1.816 1.413a.25.25 0 0 1 .079.291l-.867 2.132a1 1 0 0 0 .79 1.367l2.279.315a.25.25 0 0 1 .213.213l.315 2.28a1 1 0 0 0 1.367.79l2.132-.868a.25.25 0 0 1 .291.079l1.413 1.816a1 1 0 0 0 1.579 0l1.413-1.816a.25.25 0 0 1 .291-.079l2.131.867a1 1 0 0 0 1.368-.79l.315-2.279a.25.25 0 0 1 .213-.213l2.28-.315a1 1 0 0 0 .789-1.367l-.867-2.132a.25.25 0 0 1 .079-.291l1.816-1.413a1 1 0 0 0 0-1.579l-1.816-1.413a.25.25 0 0 1-.079-.291l.867-2.132a1 1 0 0 0-.79-1.367l-2.279-.315a.25.25 0 0 1-.213-.213l-.315-2.28a1 1 0 0 0-1.367-.79l-2.132.868a.25.25 0 0 1-.291-.079z"/><path fill="url(#SVG2VNJKcHX)" fill-opacity="0.95" d="M12 7a.75.75 0 0 1 .75.75v3.5h3.5a.75.75 0 0 1 0 1.5h-3.5v3.5a.75.75 0 0 1-1.5 0v-3.5h-3.5a.75.75 0 0 1 0-1.5h3.5v-3.5A.75.75 0 0 1 12 7"/><defs><radialGradient id="SVG3sxK6chn" cx="0" cy="0" r="1" gradientTransform="matrix(-23.9474 -42.34411 40.5584 -22.9375 26.245 26.212)" gradientUnits="userSpaceOnUse"><stop stop-color="#ffc470"/><stop offset=".251" stop-color="#ff835c"/><stop offset=".55" stop-color="#f24a9d"/><stop offset=".814" stop-color="#b339f0"/></radialGradient><linearGradient id="SVG2VNJKcHX" x1="16.305" x2="5.813" y1="19.823" y2="13.027" gradientUnits="userSpaceOnUse"><stop offset=".024" stop-color="#ffc8d7"/><stop offset=".807" stop-color="#fff"/></linearGradient></defs></g></svg>
+      {/if}
+    </button>
   </div>
   <input
     type="range"
@@ -193,28 +261,4 @@
     max={evening.getTime() / 1000}
     class="my-3 w-full"
   />
-  <button
-    onclick={async () =>
-      Exec(
-        async () => {
-          await PlanningClient().upsert(
-            create(UpsertRequestSchema, {
-              event: newEvent,
-            }),
-          );
-        },
-        undefined,
-        processing => (loading = processing),
-      )}
-    class="flex flex-row gap-2 justify-center items-center p-3 w-full rounded-xl transition-all duration-700 cursor-pointer hover:scale-105 glass"
-  >
-    {#if loading}
-      <!-- prettier-ignore -->
-      <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
-    {:else}
-      <span>Add Event</span>
-      <!-- prettier-ignore -->
-      <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none"><path fill="url(#SVG3sxK6chn)" d="M12.793 1.383a1 1 0 0 0-1.579 0L9.801 3.2a.25.25 0 0 1-.291.079L7.378 2.41a1 1 0 0 0-1.367.79l-.315 2.28a.25.25 0 0 1-.213.213l-2.28.315a1 1 0 0 0-.79 1.367l.868 2.132a.25.25 0 0 1-.079.291l-1.816 1.413a1 1 0 0 0 0 1.579l1.816 1.413a.25.25 0 0 1 .079.291l-.867 2.132a1 1 0 0 0 .79 1.367l2.279.315a.25.25 0 0 1 .213.213l.315 2.28a1 1 0 0 0 1.367.79l2.132-.868a.25.25 0 0 1 .291.079l1.413 1.816a1 1 0 0 0 1.579 0l1.413-1.816a.25.25 0 0 1 .291-.079l2.131.867a1 1 0 0 0 1.368-.79l.315-2.279a.25.25 0 0 1 .213-.213l2.28-.315a1 1 0 0 0 .789-1.367l-.867-2.132a.25.25 0 0 1 .079-.291l1.816-1.413a1 1 0 0 0 0-1.579l-1.816-1.413a.25.25 0 0 1-.079-.291l.867-2.132a1 1 0 0 0-.79-1.367l-2.279-.315a.25.25 0 0 1-.213-.213l-.315-2.28a1 1 0 0 0-1.367-.79l-2.132.868a.25.25 0 0 1-.291-.079z"/><path fill="url(#SVG2VNJKcHX)" fill-opacity="0.95" d="M12 7a.75.75 0 0 1 .75.75v3.5h3.5a.75.75 0 0 1 0 1.5h-3.5v3.5a.75.75 0 0 1-1.5 0v-3.5h-3.5a.75.75 0 0 1 0-1.5h3.5v-3.5A.75.75 0 0 1 12 7"/><defs><radialGradient id="SVG3sxK6chn" cx="0" cy="0" r="1" gradientTransform="matrix(-23.9474 -42.34411 40.5584 -22.9375 26.245 26.212)" gradientUnits="userSpaceOnUse"><stop stop-color="#ffc470"/><stop offset=".251" stop-color="#ff835c"/><stop offset=".55" stop-color="#f24a9d"/><stop offset=".814" stop-color="#b339f0"/></radialGradient><linearGradient id="SVG2VNJKcHX" x1="16.305" x2="5.813" y1="19.823" y2="13.027" gradientUnits="userSpaceOnUse"><stop offset=".024" stop-color="#ffc8d7"/><stop offset=".807" stop-color="#fff"/></linearGradient></defs></g></svg>
-    {/if}
-  </button>
 </div>

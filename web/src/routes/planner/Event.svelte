@@ -6,9 +6,10 @@
     @type {{
       event: import("$lib/sdk/v1/scheduler/event_pb").Event
       height: number
+      [key: string]: any
     }}
   */
-  let { event, height } = $props();
+  let { event, height, ...others } = $props();
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -25,6 +26,7 @@
   style="height: {height}px"
   class="flex overflow-hidden flex-col w-full text-center rounded-xl glass"
   class:justify-center={height < 40}
+  {...others}
 >
   <div class="flex flex-row gap-2 justify-start items-center p-2 w-full text-xs sm:text-base">
     <p class="mr-auto font-bold">{event.name}</p>
