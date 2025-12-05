@@ -41,18 +41,26 @@
   });
 </script>
 
+<svelte:window
+  onclick={() => {
+    if (collapsed && !hidden) hidden = true;
+  }}
+/>
+
 {#if collapsed}
   <nav
     transition:fade
     class="fixed w-full flex flex-row justify-center {hidden
-      ? 'bottom-[-55px]'
+      ? 'bottom-[-48px]'
       : 'bottom-10'} transition-all duration-700"
   >
     <button
       class="flex flex-row gap-4 justify-center items-center p-4 mx-2 w-96 text-2xl font-bold rounded-2xl cursor-pointer glass"
-      onclick={() => {
-        if (hidden) hidden = false;
-        else collapsed = false;
+      onclick={e => {
+        if (hidden) {
+          e.stopPropagation();
+          hidden = false;
+        } else collapsed = false;
       }}
     >
       <span class="text-3xl">Menu</span>
@@ -65,7 +73,9 @@
   <!-- svelte-ignore a11y_no_static_element_interactions -->
   <div
     transition:fade
-    onclick={() => (collapsed = true)}
+    onclick={() => {
+      collapsed = true;
+    }}
     class="flex fixed inset-0 z-40 flex-row justify-center w-screen h-dvh bg-slate-950/10 backdrop-blur-xl"
   ></div>
   <nav
@@ -74,7 +84,9 @@
   >
     <a
       href="/"
-      onclick={() => (collapsed = true)}
+      onclick={() => {
+        collapsed = true;
+      }}
       class="flex flex-row gap-6 justify-start items-center p-3 rounded-xl transition-all duration-700 hover:scale-105 hover:glass hover:bg-slate-100/5"
     >
       <!-- prettier-ignore -->
@@ -83,7 +95,9 @@
     </a>
     <a
       href="/planner"
-      onclick={() => (collapsed = true)}
+      onclick={() => {
+        collapsed = true;
+      }}
       class="flex flex-row gap-6 justify-start items-center p-3 rounded-xl transition-all duration-700 hover:scale-105 hover:bg-slate-100/5"
     >
       <!-- prettier-ignore -->
@@ -92,7 +106,9 @@
     </a>
     <a
       href="/timer"
-      onclick={() => (collapsed = true)}
+      onclick={() => {
+        collapsed = true;
+      }}
       class="flex flex-row gap-6 justify-start items-center p-3 rounded-xl transition-all duration-700 hover:scale-105 hover:bg-slate-100/5"
     >
       <!-- prettier-ignore -->
@@ -101,7 +117,9 @@
     </a>
     <a
       href="/leaderboard"
-      onclick={() => (collapsed = true)}
+      onclick={() => {
+        collapsed = true;
+      }}
       class="flex flex-row gap-6 justify-start items-center p-3 rounded-xl transition-all duration-700 hover:scale-105 hover:bg-slate-100/5"
     >
       <!-- prettier-ignore -->
@@ -110,7 +128,9 @@
     </a>
     <a
       href="/profile"
-      onclick={() => (collapsed = true)}
+      onclick={() => {
+        collapsed = true;
+      }}
       class="flex flex-row gap-6 justify-start items-center p-3 rounded-xl transition-all duration-700 hover:scale-105 hover:bg-slate-100/5"
     >
       <!-- prettier-ignore -->

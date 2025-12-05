@@ -24,7 +24,7 @@
 
 <div
   style="height: {height}px"
-  class="flex overflow-hidden flex-col w-full text-center rounded-xl glass"
+  class="flex overflow-hidden flex-col w-full text-center rounded-xl select-none glass"
   class:justify-center={height < 40}
   {...others}
 >

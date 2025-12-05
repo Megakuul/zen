@@ -83,14 +83,6 @@
   // the server automatically drops the old events that are still referenced by the event.id
   // and creates new events with an id of start_time.
   async function updateEvents() {
-    // update start/stop times so that they align with the sorting order.
-    events.forEach((event, i, events) => {
-      const duration = event.stopTime - event.startTime;
-      if (i < 1) event.startTime = BigInt(morning.getTime() / 1000);
-      else event.startTime = events[i - 1].stopTime;
-      event.stopTime = event.startTime + duration;
-    });
-
     await Exec(
       async () => {
         for (let event of events) {
@@ -105,6 +97,18 @@
       undefined,
       processing => (loading = processing),
     );
+  }
+
+  // snapAlignEvents sorts events and ensures they align in one single block from morning - events[-1].
+  // this ensures the expected zen "no-pause" behavior is enforced (no overlapping events and no empty spaces in the calendar)
+  function snapAlignEvents() {
+    events = events.sort((a, b) => Number(a.startTime - b.startTime));
+    events.forEach((event, i, events) => {
+      const duration = event.stopTime - event.startTime;
+      if (i < 1) event.startTime = BigInt(morning.getTime() / 1000);
+      else event.startTime = events[i - 1].stopTime;
+      event.stopTime = event.startTime + duration;
+    });
   }
 
   /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event | undefined} */
@@ -122,12 +126,12 @@
 
   function handleUp() {
     if (dragged) {
-      events = events.sort((a, b) => Number(a.startTime - b.startTime));
+      snapAlignEvents();
     }
     dragged = undefined;
   }
 
-  /** @param {MouseEvent} e */
+  /** @param {PointerEvent} e */
   function handleMove(e) {
     if (dragged) {
       dragX = e.x;
@@ -138,7 +142,7 @@
   }
 </script>
 
-<svelte:window onmouseup={handleUp} onmousemove={handleMove} />
+<svelte:window onpointerup={handleUp} onpointermove={handleMove} />
 
 <div class="flex flex-col gap-2 items-center text-base sm:text-4xl">
   <div class="flex flex-row justify-between w-full">
@@ -153,13 +157,16 @@
             style="top: {(hour / 1000) * shrinkFactor}px"
             class="flex absolute right-0 flex-row gap-2 items-center w-full"
           >
-            <span class="text-xs text-slate-50/20">
+            <span class="text-xs select-none text-slate-50/20">
               {kitchenFormatter.format(new Date(morning.getTime() + hour))}
             </span>
             <hr class="w-full rounded-full border-none h-[2px] bg-slate-50/5" />
           </div>
         {/each}
-        {#each events as event (event.id)}
+        {#if dragged && dragged.startTime < morning.getTime() / 1000}
+          <hr class="my-1 w-full rounded-full border-2 border-slate-100/40" />
+        {/if}
+        {#each events as event, i (event.id)}
           <div
             animate:flip
             style={event.id === dragged?.id
@@ -167,9 +174,12 @@
               : 'width: 100%;'}
             role="row"
             tabindex={0}
-            onmousedown={() => handleDown(event)}
+            onpointerdown={() => handleDown(event)}
           >
             <Event {event} height={Number(event.stopTime - event.startTime) * shrinkFactor} />
+            {#if dragged && dragged.startTime > event.startTime && (dragged.startTime < event.stopTime || i + 1 === events.length)}
+              <hr class="my-1 w-full rounded-full border-2 border-slate-100/40" />
+            {/if}
           </div>
         {/each}
         {#if newEventName}
@@ -191,7 +201,7 @@
     <input
       bind:value={newEventName}
       placeholder="Next Event"
-      class="p-3 text-center rounded-xl sm:p-5 glass focus:outline-0"
+      class="p-3 text-center rounded-xl sm:p-5 sm:max-w-full glass max-w-36 focus:outline-0"
     />
     <button
       aria-label="type"
