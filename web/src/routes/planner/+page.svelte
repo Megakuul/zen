@@ -2,6 +2,7 @@
   import { create } from '@bufbuild/protobuf';
   import { PlanningClient } from '$lib/client/client.svelte';
   import {
+    DeleteRequestSchema,
     GetRequestSchema,
     UpsertRequestSchema,
   } from '$lib/sdk/v1/scheduler/planning/planning_pb';
@@ -135,12 +136,32 @@
     dragY = e.y;
   }
 
-  function handleUp() {
+  async function handleUp() {
     if (dragged) {
       snapAlignEvents();
-      updateEvents();
+      await updateEvents();
     }
     dragged = undefined;
+  }
+
+  async function handleTrash() {
+    if (dragged) {
+      await Exec(
+        async () => {
+          await PlanningClient().delete(
+            create(DeleteRequestSchema, {
+              id: dragged?.id,
+            }),
+          );
+          await loadEvents();
+        },
+        undefined,
+        processing => (loading = processing),
+      );
+      snapAlignEvents();
+      await updateEvents();
+      dragged = undefined;
+    }
   }
 
   /** @param {PointerEvent} e */
@@ -183,7 +204,7 @@
           <div
             animate:flip
             style={event.id === dragged?.id
-              ? `position: fixed; width: 300px; top: ${dragY}px; left: ${dragX}px;`
+              ? `position: fixed; width: 300px; top: ${dragY}px; left: ${dragX}px; z-index: 10;`
               : 'width: 100%;'}
             role="row"
             tabindex={0}
@@ -216,6 +237,19 @@
       class="ml-3 [writing-mode:vertical-lr]"
     />
   </div>
+
+  {#if dragged}
+    <div
+      onpointerup={e => {
+        handleTrash();
+        e.stopPropagation();
+      }}
+      class="flex z-20 flex-row justify-center p-2 w-full text-center rounded-xl transition-all select-none sm:p-4 hover:scale-95 bg-slate-500/20"
+    >
+      <!-- prettier-ignore -->
+      <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="none"><path fill="url(#SVGbTzkqb2t)" d="M17 6H3v8.5A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5z"/><path fill="url(#SVGBQaaD6nJ)" d="M17 6H3v8.5A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5z"/><path fill="url(#SVG8pHbKctU)" fill-opacity="0.3" d="M17 6H3v8.5A2.5 2.5 0 0 0 5.5 17h9a2.5 2.5 0 0 0 2.5-2.5z"/><path fill="url(#SVGflld8dUk)" d="M17 5.5A2.5 2.5 0 0 0 14.5 3h-9A2.5 2.5 0 0 0 3 5.5V7h14z"/><path fill="url(#SVGKG7lOdgM)" d="M19 14.5a4.5 4.5 0 1 1-9 0a4.5 4.5 0 0 1 9 0"/><path fill="url(#SVGCByFXbpl)" fill-rule="evenodd" d="M12.646 12.646a.5.5 0 0 1 .708 0l1.146 1.147l1.146-1.147a.5.5 0 0 1 .708.708L15.207 14.5l1.147 1.146a.5.5 0 0 1-.708.708L14.5 15.207l-1.146 1.147a.5.5 0 0 1-.708-.708l1.147-1.146l-1.147-1.146a.5.5 0 0 1 0-.708" clip-rule="evenodd"/><defs><linearGradient id="SVGbTzkqb2t" x1="8" x2="11.5" y1="6" y2="17" gradientUnits="userSpaceOnUse"><stop stop-color="#b3e0ff"/><stop offset="1" stop-color="#8cd0ff"/></linearGradient><linearGradient id="SVGBQaaD6nJ" x1="11.5" x2="13.5" y1="10.5" y2="19.5" gradientUnits="userSpaceOnUse"><stop stop-color="#dcf8ff" stop-opacity="0"/><stop offset="1" stop-color="#ff6ce8" stop-opacity="0.7"/></linearGradient><linearGradient id="SVGflld8dUk" x1="3.563" x2="4.904" y1="3" y2="9.816" gradientUnits="userSpaceOnUse"><stop stop-color="#0094f0"/><stop offset="1" stop-color="#2764e7"/></linearGradient><linearGradient id="SVGKG7lOdgM" x1="11.406" x2="17.313" y1="10.563" y2="19.281" gradientUnits="userSpaceOnUse"><stop stop-color="#f83f54"/><stop offset="1" stop-color="#ca2134"/></linearGradient><linearGradient id="SVGCByFXbpl" x1="12.977" x2="14.771" y1="14.652" y2="16.518" gradientUnits="userSpaceOnUse"><stop stop-color="#fdfdfd"/><stop offset="1" stop-color="#fecbe6"/></linearGradient><radialGradient id="SVG8pHbKctU" cx="0" cy="0" r="1" gradientTransform="rotate(90 -.5 15)scale(6.5)" gradientUnits="userSpaceOnUse"><stop offset=".535" stop-color="#4a43cb"/><stop offset="1" stop-color="#4a43cb" stop-opacity="0"/></radialGradient></defs></g></svg>
+    </div>
+  {/if}
 
   <div class="flex flex-row gap-4 items-center mt-4">
     <input
@@ -278,7 +312,7 @@
         <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
       {:else}
         <!-- prettier-ignore -->
-        <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none"><path fill="url(#SVG3sxK6chn)" d="M12.793 1.383a1 1 0 0 0-1.579 0L9.801 3.2a.25.25 0 0 1-.291.079L7.378 2.41a1 1 0 0 0-1.367.79l-.315 2.28a.25.25 0 0 1-.213.213l-2.28.315a1 1 0 0 0-.79 1.367l.868 2.132a.25.25 0 0 1-.079.291l-1.816 1.413a1 1 0 0 0 0 1.579l1.816 1.413a.25.25 0 0 1 .079.291l-.867 2.132a1 1 0 0 0 .79 1.367l2.279.315a.25.25 0 0 1 .213.213l.315 2.28a1 1 0 0 0 1.367.79l2.132-.868a.25.25 0 0 1 .291.079l1.413 1.816a1 1 0 0 0 1.579 0l1.413-1.816a.25.25 0 0 1 .291-.079l2.131.867a1 1 0 0 0 1.368-.79l.315-2.279a.25.25 0 0 1 .213-.213l2.28-.315a1 1 0 0 0 .789-1.367l-.867-2.132a.25.25 0 0 1 .079-.291l1.816-1.413a1 1 0 0 0 0-1.579l-1.816-1.413a.25.25 0 0 1-.079-.291l.867-2.132a1 1 0 0 0-.79-1.367l-2.279-.315a.25.25 0 0 1-.213-.213l-.315-2.28a1 1 0 0 0-1.367-.79l-2.132.868a.25.25 0 0 1-.291-.079z"/><path fill="url(#SVG2VNJKcHX)" fill-opacity="0.95" d="M12 7a.75.75 0 0 1 .75.75v3.5h3.5a.75.75 0 0 1 0 1.5h-3.5v3.5a.75.75 0 0 1-1.5 0v-3.5h-3.5a.75.75 0 0 1 0-1.5h3.5v-3.5A.75.75 0 0 1 12 7"/><defs><radialGradient id="SVG3sxK6chn" cx="0" cy="0" r="1" gradientTransform="matrix(-23.9474 -42.34411 40.5584 -22.9375 26.245 26.212)" gradientUnits="userSpaceOnUse"><stop stop-color="#ffc470"/><stop offset=".251" stop-color="#ff835c"/><stop offset=".55" stop-color="#f24a9d"/><stop offset=".814" stop-color="#b339f0"/></radialGradient><linearGradient id="SVG2VNJKcHX" x1="16.305" x2="5.813" y1="19.823" y2="13.027" gradientUnits="userSpaceOnUse"><stop offset=".024" stop-color="#ffc8d7"/><stop offset=".807" stop-color="#fff"/></linearGradient></defs></g></svg>
+        <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="none"><path fill="url(#SVGbTzkqb2t)" d="M3 6h14v8.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 14.5z"/><path fill="url(#SVGBQaaD6nJ)" d="M3 6h14v8.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 14.5z"/><path fill="url(#SVG8pHbKctU)" fill-opacity="0.3" d="M3 6h14v8.5a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 3 14.5z"/><path fill="url(#SVGflld8dUk)" d="M17 5.5A2.5 2.5 0 0 0 14.5 3h-9A2.5 2.5 0 0 0 3 5.5V7h14z"/><path fill="url(#SVGVoDsPd0j)" d="M19 14.5a4.5 4.5 0 1 0-9 0a4.5 4.5 0 0 0 9 0"/><path fill="url(#SVGpL9XBbGr)" fill-rule="evenodd" d="M16.854 12.646a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1-1a.5.5 0 0 1 .708-.708l.646.647l2.646-2.647a.5.5 0 0 1 .708 0" clip-rule="evenodd"/><defs><linearGradient id="SVGbTzkqb2t" x1="8" x2="11.5" y1="6" y2="17" gradientUnits="userSpaceOnUse"><stop stop-color="#b3e0ff"/><stop offset="1" stop-color="#8cd0ff"/></linearGradient><linearGradient id="SVGBQaaD6nJ" x1="11.5" x2="13.5" y1="10.5" y2="19.5" gradientUnits="userSpaceOnUse"><stop stop-color="#dcf8ff" stop-opacity="0"/><stop offset="1" stop-color="#ff6ce8" stop-opacity="0.7"/></linearGradient><linearGradient id="SVGflld8dUk" x1="3.563" x2="4.904" y1="3" y2="9.816" gradientUnits="userSpaceOnUse"><stop stop-color="#0094f0"/><stop offset="1" stop-color="#2764e7"/></linearGradient><linearGradient id="SVGVoDsPd0j" x1="10.321" x2="16.532" y1="11.688" y2="18.141" gradientUnits="userSpaceOnUse"><stop stop-color="#52d17c"/><stop offset="1" stop-color="#22918b"/></linearGradient><linearGradient id="SVGpL9XBbGr" x1="12.938" x2="13.946" y1="12.908" y2="17.36" gradientUnits="userSpaceOnUse"><stop stop-color="#fff"/><stop offset="1" stop-color="#e3ffd9"/></linearGradient><radialGradient id="SVG8pHbKctU" cx="0" cy="0" r="1" gradientTransform="rotate(90 -.5 15)scale(6.5)" gradientUnits="userSpaceOnUse"><stop offset=".535" stop-color="#4a43cb"/><stop offset="1" stop-color="#4a43cb" stop-opacity="0"/></radialGradient></defs></g></svg>
       {/if}
     </button>
   </div>

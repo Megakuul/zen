@@ -53,7 +53,8 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 					"dynamodb:GetItem",
 					"dynamodb:Query",
 					"dynamodb:PutItem",
-					"dynamodb:UpdateItem"
+					"dynamodb:UpdateItem",
+					"dynamodb:DeleteItem"
 				],
 				"Resource": "%s"
 			}]

@@ -93,7 +93,7 @@ func (m *Model) PutEvent(ctx context.Context, sub string, event *Event) error {
 			":now":   &types.AttributeValueMemberN{Value: strconv.Itoa(int(time.Now().Unix()))},
 			":false": &types.AttributeValueMemberBOOL{Value: false},
 		},
-		ConditionExpression: aws.String("attribute_not_exists(pk) OR stop_time < :now AND immutable = :false"),
+		ConditionExpression: aws.String("attribute_not_exists(pk) OR (stop_time > :now AND immutable = :false)"),
 	})
 	if err != nil {
 		var cErr *types.ConditionalCheckFailedException
