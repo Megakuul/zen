@@ -6,10 +6,11 @@
     @type {{
       event: import("$lib/sdk/v1/scheduler/event_pb").Event
       height: number
+      immutable?: boolean
       [key: string]: any
     }}
   */
-  let { event, height, ...others } = $props();
+  let { event, immutable, height, ...others } = $props();
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -26,10 +27,11 @@
   style="height: {height}px"
   class="flex overflow-hidden flex-col w-full text-center rounded-xl select-none glass"
   class:justify-center={height < 40}
+  class:opacity-40={immutable}
   {...others}
 >
   <div class="flex flex-row gap-2 justify-start items-center p-2 w-full text-xs sm:text-base">
-    <p class="mr-auto font-bold">{event.name}</p>
+    <p class="mr-auto font-bold {immutable ? 'line-through' : ''}">{event.name}</p>
     <span class="text-slate-400/40">
       {kitchenFormatter.format(Number(event.startTime) * 1000)} -
       {kitchenFormatter.format(Number(event.stopTime) * 1000)}

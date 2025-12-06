@@ -10,6 +10,7 @@
   import { browser } from '$app/environment';
   import Event from './Event.svelte';
   import { flip } from 'svelte/animate';
+  import { goto } from '$app/navigation';
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -48,13 +49,15 @@
         );
         events = response.events;
       },
-      undefined,
+      async () => {
+        goto('/login');
+      },
       processing => (loading = processing),
     );
   }
 
   $effect(() => {
-    loadEvents();
+    loadEvents(); // load events on page reload
   });
 
   let newEventName = $state('');
@@ -82,17 +85,25 @@
   // updateEvents applies the user modified event list to the database.
   // the server automatically drops the old events that are still referenced by the event.id
   // and creates new events with an id of start_time.
+  // notice that this is not optimized nor has efficient error handling.
+  // most of this is just very simple and userfriendly and should be optimized on the frontend
+  // to avoid many database operations if it grows into a bottleneck.
   async function updateEvents() {
     await Exec(
       async () => {
-        for (let event of events) {
-          await PlanningClient().upsert(
-            create(UpsertRequestSchema, {
-              event: event,
-            }),
-          );
+        try {
+          for (let event of events) {
+            if (event.immutable || event.stopTime < Date.now() / 1000) continue;
+            await PlanningClient().upsert(
+              create(UpsertRequestSchema, {
+                event: event,
+              }),
+            );
+          }
+        } catch (e) {
+          await loadEvents();
+          throw e;
         }
-        await loadEvents();
       },
       undefined,
       processing => (loading = processing),
@@ -117,16 +128,17 @@
   let dragX = $state(0);
   let dragY = $state(0);
 
-  /** @param {import("$lib/sdk/v1/scheduler/event_pb").Event} event  */
-  function handleDown(event) {
+  /** @param {PointerEvent} e @param {import("$lib/sdk/v1/scheduler/event_pb").Event} event  */
+  function handleDown(e, event) {
     dragged = event;
-    dragX = 0;
-    dragY = 0;
+    dragX = e.x;
+    dragY = e.y;
   }
 
   function handleUp() {
     if (dragged) {
       snapAlignEvents();
+      updateEvents();
     }
     dragged = undefined;
   }
@@ -167,6 +179,7 @@
           <hr class="my-1 w-full rounded-full border-2 border-slate-100/40" />
         {/if}
         {#each events as event, i (event.id)}
+          {@const immutable = event.immutable || event.stopTime < Date.now() / 1000}
           <div
             animate:flip
             style={event.id === dragged?.id
@@ -174,9 +187,15 @@
               : 'width: 100%;'}
             role="row"
             tabindex={0}
-            onpointerdown={() => handleDown(event)}
+            onpointerdown={e => {
+              if (!immutable) handleDown(e, event);
+            }}
           >
-            <Event {event} height={Number(event.stopTime - event.startTime) * shrinkFactor} />
+            <Event
+              {event}
+              {immutable}
+              height={Number(event.stopTime - event.startTime) * shrinkFactor}
+            />
             {#if dragged && dragged.startTime > event.startTime && (dragged.startTime < event.stopTime || i + 1 === events.length)}
               <hr class="my-1 w-full rounded-full border-2 border-slate-100/40" />
             {/if}
@@ -197,15 +216,16 @@
       class="ml-3 [writing-mode:vertical-lr]"
     />
   </div>
-  <div class="flex flex-row gap-4 items-center">
+
+  <div class="flex flex-row gap-4 items-center mt-4">
     <input
       bind:value={newEventName}
       placeholder="Next Event"
-      class="p-3 text-center rounded-xl sm:p-5 sm:max-w-full glass max-w-36 focus:outline-0"
+      class="p-2 text-center rounded-xl sm:p-4 sm:max-w-full glass max-w-40 focus:outline-0"
     />
     <button
       aria-label="type"
-      class="p-4 text-center rounded-xl cursor-pointer sm:p-6 glass"
+      class="p-3 text-center rounded-xl cursor-pointer sm:p-5 glass"
       onclick={() => {
         if (newEventType + 1 > EventType.MAX_FOCUS) {
           newEventType = EventType.CHILL;
@@ -251,7 +271,7 @@
           undefined,
           processing => (loading = processing),
         )}
-      class="p-4 text-center rounded-xl cursor-pointer sm:p-6 glass"
+      class="p-3 text-center rounded-xl cursor-pointer sm:p-5 glass"
     >
       {#if loading}
         <!-- prettier-ignore -->

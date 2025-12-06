@@ -52,7 +52,7 @@
       async () => {
         goto('/login');
       },
-      loading,
+      processing => (loading = processing),
     );
   }
 
@@ -99,4 +99,3 @@
     <div class="w-full h-1/6 rounded-2xl glass"></div>
   {/if}
 </div>
-

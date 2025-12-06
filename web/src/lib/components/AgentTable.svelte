@@ -94,7 +94,7 @@
 
   <!-- agent -->
   <!-- prettier-ignore -->
-  <svg class="w-11/12 sm:w-10/12 lg:w-1/2 translate-y-[-50px] sm:translate-y-[-160px]" viewBox="0 0 3139 1500" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <svg class="w-11/12 sm:w-10/12 lg:w-1/2 brightness-150 translate-y-[-50px] sm:translate-y-[-160px]" viewBox="0 0 3139 1500" fill="none" xmlns="http://www.w3.org/2000/svg">
     <g class="agent-hand">
       <path d="M2295.37 686.073C2277.82 679.426 2258.87 691.747 2257.83 710.482L2246.1 921.417C2245.23 936.909 2256.33 950.502 2271.68 952.763L2276.21 953.43C2294.76 956.163 2311.25 941.392 2310.56 922.65L2307.01 826.088L2307 825.765L2307.02 825.442L2313.24 713.565C2313.92 701.484 2306.68 690.36 2295.37 686.073Z" fill="url(#paint0_radial_17_34)" stroke="black" stroke-width="14"/>
       <path d="M2098.68 708.71L2517.69 571.193C2525.04 568.782 2532.95 572.783 2535.36 580.13L2553.75 636.188C2555.65 641.96 2552.51 648.175 2546.73 650.07L2124.87 788.522C2102.83 795.755 2079.1 783.752 2071.87 761.713C2064.64 739.674 2076.64 715.943 2098.68 708.71Z" fill="url(#paint1_radial_17_34)" stroke="black" stroke-width="10"/>
@@ -300,4 +300,3 @@
     transform: translateY(-20px);
   }
 </style>
-
