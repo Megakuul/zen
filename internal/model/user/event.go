@@ -79,21 +79,49 @@ func (m *Model) ListEvents(ctx context.Context, sub string, since, until time.Ti
 	return events, nil
 }
 
-func (m *Model) PutEvent(ctx context.Context, sub string, event *Event) error {
-	event.PK = fmt.Sprintf("USER#%s", sub)
-	event.SK = fmt.Sprintf("EVENT#%d", event.StartTime)
-	item, err := attributevalue.MarshalMap(event)
-	if err != nil {
-		return connect.NewError(connect.CodeInvalidArgument, err)
+// PutEvents inserts all provided events and deletes all specified old events in an all or nothing operation.
+// It ensures that events colliding with oldEvents are not deleted (insert: "events" delete: "oldEvents - events").
+func (m *Model) PutEvents(ctx context.Context, sub string, events []Event, oldEvents map[string]bool) error {
+	writes := []types.TransactWriteItem{}
+	for _, event := range events {
+		if oldEvents[fmt.Sprintf("%d", event.StartTime)] {
+			delete(oldEvents, event.SK)
+		}
+		event.PK = fmt.Sprintf("USER#%s", sub)
+		event.SK = fmt.Sprintf("EVENT#%d", event.StartTime)
+		item, err := attributevalue.MarshalMap(event)
+		if err != nil {
+			return connect.NewError(connect.CodeInvalidArgument, err)
+		}
+		writes = append(writes, types.TransactWriteItem{
+			Put: &types.Put{
+				TableName: aws.String(m.table),
+				Item:      item,
+				ExpressionAttributeValues: map[string]types.AttributeValue{
+					":now":   &types.AttributeValueMemberN{Value: strconv.Itoa(int(time.Now().Unix()))},
+					":false": &types.AttributeValueMemberBOOL{Value: false},
+				},
+				ConditionExpression: aws.String("attribute_not_exists(pk) OR (stop_time > :now AND immutable = :false)"),
+			},
+		})
 	}
-	_, err = m.client.PutItem(ctx, &dynamodb.PutItemInput{
-		TableName: aws.String(m.table),
-		Item:      item,
-		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":now":   &types.AttributeValueMemberN{Value: strconv.Itoa(int(time.Now().Unix()))},
-			":false": &types.AttributeValueMemberBOOL{Value: false},
-		},
-		ConditionExpression: aws.String("attribute_not_exists(pk) OR (stop_time > :now AND immutable = :false)"),
+
+	for id, ok := range oldEvents {
+		if !ok || id == "" {
+			continue
+		}
+		writes = append(writes, types.TransactWriteItem{
+			Delete: &types.Delete{
+				TableName: aws.String(m.table),
+				Key: map[string]types.AttributeValue{
+					"pk": &types.AttributeValueMemberS{Value: fmt.Sprintf("USER#%s", sub)},
+					"sk": &types.AttributeValueMemberS{Value: fmt.Sprintf("EVENT#%s", id)},
+				},
+			},
+		})
+	}
+	_, err := m.client.TransactWriteItems(ctx, &dynamodb.TransactWriteItemsInput{
+		TransactItems: writes,
 	})
 	if err != nil {
 		var cErr *types.ConditionalCheckFailedException

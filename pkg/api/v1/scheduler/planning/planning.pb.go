@@ -120,7 +120,7 @@ func (x *GetResponse) GetEvents() []*scheduler.Event {
 
 type UpsertRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Event         *scheduler.Event       `protobuf:"bytes,1,opt,name=event,proto3" json:"event,omitempty"`
+	Events        []*scheduler.Event     `protobuf:"bytes,1,rep,name=events,proto3" json:"events,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -155,9 +155,9 @@ func (*UpsertRequest) Descriptor() ([]byte, []int) {
 	return file_v1_scheduler_planning_planning_proto_rawDescGZIP(), []int{2}
 }
 
-func (x *UpsertRequest) GetEvent() *scheduler.Event {
+func (x *UpsertRequest) GetEvents() []*scheduler.Event {
 	if x != nil {
-		return x.Event
+		return x.Events
 	}
 	return nil
 }
@@ -288,9 +288,9 @@ const file_v1_scheduler_planning_planning_proto_rawDesc = "" +
 	"\x05since\x18\x01 \x01(\x03R\x05since\x12\x14\n" +
 	"\x05until\x18\x02 \x01(\x03R\x05until\":\n" +
 	"\vGetResponse\x12+\n" +
-	"\x06events\x18\x01 \x03(\v2\x13.v1.scheduler.EventR\x06events\":\n" +
-	"\rUpsertRequest\x12)\n" +
-	"\x05event\x18\x01 \x01(\v2\x13.v1.scheduler.EventR\x05event\"\x10\n" +
+	"\x06events\x18\x01 \x03(\v2\x13.v1.scheduler.EventR\x06events\"<\n" +
+	"\rUpsertRequest\x12+\n" +
+	"\x06events\x18\x01 \x03(\v2\x13.v1.scheduler.EventR\x06events\"\x10\n" +
 	"\x0eUpsertResponse\"\x1f\n" +
 	"\rDeleteRequest\x12\x0e\n" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x10\n" +
@@ -324,7 +324,7 @@ var file_v1_scheduler_planning_planning_proto_goTypes = []any{
 }
 var file_v1_scheduler_planning_planning_proto_depIdxs = []int32{
 	6, // 0: v1.scheduler.planning.GetResponse.events:type_name -> v1.scheduler.Event
-	6, // 1: v1.scheduler.planning.UpsertRequest.event:type_name -> v1.scheduler.Event
+	6, // 1: v1.scheduler.planning.UpsertRequest.events:type_name -> v1.scheduler.Event
 	0, // 2: v1.scheduler.planning.PlanningService.Get:input_type -> v1.scheduler.planning.GetRequest
 	2, // 3: v1.scheduler.planning.PlanningService.Upsert:input_type -> v1.scheduler.planning.UpsertRequest
 	4, // 4: v1.scheduler.planning.PlanningService.Delete:input_type -> v1.scheduler.planning.DeleteRequest

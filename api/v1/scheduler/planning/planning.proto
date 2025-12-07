@@ -16,7 +16,7 @@ message GetResponse {
 }
 
 message UpsertRequest {
-  Event event = 1;
+  repeated Event events = 1;
 }
 
 message UpsertResponse {

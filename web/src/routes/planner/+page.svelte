@@ -105,11 +105,14 @@
   // and creates new events with an id of start_time.
   async function updateEvents() {
     snapAlignEvents();
+    const updates = [];
     for (const [i, event] of events.entries()) {
-      console.log(event);
       if (i <= immutablePivot) continue;
       if (event.id === event.startTime.toString()) continue; // optimize lookups by omitting unchanged events
-      await PlanningClient().upsert(create(UpsertRequestSchema, { event: event }));
+      updates.push(event);
+    }
+    if (updates.length > 0) {
+      await PlanningClient().upsert(create(UpsertRequestSchema, { events: updates }));
     }
   }
 
@@ -318,7 +321,7 @@
           async () => {
             await PlanningClient().upsert(
               create(UpsertRequestSchema, {
-                event: newEvent,
+                events: [newEvent],
               }),
             );
             newEventName = '';

@@ -62,26 +62,27 @@ func (s *Service) Upsert(ctx context.Context, r *connect.Request[planning.Upsert
 	if err != nil {
 		return nil, connect.NewError(connect.CodeUnauthenticated, err)
 	}
-	err = s.userModel.PutEvent(ctx, claims.Subject, &user.Event{
-		Type:            int64(r.Msg.Event.Type),
-		Name:            r.Msg.Event.Name,
-		StartTime:       r.Msg.Event.StartTime,
-		StopTime:        r.Msg.Event.StopTime,
-		TimerStartTime:  r.Msg.Event.TimerStartTime,
-		TimerStopTime:   r.Msg.Event.TimerStopTime,
-		RatingChange:    r.Msg.Event.RatingChange,
-		RatingAlgorithm: r.Msg.Event.RatingAlgorithm,
-		Immutable:       r.Msg.Event.Immutable,
-		Description:     r.Msg.Event.Description,
-		MusicUrl:        r.Msg.Event.MusicUrl,
-	})
+	oldEvents := map[string]bool{}
+	newEvents := []user.Event{}
+	for _, event := range r.Msg.Events {
+		newEvents = append(newEvents, user.Event{
+			Type:            int64(event.Type),
+			Name:            event.Name,
+			StartTime:       event.StartTime,
+			StopTime:        event.StopTime,
+			TimerStartTime:  event.TimerStartTime,
+			TimerStopTime:   event.TimerStopTime,
+			RatingChange:    event.RatingChange,
+			RatingAlgorithm: event.RatingAlgorithm,
+			Immutable:       event.Immutable,
+			Description:     event.Description,
+			MusicUrl:        event.MusicUrl,
+		})
+		oldEvents[event.Id] = true
+	}
+	err = s.userModel.PutEvents(ctx, claims.Subject, newEvents, oldEvents)
 	if err != nil {
 		return nil, err
-	}
-	// if the event is not new and has a mismatch between id (events are indexed by start time) and start_time
-	// this means the item got moved; as primary keys are immutable, we just upsert the new event and delete the old one.
-	if r.Msg.Event.Id != "" && r.Msg.Event.Id != strconv.Itoa(int(r.Msg.Event.StartTime)) {
-		s.userModel.DeleteEvent(ctx, claims.Subject, r.Msg.Event.Id)
 	}
 	return connect.NewResponse(&planning.UpsertResponse{}), nil
 }
