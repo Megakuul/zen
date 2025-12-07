@@ -84,11 +84,12 @@ func (m *Model) ListEvents(ctx context.Context, sub string, since, until time.Ti
 func (m *Model) PutEvents(ctx context.Context, sub string, events []Event, oldEvents map[string]bool) error {
 	writes := []types.TransactWriteItem{}
 	for _, event := range events {
-		if oldEvents[fmt.Sprintf("%d", event.StartTime)] {
-			delete(oldEvents, event.SK)
+		newId := fmt.Sprintf("%d", event.StartTime)
+		if oldEvents[newId] {
+			delete(oldEvents, newId)
 		}
 		event.PK = fmt.Sprintf("USER#%s", sub)
-		event.SK = fmt.Sprintf("EVENT#%d", event.StartTime)
+		event.SK = fmt.Sprintf("EVENT#%s", newId)
 		item, err := attributevalue.MarshalMap(event)
 		if err != nil {
 			return connect.NewError(connect.CodeInvalidArgument, err)
