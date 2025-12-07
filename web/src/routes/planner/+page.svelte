@@ -12,6 +12,7 @@
   import Event from './Event.svelte';
   import { flip } from 'svelte/animate';
   import { goto } from '$app/navigation';
+  import { Code, ConnectError } from '@connectrpc/connect';
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -24,9 +25,6 @@
 
   const morningThreshold = 6;
 
-  /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event[]}*/
-  let events = $state([]);
-
   let loading = $state(false);
 
   let day = $state(new Date());
@@ -38,6 +36,25 @@
   let evening = $derived(
     new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 23, 59, 59),
   );
+
+  /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event[]}*/
+  let events = $state([]);
+
+  // immutablePivot defines the pivot from where items are considered immutable.
+  // items <= pivot cannot be changed by the planner anymore.
+  let immutablePivot = $derived(
+    events.findLastIndex(event => {
+      return event.immutable || event.stopTime < Date.now() / 1000;
+    }),
+  );
+
+  // immutableTime defines the time before which no event should be allocated.
+  // this is effectively the "start of the calendar" for any writes.
+  let immutableTime = $derived.by(() => {
+    if (immutablePivot >= 0 && events.length > immutablePivot)
+      return events[immutablePivot].stopTime;
+    else return morning.getTime() / 1000;
+  });
 
   async function loadEvents() {
     await Exec(
@@ -86,29 +103,14 @@
   // updateEvents applies the user modified event list to the database.
   // the server automatically drops the old events that are still referenced by the event.id
   // and creates new events with an id of start_time.
-  // notice that this is not optimized nor has efficient error handling.
-  // most of this is just very simple and userfriendly and should be optimized on the frontend
-  // to avoid many database operations if it grows into a bottleneck.
   async function updateEvents() {
-    await Exec(
-      async () => {
-        try {
-          for (let event of events) {
-            if (event.immutable || event.stopTime < Date.now() / 1000) continue;
-            await PlanningClient().upsert(
-              create(UpsertRequestSchema, {
-                event: event,
-              }),
-            );
-          }
-        } catch (e) {
-          await loadEvents();
-          throw e;
-        }
-      },
-      undefined,
-      processing => (loading = processing),
-    );
+    snapAlignEvents();
+    for (const [i, event] of events.entries()) {
+      console.log(event);
+      if (i <= immutablePivot) continue;
+      if (event.id === event.startTime.toString()) continue; // optimize lookups by omitting unchanged events
+      await PlanningClient().upsert(create(UpsertRequestSchema, { event: event }));
+    }
   }
 
   // snapAlignEvents sorts events and ensures they align in one single block from morning - events[-1].
@@ -116,8 +118,10 @@
   function snapAlignEvents() {
     events = events.sort((a, b) => Number(a.startTime - b.startTime));
     events.forEach((event, i, events) => {
+      if (i <= immutablePivot) return;
+
       const duration = event.stopTime - event.startTime;
-      if (i < 1) event.startTime = BigInt(morning.getTime() / 1000);
+      if (i < 1) event.startTime = BigInt(immutableTime);
       else event.startTime = events[i - 1].stopTime;
       event.stopTime = event.startTime + duration;
     });
@@ -126,48 +130,65 @@
   /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event | undefined} */
   let dragged = $state(undefined);
 
+  let dragWidth = $state(300);
   let dragX = $state(0);
   let dragY = $state(0);
 
   /** @param {PointerEvent} e @param {import("$lib/sdk/v1/scheduler/event_pb").Event} event  */
   function handleDown(e, event) {
     dragged = event;
-    dragX = e.x;
+    dragX = e.x - dragWidth / 2;
     dragY = e.y;
   }
 
   async function handleUp() {
-    if (dragged) {
-      snapAlignEvents();
-      await updateEvents();
-    }
+    const event = dragged;
     dragged = undefined;
+    if (event) {
+      await Exec(
+        async () => {
+          if (event.startTime <= immutableTime)
+            throw new ConnectError('cannot move event to the past', Code.OutOfRange);
+          await updateEvents();
+        },
+        undefined,
+        processing => (loading = processing),
+      );
+      await Exec(
+        async () => await loadEvents(),
+        undefined,
+        processing => (loading = processing),
+      );
+    }
   }
 
   async function handleTrash() {
-    if (dragged) {
+    const event = dragged;
+    dragged = undefined;
+    if (event) {
       await Exec(
         async () => {
-          await PlanningClient().delete(
-            create(DeleteRequestSchema, {
-              id: dragged?.id,
-            }),
-          );
+          await PlanningClient().delete(create(DeleteRequestSchema, { id: event?.id }));
           await loadEvents();
         },
         undefined,
         processing => (loading = processing),
       );
-      snapAlignEvents();
-      await updateEvents();
-      dragged = undefined;
+      await Exec(
+        async () => {
+          await updateEvents();
+          await loadEvents();
+        },
+        undefined,
+        processing => (loading = processing),
+      );
     }
   }
 
   /** @param {PointerEvent} e */
   function handleMove(e) {
     if (dragged) {
-      dragX = e.x;
+      dragX = e.x - dragWidth / 2;
       dragY = e.y;
       dragged.startTime += BigInt(Math.floor(e.movementY / shrinkFactor));
       dragged.stopTime += BigInt(Math.floor(e.movementY / shrinkFactor));
@@ -196,15 +217,12 @@
             <hr class="w-full rounded-full border-none h-[2px] bg-slate-50/5" />
           </div>
         {/each}
-        {#if dragged && dragged.startTime < morning.getTime() / 1000}
-          <hr class="my-1 w-full rounded-full border-2 border-slate-100/40" />
-        {/if}
-        {#each events as event, i (event.id)}
-          {@const immutable = event.immutable || event.stopTime < Date.now() / 1000}
+        {#each events as event, i (event.name)}
+          {@const immutable = i <= immutablePivot}
           <div
             animate:flip
             style={event.id === dragged?.id
-              ? `position: fixed; width: 300px; top: ${dragY}px; left: ${dragX}px; z-index: 10;`
+              ? `position: fixed; width: ${dragWidth}px; top: ${dragY}px; left: ${dragX}px; z-index: 10; touch-action: none;`
               : 'width: 100%;'}
             role="row"
             tabindex={0}
@@ -217,8 +235,8 @@
               {immutable}
               height={Number(event.stopTime - event.startTime) * shrinkFactor}
             />
-            {#if dragged && dragged.startTime > event.startTime && (dragged.startTime < event.stopTime || i + 1 === events.length)}
-              <hr class="my-1 w-full rounded-full border-2 border-slate-100/40" />
+            {#if dragged && !immutable && dragged.startTime > event.startTime && (events.length - 1 === i || dragged.startTime < events[i + 1].startTime)}
+              <hr class="mt-1 w-full rounded-full border-2 border-slate-100/40" />
             {/if}
           </div>
         {/each}
@@ -256,6 +274,10 @@
       bind:value={newEventName}
       placeholder="Next Event"
       class="p-2 text-center rounded-xl sm:p-4 sm:max-w-full glass max-w-40 focus:outline-0"
+      onkeydown={/** @type {KeyboardEvent} e */ e => {
+        e.preventDefault();
+        if (e.key === 'Enter') e.currentTarget.blur();
+      }}
     />
     <button
       aria-label="type"
