@@ -69,7 +69,7 @@
 </script>
 
 <div
-  class="flex overflow-hidden flex-col gap-4 p-8 w-full text-base rounded-2xl sm:gap-8 sm:text-4xl glass min-h-[70vh] max-w-[1800px] sm:p-15"
+  class="flex overflow-hidden flex-col gap-3 p-8 w-full text-base rounded-2xl sm:gap-4 sm:text-4xl glass h-[85dvh] max-w-[1800px] sm:p-15"
 >
   {#if user && edit}
     <input
@@ -95,7 +95,7 @@
 
     <div class="flex flex-col gap-3 items-center">
       {#each eventTypes as type}
-        <div class="flex flex-row gap-4 items-center">
+        <div class="flex flex-row gap-3 items-center sm:gap-4">
           <EventTypeIcon type={type.id} />
           <input
             bind:value={type.url}
@@ -107,10 +107,10 @@
       {/each}
     </div>
 
-    <div class="flex flex-col gap-7 items-center mt-auto w-full sm:flex-row">
+    <div class="flex flex-col gap-3 items-center mt-auto w-full sm:flex-row sm:gap-4">
       <button
         onclick={() => (edit = false)}
-        class="flex flex-row gap-2 justify-center items-center p-3 w-full rounded-xl transition-all duration-700 cursor-pointer hover:scale-105 glass"
+        class="flex flex-row gap-2 justify-center items-center p-2 w-full rounded-xl transition-all duration-700 cursor-pointer hover:scale-105 glass"
       >
         <span>Cancel</span>
         <!-- prettier-ignore -->
@@ -130,7 +130,7 @@
             undefined,
             processing => (loading = processing),
           )}
-        class="flex flex-row gap-2 justify-center items-center p-3 w-full rounded-xl transition-all duration-700 cursor-pointer hover:scale-105 glass"
+        class="flex flex-row gap-2 justify-center items-center p-2 w-full rounded-xl transition-all duration-700 cursor-pointer hover:scale-105 glass"
       >
         {#if loading}
           <!-- prettier-ignore -->
@@ -143,7 +143,7 @@
       </button>
     </div>
 
-    <div class="flex flex-col gap-7 items-center w-full sm:flex-row">
+    <div class="flex flex-col gap-3 items-center w-full sm:flex-row sm:gap-4">
       <button
         onclick={async () =>
           Exec(
@@ -154,7 +154,7 @@
             undefined,
             processing => (loading = processing),
           )}
-        class="flex flex-row gap-2 justify-center items-center p-3 w-full rounded-xl transition-all duration-700 cursor-pointer hover:scale-105 glass"
+        class="flex flex-row gap-2 justify-center items-center p-2 w-full rounded-xl transition-all duration-700 cursor-pointer hover:scale-105 glass"
       >
         {#if loading}
           <!-- prettier-ignore -->
@@ -187,7 +187,7 @@
             undefined,
             processing => (loading = processing),
           )}
-        class="flex flex-row gap-2 justify-center items-center p-3 w-full rounded-xl transition-all duration-700 cursor-pointer hover:scale-105 glass"
+        class="flex flex-row gap-2 justify-center items-center p-2 w-full rounded-xl transition-all duration-700 cursor-pointer hover:scale-105 glass"
       >
         {#if loading}
           <!-- prettier-ignore -->
@@ -257,7 +257,7 @@
         <span class="animate-pulse text-slate-200/30">{user.description}</span>
       </p>
     {/if}
-    <div class="flex flex-row gap-4 justify-center items-center min-h-96">
+    <div class="flex flex-row gap-4 justify-center items-center h-full">
       <p class="text-5xl font-bold select-none sm:text-9xl">
         Score
         <span class={GetScoreDecorator(user.score)}>{user.score}</span>

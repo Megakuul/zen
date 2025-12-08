@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/scheduler/event.proto.
  */
 export const file_v1_scheduler_event: GenFile = /*@__PURE__*/
-  fileDesc("Chh2MS9zY2hlZHVsZXIvZXZlbnQucHJvdG8SDHYxLnNjaGVkdWxlciKOAgoFRXZlbnQSCgoCaWQYASABKAkSJQoEdHlwZRgCIAEoDjIXLnYxLnNjaGVkdWxlci5FdmVudFR5cGUSDAoEbmFtZRgDIAEoCRISCgpzdGFydF90aW1lGAQgASgDEhEKCXN0b3BfdGltZRgFIAEoAxIYChB0aW1lcl9zdGFydF90aW1lGAYgASgDEhcKD3RpbWVyX3N0b3BfdGltZRgHIAEoAxIVCg1yYXRpbmdfY2hhbmdlGAggASgBEhgKEHJhdGluZ19hbGdvcml0aG0YCSABKAkSEQoJaW1tdXRhYmxlGAogASgIEhMKC2Rlc2NyaXB0aW9uGAsgASgJEhEKCW11c2ljX3VybBgMIAEoCSo/CglFdmVudFR5cGUSCQoFQ0hJTEwQABIJCgVQQVVTRRABEg0KCU1JTl9GT0NVUxACEg0KCU1BWF9GT0NVUxADQi5aLGdpdGh1Yi5jb20vbWVnYWt1dWwvemVuL3BrZy9hcGkvdjEvc2NoZWR1bGVyYgZwcm90bzM");
+  fileDesc("Chh2MS9zY2hlZHVsZXIvZXZlbnQucHJvdG8SDHYxLnNjaGVkdWxlciKOAgoFRXZlbnQSCgoCaWQYASABKAkSJQoEdHlwZRgCIAEoDjIXLnYxLnNjaGVkdWxlci5FdmVudFR5cGUSDAoEbmFtZRgDIAEoCRISCgpzdGFydF90aW1lGAQgASgDEhEKCXN0b3BfdGltZRgFIAEoAxIYChB0aW1lcl9zdGFydF90aW1lGAYgASgDEhcKD3RpbWVyX3N0b3BfdGltZRgHIAEoAxIVCg1yYXRpbmdfY2hhbmdlGAggASgBEhgKEHJhdGluZ19hbGdvcml0aG0YCSABKAkSEQoJaW1tdXRhYmxlGAogASgIEhMKC2Rlc2NyaXB0aW9uGAsgASgJEhEKCW11c2ljX3VybBgMIAEoCSpWCglFdmVudFR5cGUSCQoFQ0hJTEwQABIJCgVQQVVTRRABEg0KCU1JTl9GT0NVUxACEg0KCU1BWF9GT0NVUxADEgkKBVNQT1JUEAQSCgoGU09DSUFMEAVCLlosZ2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9zY2hlZHVsZXJiBnByb3RvMw");
 
 /**
  * @generated from message v1.scheduler.Event
@@ -107,6 +107,16 @@ export enum EventType {
    * @generated from enum value: MAX_FOCUS = 3;
    */
   MAX_FOCUS = 3,
+
+  /**
+   * @generated from enum value: SPORT = 4;
+   */
+  SPORT = 4,
+
+  /**
+   * @generated from enum value: SOCIAL = 5;
+   */
+  SOCIAL = 5,
 }
 
 /**

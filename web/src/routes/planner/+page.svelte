@@ -20,8 +20,14 @@
     hour12: false,
   });
 
+  const dayFormatter = new Intl.DateTimeFormat(undefined, {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  });
+
   // factor applied to event seconds to get the pixels on the canvas.
-  let shrinkFactor = $state(0.005);
+  let shrinkFactor = $state(0.007);
 
   const morningThreshold = 6;
 
@@ -222,6 +228,27 @@
 <svelte:window onpointerup={handleUp} onpointercancel={handleUp} onpointermove={handleMove} />
 
 <div class="flex flex-col gap-2 items-center text-base sm:text-4xl">
+  <div class="flex flex-row gap-3 justify-center items-center mb-5 font-bold text-slate-100/60">
+    <button
+      class="p-1 w-20 text-center rounded-xl transition-all cursor-pointer hover:bg-slate-500/20"
+      onclick={() => {
+        const previous = new Date(day);
+        previous.setDate(day.getDate() - 1);
+        day = previous;
+      }}>&lt;</button
+    >
+    <span>
+      {dayFormatter.format(day)}
+    </span>
+    <button
+      class="p-1 w-20 text-center rounded-xl transition-all cursor-pointer hover:bg-slate-500/20"
+      onclick={() => {
+        const next = new Date(day);
+        next.setDate(day.getDate() + 1);
+        day = next;
+      }}>&gt;</button
+    >
+  </div>
   <div class="flex flex-row gap-4 items-center">
     <input
       type="text"
@@ -243,7 +270,7 @@
       aria-label="type"
       class="p-3 text-center rounded-xl cursor-pointer sm:p-5 glass"
       onclick={() => {
-        if (newEventType + 1 > EventType.MAX_FOCUS) {
+        if (newEventType + 1 > (Number(Object.values(EventType).at(-1)) ?? 0)) {
           newEventType = EventType.CHILL;
         } else {
           newEventType++;
@@ -351,7 +378,7 @@
       name="scale"
       bind:value={shrinkFactor}
       step="any"
-      min={0.008}
+      min={0.007}
       max={0.04}
       class="ml-3 [writing-mode:vertical-lr]"
     />

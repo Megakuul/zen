@@ -28,6 +28,8 @@ const (
 	EventType_PAUSE     EventType = 1
 	EventType_MIN_FOCUS EventType = 2
 	EventType_MAX_FOCUS EventType = 3
+	EventType_SPORT     EventType = 4
+	EventType_SOCIAL    EventType = 5
 )
 
 // Enum value maps for EventType.
@@ -37,12 +39,16 @@ var (
 		1: "PAUSE",
 		2: "MIN_FOCUS",
 		3: "MAX_FOCUS",
+		4: "SPORT",
+		5: "SOCIAL",
 	}
 	EventType_value = map[string]int32{
 		"CHILL":     0,
 		"PAUSE":     1,
 		"MIN_FOCUS": 2,
 		"MAX_FOCUS": 3,
+		"SPORT":     4,
+		"SOCIAL":    5,
 	}
 )
 
@@ -224,12 +230,15 @@ const file_v1_scheduler_event_proto_rawDesc = "" +
 	"\timmutable\x18\n" +
 	" \x01(\bR\timmutable\x12 \n" +
 	"\vdescription\x18\v \x01(\tR\vdescription\x12\x1b\n" +
-	"\tmusic_url\x18\f \x01(\tR\bmusicUrl*?\n" +
+	"\tmusic_url\x18\f \x01(\tR\bmusicUrl*V\n" +
 	"\tEventType\x12\t\n" +
 	"\x05CHILL\x10\x00\x12\t\n" +
 	"\x05PAUSE\x10\x01\x12\r\n" +
 	"\tMIN_FOCUS\x10\x02\x12\r\n" +
-	"\tMAX_FOCUS\x10\x03B.Z,github.com/megakuul/zen/pkg/api/v1/schedulerb\x06proto3"
+	"\tMAX_FOCUS\x10\x03\x12\t\n" +
+	"\x05SPORT\x10\x04\x12\n" +
+	"\n" +
+	"\x06SOCIAL\x10\x05B.Z,github.com/megakuul/zen/pkg/api/v1/schedulerb\x06proto3"
 
 var (
 	file_v1_scheduler_event_proto_rawDescOnce sync.Once

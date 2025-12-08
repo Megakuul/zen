@@ -66,7 +66,7 @@
   });
 </script>
 
-<div class="flex flex-col gap-8 p-2 w-screen text-base rounded-2xl sm:p-8 sm:text-4xl h-dvh">
+<div class="flex flex-col gap-8 p-2 w-screen text-base rounded-2xl sm:p-8 sm:text-4xl h-[80dvh]">
   {#if activeEvent}
     <button
       onclick={async () => {

@@ -9,6 +9,8 @@ enum EventType {
   PAUSE = 1;
   MIN_FOCUS = 2;
   MAX_FOCUS = 3;
+  SPORT = 4;
+  SOCIAL = 5;
 }
 
 message Event {

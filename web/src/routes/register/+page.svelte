@@ -65,7 +65,7 @@
   let consent = $state(false);
 </script>
 
-<div class="flex justify-center items-center w-screen text-base sm:text-4xl h-dvh">
+<div class="flex justify-center items-center w-screen text-base sm:text-4xl h-[80dvh]">
   <div class="flex flex-col gap-4 items-center p-4 rounded-2xl sm:gap-8 sm:p-10 glass">
     {#if registered}
       <!-- prettier-ignore -->
