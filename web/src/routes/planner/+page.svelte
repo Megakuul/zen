@@ -29,24 +29,31 @@
   // factor applied to event seconds to get the pixels on the canvas.
   let shrinkFactor = $state(0.007);
 
-  const morningThreshold = 6;
-
   let loading = $state(false);
 
   let initialLoad = $state(false);
 
+  /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event[]}*/
+  let events = $state([]);
+
   let day = $state(new Date());
 
+  // dayStartHour defines when the calendar day starts. Changes to this value only apply for empty calendars.
+  let dayStartHour = $derived.by(() => {
+    if (events.length > 0) {
+      return new Date(Number(events[0].startTime) * 1000).getHours();
+    } else if (browser) {
+      return Number(localStorage.getItem(`default_day_start`) ?? 6) || 6;
+    } else return 6;
+  });
+
   let morning = $derived(
-    new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), morningThreshold),
+    new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), dayStartHour),
   );
 
   let evening = $derived(
     new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 23, 59, 59),
   );
-
-  /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event[]}*/
-  let events = $state([]);
 
   // immutablePivot defines the pivot from where items are considered immutable.
   // items <= pivot cannot be changed by the planner anymore.

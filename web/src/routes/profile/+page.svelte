@@ -26,10 +26,14 @@
   /** @type {{name: string, id: import('$lib/sdk/v1/scheduler/event_pb').EventType, url: string}[]} */
   let eventTypes = $state([]);
 
+  let dayStartHour = $state(6);
+
   $effect.root(() => {
     if (!browser) {
       return;
     }
+
+    dayStartHour = Number(localStorage.getItem(`default_day_start`) ?? dayStartHour);
 
     eventTypes = [];
     // remove typescript enum double mapping (only keep string keys)
@@ -105,6 +109,17 @@
           />
         </div>
       {/each}
+      <label class="flex flex-row gap-3 justify-center items-center py-2">
+        <span class="text-xs sm:max-w-full sm:text-base lg:text-xl max-w-48">
+          Calendar day starts at
+        </span>
+        <input
+          bind:value={dayStartHour}
+          type="number"
+          class="p-1 text-xs text-center rounded-lg sm:p-3 sm:rounded-xl lg:text-xl max-w-12 glass focus:outline-0"
+        />
+        <span class="text-xs sm:max-w-full sm:text-base lg:text-xl max-w-48"> o'clock </span>
+      </label>
     </div>
 
     <div class="flex flex-col gap-3 items-center mt-auto w-full sm:flex-row sm:gap-4">
@@ -121,6 +136,7 @@
         onclick={async () =>
           Exec(
             async () => {
+              if (browser) localStorage.setItem(`default_day_start`, dayStartHour.toString());
               for (const type of eventTypes) {
                 if (browser) localStorage.setItem(`default_music_${type.id}`, type.url);
               }
