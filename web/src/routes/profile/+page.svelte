@@ -14,11 +14,35 @@
   import { GetScoreDecorator } from '$lib/color/color';
   import Streak from '$lib/components/Streak.svelte';
   import { Code, ConnectError } from '@connectrpc/connect';
+  import { browser } from '$app/environment';
+  import { EventType } from '$lib/sdk/v1/scheduler/event_pb';
+  import EventTypeIcon from '$lib/components/EventTypeIcon.svelte';
 
   let loading = $state(true);
 
   /** @type {import('$lib/sdk/v1/manager/user_pb').User|undefined}*/
   let user = $state();
+
+  /** @type {{name: string, id: import('$lib/sdk/v1/scheduler/event_pb').EventType, url: string}[]} */
+  let eventTypes = $state([]);
+
+  $effect.root(() => {
+    if (!browser) {
+      return;
+    }
+
+    eventTypes = [];
+    // remove typescript enum double mapping (only keep string keys)
+    const cleanEventTypes = Object.entries(EventType).filter(([key]) => isNaN(Number(key)));
+    for (const [name, id] of cleanEventTypes) {
+      const url = localStorage.getItem(`default_music_${id}`);
+      eventTypes.push({
+        name: name,
+        id: Number(id),
+        url: url ?? '',
+      });
+    }
+  });
 
   let edit = $state(false);
 
@@ -45,7 +69,7 @@
 </script>
 
 <div
-  class="flex overflow-hidden flex-col gap-8 p-8 w-full text-base rounded-2xl sm:text-4xl glass min-h-[70vh] max-w-[1800px] sm:p-15"
+  class="flex overflow-hidden flex-col gap-4 p-8 w-full text-base rounded-2xl sm:gap-8 sm:text-4xl glass min-h-[70vh] max-w-[1800px] sm:p-15"
 >
   {#if user && edit}
     <input
@@ -69,6 +93,20 @@
       <input bind:checked={user.leaderboard} type="checkbox" class="w-3 h-3 sm:w-5 sm:h-5" />
     </label>
 
+    <div class="flex flex-col gap-3 items-center">
+      {#each eventTypes as type}
+        <div class="flex flex-row gap-4 items-center">
+          <EventTypeIcon type={type.id} />
+          <input
+            bind:value={type.url}
+            type="url"
+            placeholder="music url (spotify, ...)"
+            class="p-1 text-xs rounded-lg sm:p-3 sm:rounded-xl lg:text-xl glass focus:outline-0"
+          />
+        </div>
+      {/each}
+    </div>
+
     <div class="flex flex-col gap-7 items-center mt-auto w-full sm:flex-row">
       <button
         onclick={() => (edit = false)}
@@ -83,6 +121,9 @@
         onclick={async () =>
           Exec(
             async () => {
+              for (const type of eventTypes) {
+                if (browser) localStorage.setItem(`default_music_${type.id}`, type.url);
+              }
               await ManagementClient().update(create(UpdateRequestSchema, { user: user }));
               edit = false;
             },
