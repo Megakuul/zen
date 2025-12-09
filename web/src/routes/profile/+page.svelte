@@ -73,7 +73,7 @@
 </script>
 
 <div
-  class="flex overflow-hidden flex-col gap-3 p-8 w-full text-base rounded-2xl sm:gap-4 sm:text-4xl glass h-[85dvh] max-w-[1800px] sm:p-15"
+  class="flex flex-col gap-3 p-8 w-full text-base rounded-2xl sm:gap-4 sm:text-4xl overflow-scroll-hidden glass h-[85dvh] max-w-[1800px] sm:p-15"
 >
   {#if user && edit}
     <input

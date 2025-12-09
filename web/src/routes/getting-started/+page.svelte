@@ -1,7 +1,7 @@
 <div
-  class="glass w-full sm:w-11/12 max-w-[2150px] p-4 sm:p-10 rounded-2xl flex flex-col gap-4 sm:gap-8 text-xs sm:text-2xl xl:text-3xl leading-relaxed"
+  class="flex flex-col gap-4 p-4 mb-10 w-full text-xs leading-relaxed rounded-2xl sm:gap-8 sm:p-10 sm:w-11/12 sm:text-2xl xl:text-3xl glass max-w-[2150px]"
 >
-  <h1 class="text-lg sm:text-xl xl:text-4xl font-bold">Start saving your Time ⏳</h1>
+  <h1 class="text-lg font-bold sm:text-xl xl:text-4xl">Start saving your Time ⏳</h1>
 
   <p>
     Zen addresses a cognitive vulnerability that causes you to start random tasks shortly before the
@@ -15,11 +15,11 @@
     It operates on <b>three</b> routine tasks that you must follow rigorously:
   </p>
 
-  <ol class="flex flex-col gap-4 pl-4 sm:pl-12 list-decimal list-outside marker:font-bold">
+  <ol class="flex flex-col gap-4 pl-4 list-decimal list-outside sm:pl-12 marker:font-bold">
     <li>
       Each morning after waking up, open the <a href="/planner" class="underline">Zen Planner</a> 🗓️
       and map out your entire day using events (similar to a standard calendar).
-      <div class="glass p-4 my-4 rounded-xl text-violet-500/60">
+      <div class="p-4 my-4 rounded-xl glass text-violet-500/60">
         <b>TIP</b> If it suits you, aim to make your plan as precise and detailed as possible.
       </div>
     </li>
@@ -28,7 +28,7 @@
         Once planned, your day is governed by Zen. Before beginning or ending any activity, always
         open the <a href="/timer" class="underline">Zen Timer</a> ⏱️ and record it accordingly.
       </p>
-      <div class="glass p-4 my-4 rounded-xl text-red-800/80">
+      <div class="p-4 my-4 rounded-xl glass text-red-800/80">
         <b class="animate-pulse">CAUTION</b> For Zen to function correctly, establish a strict
         mental boundary that prevents you from falsifying start or stop actions. Misusing these
         (e.g. pressing start without actually starting) can create a lasting cognitive vulnerability
@@ -44,7 +44,7 @@
           >Zen Planner</a
         > 🗓️ again and adjust your schedule.
       </p>
-      <div class="glass p-4 my-4 rounded-xl text-red-800/80">
+      <div class="p-4 my-4 rounded-xl glass text-red-800/80">
         <b class="animate-pulse">CAUTION</b> Zen functions only if you refrain from altering your plan
         arbitrarily without a substantial external cause!
       </div>
@@ -59,7 +59,7 @@
     treat it lightly - it serves mainly as a reference to measure your relative consistency.
   </p>
 
-  <div class="glass p-4 my-4 rounded-xl text-red-800/80">
+  <div class="p-4 my-4 rounded-xl glass text-red-800/80">
     <b class="animate-pulse">CAUTION</b> Once you begin using Zen, it's essential to comply fully
     and let it structure your entire day. Do not take this commitment lightly! If you're uncertain
     about maintaining it, <b>DO NOT USE ZEN</b>, as improper use can permanently impair your

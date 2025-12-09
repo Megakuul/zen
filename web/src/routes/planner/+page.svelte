@@ -13,6 +13,7 @@
   import { goto } from '$app/navigation';
   import { Code, ConnectError } from '@connectrpc/connect';
   import EventTypeIcon from '$lib/components/EventTypeIcon.svelte';
+  import { onMount } from 'svelte';
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -90,7 +91,7 @@
     );
   }
 
-  $effect(() => {
+  onMount(() => {
     loadEvents(); // load events on page reload
   });
 
@@ -159,10 +160,10 @@
 
   /** @param {PointerEvent} e @param {import("$lib/sdk/v1/scheduler/event_pb").Event} event  */
   function handleDown(e, event) {
+    e.preventDefault();
     if (e.target instanceof Element) {
       e.target?.setPointerCapture(e.pointerId);
     }
-    e.preventDefault();
     dragged = event;
     dragX = e.x - dragWidth / 2;
     dragY = e.y - (Number(dragged.stopTime - dragged.startTime) * shrinkFactor) / 2;
@@ -171,6 +172,7 @@
 
   /** @param {PointerEvent} e */
   async function handleUp(e) {
+    e.preventDefault();
     const event = dragged;
     dragged = undefined;
     if (!event) return;
@@ -221,13 +223,13 @@
 
   /** @param {PointerEvent} e */
   function handleMove(e) {
+    e.preventDefault();
     if (dragged) {
       dragX = e.x - dragWidth / 2;
       dragY = e.y - (Number(dragged.stopTime - dragged.startTime) * shrinkFactor) / 2;
       dragged.startTime += BigInt(Math.floor((dragY - initialDragY) / shrinkFactor));
       dragged.stopTime += BigInt(Math.floor((dragY - initialDragY) / shrinkFactor));
       initialDragY = dragY;
-      e.preventDefault();
     }
   }
 </script>
@@ -324,7 +326,7 @@
 
   <div class="flex flex-row justify-between w-full">
     <div
-      class="w-full h-[700px] max-h-[70dvh] overflow-scroll-hidden {dragged
+      class="w-full h-[700px] max-h-[60dvh] sm:max-h-[65dvh] overflow-scroll-hidden {dragged
         ? 'touch-none'
         : 'touch-auto'}"
     >
