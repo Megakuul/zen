@@ -91,8 +91,8 @@
     );
   }
 
-  onMount(() => {
-    loadEvents(); // load events on page reload
+  $effect(() => {
+    loadEvents();
   });
 
   let newEventName = $state('');
@@ -148,6 +148,29 @@
   }
 
   /** @type {HTMLDivElement|undefined} */
+  let timeline = $state();
+
+  let timelineHead = $state(Date.now());
+
+  onMount(() => {
+    timeline?.scrollIntoView({
+      behavior: 'smooth',
+      block: 'center',
+      inline: 'center',
+    });
+
+    let animateFrame = 0;
+    function updateTimeline() {
+      timelineHead = Date.now();
+      animateFrame = requestAnimationFrame(updateTimeline);
+    }
+    animateFrame = requestAnimationFrame(updateTimeline);
+    return () => {
+      cancelAnimationFrame(animateFrame);
+    };
+  });
+
+  /** @type {HTMLDivElement|undefined} */
   let trashZone = $state();
 
   /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event | undefined} */
@@ -158,9 +181,27 @@
   let dragY = $state(0);
   let initialDragY = $state(0);
 
+  onMount(() => {
+    // the following touchstart interceptor is required to prevent mobile browsers
+    // from cancelling the pointer event because they believe you are trying to scroll.
+    // Basically we set the touch-action: none; to prevent this, but it doesnt work properly
+    // as the browser already tries to interpret the touch as scroll/longpress/etc.
+    // by adding a passive eventListener we disable this behavior forcing every touch
+    // through the interceptTouch (where it is prevented eventually) before the browser does its logic.
+    /** @param {TouchEvent} e  */
+    function interceptTouch(e) {
+      if (dragged) e.preventDefault();
+    }
+    window.addEventListener('touchstart', interceptTouch, { passive: false });
+    return () => {
+      window.removeEventListener('touchstart', interceptTouch);
+    };
+  });
+
   /** @param {PointerEvent} e @param {import("$lib/sdk/v1/scheduler/event_pb").Event} event  */
   function handleDown(e, event) {
     e.preventDefault();
+    e.stopPropagation();
     if (e.target instanceof Element) {
       e.target?.setPointerCapture(e.pointerId);
     }
@@ -173,6 +214,7 @@
   /** @param {PointerEvent} e */
   async function handleUp(e) {
     e.preventDefault();
+    e.stopPropagation();
     const event = dragged;
     dragged = undefined;
     if (!event) return;
@@ -224,6 +266,7 @@
   /** @param {PointerEvent} e */
   function handleMove(e) {
     e.preventDefault();
+    e.stopPropagation();
     if (dragged) {
       dragX = e.x - dragWidth / 2;
       dragY = e.y - (Number(dragged.stopTime - dragged.startTime) * shrinkFactor) / 2;
@@ -236,8 +279,10 @@
 
 <svelte:window onpointerup={handleUp} onpointercancel={handleUp} onpointermove={handleMove} />
 
-<div class="flex flex-col gap-2 items-center text-base sm:text-4xl">
-  <div class="flex flex-row gap-3 justify-center items-center mb-5 font-bold text-slate-100/60">
+<div class="flex flex-col gap-2 items-center text-base sm:text-4xl max-h-[90dvh]">
+  <div
+    class="flex flex-row gap-3 justify-center items-center mb-1 font-bold sm:mb-5 text-slate-100/60"
+  >
     <button
       class="p-1 w-20 text-center rounded-xl transition-all cursor-pointer hover:bg-slate-500/20"
       onclick={() => {
@@ -324,12 +369,8 @@
     class="my-3 w-full"
   />
 
-  <div class="flex flex-row justify-between w-full">
-    <div
-      class="w-full h-[700px] max-h-[60dvh] sm:max-h-[65dvh] overflow-scroll-hidden {dragged
-        ? 'touch-none'
-        : 'touch-auto'}"
-    >
+  <div class="flex flex-row justify-between w-full h-[60dvh]">
+    <div class="w-full h-full overflow-scroll-hidden">
       {#if !initialLoad}
         <div class="flex justify-center items-center w-full h-full">
           <!-- prettier-ignore -->
@@ -338,7 +379,7 @@
       {:else}
         <div
           style="height: {((+evening - +morning + 1 * 60 * 60 * 1000) / 1000) * shrinkFactor}px"
-          class="flex relative flex-col gap-1 items-center py-3 pr-4 pl-10 w-full"
+          class="flex relative flex-col gap-1 items-center pr-4 pl-10 my-3 w-full py-[4px]"
         >
           {#each { length: evening.getHours() - morning.getHours() }, i}
             {@const hour = (1 + i) * 60 * 60 * 1000}
@@ -352,6 +393,16 @@
               <hr class="w-full rounded-full border-none h-[2px] bg-slate-50/5" />
             </div>
           {/each}
+
+          <div
+            bind:this={timeline}
+            style="top: {((timelineHead - morning.getTime()) / 1000) * shrinkFactor}px"
+            class="flex absolute right-0 left-8 flex-row justify-center items-center z-[5]"
+          >
+            <hr class="w-full rounded-full border-none h-[3px] bg-red-800/40" />
+            <div class="w-3 h-2 rounded-2xl bg-red-800/40"></div>
+          </div>
+
           {#each events as event, i}
             {@const immutable = i <= immutablePivot}
             <div
@@ -369,7 +420,7 @@
               <Event
                 {event}
                 {immutable}
-                height={Number(event.stopTime - event.startTime) * shrinkFactor}
+                height={Number(event.stopTime - event.startTime) * shrinkFactor - 2}
               />
               {#if dragged && !immutable && dragged.startTime > event.startTime && (events.length - 1 === i || dragged.startTime < events[i + 1].startTime)}
                 <hr class="mt-1 w-full rounded-full border-2 border-slate-100/40" />

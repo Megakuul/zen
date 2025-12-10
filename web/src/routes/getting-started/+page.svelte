@@ -1,5 +1,5 @@
 <div
-  class="flex flex-col gap-4 p-4 mb-10 w-full text-xs leading-relaxed rounded-2xl sm:gap-8 sm:p-10 sm:w-11/12 sm:text-2xl xl:text-3xl glass max-w-[2150px]"
+  class="flex flex-col gap-4 p-4 mb-32 w-full text-xs leading-relaxed rounded-2xl sm:gap-8 sm:p-10 sm:w-11/12 sm:text-2xl xl:text-3xl glass max-w-[2150px]"
 >
   <h1 class="text-lg font-bold sm:text-xl xl:text-4xl">Start saving your Time ⏳</h1>
 
