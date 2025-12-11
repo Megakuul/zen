@@ -48,7 +48,7 @@ func (s *Service) Start(ctx context.Context, r *connect.Request[timing.StartRequ
 		return nil, connect.NewError(connect.CodeFailedPrecondition, fmt.Errorf("event already concluded"))
 	}
 	err = s.userModel.UpdateEventTimer(ctx, claims.Subject, r.Msg.Id,
-		time.Now(), time.Unix(event.StartTime, 0), event.RatingChange, event.RatingAlgorithm, false)
+		time.Now(), time.Unix(0, 0), event.RatingChange, event.RatingAlgorithm, false)
 	if err != nil {
 		return nil, err
 	}

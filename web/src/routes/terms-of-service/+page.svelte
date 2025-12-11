@@ -1,3 +1,11 @@
+<svelte:head>
+  <title>Terms of Service | Zen</title>
+  <link rel="canonical" href="https://zen.megakuul.com/terms-of-service" />
+  <meta property="og:title" content="Zen Terms of Service" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://zen.megakuul.com/favicon.svg" />
+</svelte:head>
+
 <section class="p-4 rounded-2xl sm:p-10 glass" lang="en">
   <h1>Terms of Service</h1>
 

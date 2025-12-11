@@ -149,7 +149,7 @@ func (m *Model) UpdateEventTimer(ctx context.Context, sub, id string, start, sto
 			":immutable":        &types.AttributeValueMemberBOOL{Value: immutable},
 			":false":            &types.AttributeValueMemberBOOL{Value: false},
 		},
-		UpdateExpression: aws.String(fmt.Sprint("SET",
+		UpdateExpression: aws.String(fmt.Sprint("SET ",
 			"timer_start_time = :timer_start_time,",
 			"timer_stop_time = :timer_stop_time,",
 			"rating_change = :rating_change,",

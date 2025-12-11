@@ -72,6 +72,14 @@
   });
 </script>
 
+<svelte:head>
+  <title>Profile | Zen</title>
+  <link rel="canonical" href="https://zen.megakuul.com/profile" />
+  <meta property="og:title" content="Zen Profile" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://zen.megakuul.com/favicon.svg" />
+</svelte:head>
+
 <div
   class="flex flex-col gap-3 p-8 w-full text-base rounded-2xl sm:gap-4 sm:text-4xl overflow-scroll-hidden glass h-[85dvh] max-w-[1800px] sm:p-15"
 >

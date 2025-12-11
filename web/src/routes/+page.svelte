@@ -5,6 +5,22 @@
   import Logo from '../lib/components/Logo.svelte';
 </script>
 
+<svelte:head>
+  <title>Zen</title>
+  <meta
+    name="description"
+    content="Reward based calendar system for structuring your daily routine"
+  />
+  <meta
+    property="og:description"
+    content="Reward based calendar system for structuring your daily routine"
+  />
+  <link rel="canonical" href="https://zen.megakuul.com" />
+  <meta property="og:title" content="Zen" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://zen.megakuul.com/favicon.svg" />
+</svelte:head>
+
 <Logo class="p-20" svgClass="w-40 h-40 lg:w-96 lg:h-96 xl:w-[588px] xl:h-[588px]"></Logo>
 
 <TextGenerateEffect

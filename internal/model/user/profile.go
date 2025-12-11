@@ -99,7 +99,7 @@ func (m *Model) UpdateProfileRating(ctx context.Context, sub string, ratingChang
 		ExpressionAttributeValues: map[string]types.AttributeValue{
 			":change": &types.AttributeValueMemberN{Value: strconv.FormatFloat(ratingChange, 'f', 10, 64)},
 		},
-		UpdateExpression: aws.String(fmt.Sprint("SET",
+		UpdateExpression: aws.String(fmt.Sprint("SET ",
 			"score = score + :change,",
 			streakExpr,
 		)),

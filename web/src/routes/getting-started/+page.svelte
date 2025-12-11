@@ -1,3 +1,19 @@
+<svelte:head>
+  <title>Getting Started | Zen</title>
+  <meta
+    name="description"
+    content="Reward based calendar system for structuring your daily routine"
+  />
+  <meta
+    property="og:description"
+    content="Reward based calendar system for structuring your daily routine"
+  />
+  <link rel="canonical" href="https://zen.megakuul.com/getting-started" />
+  <meta property="og:title" content="Zen Getting Started" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://zen.megakuul.com/favicon.svg" />
+</svelte:head>
+
 <div
   class="flex flex-col gap-4 p-4 mb-32 w-full text-xs leading-relaxed rounded-2xl sm:gap-8 sm:p-10 sm:w-11/12 sm:text-2xl xl:text-3xl glass max-w-[2150px]"
 >

@@ -2,13 +2,28 @@
   import { onMount } from 'svelte';
   import { create } from '@bufbuild/protobuf';
   import { goto } from '$app/navigation';
-  import { fade } from 'svelte/transition';
   import { Exec } from '$lib/error/error.svelte';
   import { PlanningClient, TimingClient } from '$lib/client/client.svelte';
   import { GetRequestSchema } from '$lib/sdk/v1/scheduler/planning/planning_pb';
-  import { StartRequestSchema } from '$lib/sdk/v1/scheduler/timing/timing_pb';
+  import { StartRequestSchema, StopRequestSchema } from '$lib/sdk/v1/scheduler/timing/timing_pb';
+  import EventTypeIcon from '$lib/components/EventTypeIcon.svelte';
+  import { GetChangeDecorator } from '$lib/color/color';
 
-  let loading = $state(false);
+  const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false,
+  });
+
+  const counterFormatter = new Intl.DurationFormat('en', {
+    style: 'digital',
+  });
+
+  const scoreFormatter = new Intl.NumberFormat(undefined, {
+    signDisplay: 'always',
+  });
+
+  let initialLoad = $state(false);
 
   let day = new Date();
 
@@ -23,7 +38,7 @@
 
   let activeEventIdx = $derived.by(() => {
     for (let i = 0; i < events.length; i++) {
-      if (events[i].timerStartTime && !events[i].timerStopTime) {
+      if (!events[i].timerStopTime) {
         return i;
       }
     }
@@ -43,26 +58,22 @@
           }),
         );
         events = response.events;
+        initialLoad = true;
       },
       async () => {
         goto('/login');
       },
-      processing => (loading = processing),
     );
   }
 
   let elapsed = $state();
   let animateFrame = 0;
 
-  const duration = { hours: 1, minutes: 46, seconds: 40 };
-
-  const counterFormat = new Intl.DurationFormat('en', { style: 'digital' });
-
   onMount(() => {
     loadEvents();
 
     function updateCounter() {
-      if (activeEvent.timerStartTime) {
+      if (activeEvent?.timerStartTime) {
         elapsed = Date.now() - Number(activeEvent.timerStartTime) * 1000;
       }
 
@@ -80,47 +91,105 @@
   });
 </script>
 
+<svelte:head>
+  <title>Timer | Zen</title>
+  <link rel="canonical" href="https://zen.megakuul.com/timer" />
+  <meta property="og:title" content="Zen Timer" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://zen.megakuul.com/favicon.svg" />
+</svelte:head>
+
 <div
   class="flex flex-col gap-8 p-2 w-screen text-base rounded-2xl sm:p-8 sm:text-4xl h-[80dvh] max-w-[1000px]"
 >
-  <div class="flex flex-col gap-5 justify-center items-center p-8 w-full h-3/6 rounded-2xl glass">
-    {#if prevEvent}
-      {prevEvent.name}
-    {/if}
-    {#if activeEvent}
-      <button
-        onclick={async () => {
-          await Exec(
-            async () => {
-              await TimingClient().start(
-                create(StartRequestSchema, {
-                  id: activeEvent.id,
-                }),
-              );
+  {#if !initialLoad}
+    <div class="flex justify-center items-center w-full h-full">
+      <!-- prettier-ignore -->
+      <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="1"><circle cx="12" cy="12" r="9.5" fill="none" stroke-linecap="round" stroke-width="3"><animate attributeName="stroke-dasharray" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0 150;42 150;42 150;42 150"/><animate attributeName="stroke-dashoffset" calcMode="spline" dur="1.5s" keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1" keyTimes="0;0.475;0.95;1" repeatCount="indefinite" values="0;-16;-59;-59"/></circle><animateTransform attributeName="transform" dur="2s" repeatCount="indefinite" type="rotate" values="0 12 12;360 12 12"/></g></svg>
+    </div>
+  {:else}
+    <div
+      class="flex flex-col gap-5 justify-center items-center p-8 w-full h-full rounded-2xl glass"
+    >
+      {#if prevEvent}
+        <div
+          class="flex flex-row gap-2 justify-start items-center p-4 w-full h-1/6 rounded-2xl opacity-10 glass"
+        >
+          <EventTypeIcon type={prevEvent.type} />
+          <span class="overflow-hidden line-through text-nowrap">{prevEvent.name}</span>
+          <span>
+            (<span class={GetChangeDecorator(prevEvent.ratingChange)}>
+              {scoreFormatter.format(prevEvent.ratingChange)}
+            </span>)
+          </span>
+          <span class="flex flex-row gap-1 ml-auto">
+            <span>{kitchenFormatter.format(new Date(Number(prevEvent.startTime) * 1000))}</span>
+            <span>-</span>
+            <span>{kitchenFormatter.format(new Date(Number(prevEvent.stopTime) * 1000))}</span>
+          </span>
+        </div>
+      {/if}
+      {#if activeEvent}
+        <button
+          onclick={async () => {
+            await Exec(async () => {
+              if (activeEvent.timerStartTime) {
+                await TimingClient().stop(create(StopRequestSchema, { id: activeEvent.id }));
+                if (nextEvent)
+                  await TimingClient().start(create(StartRequestSchema, { id: nextEvent.id }));
+              } else {
+                await TimingClient().start(create(StartRequestSchema, { id: activeEvent.id }));
+              }
               await loadEvents();
-            },
-            undefined,
-            processing => (loading = processing),
-          );
-        }}
-        class="w-full h-3/6 rounded-2xl cursor-pointer glass"
-      >
-        {activeEvent.name}
-      </button>
-      <div>{counterFormat.format({ seconds: elapsed / 1000 })}</div>
-    {/if}
-    {#if nextEvent}
-      {nextEvent.name}
-      <div class="w-full h-1/6 rounded-2xl glass"></div>
-    {/if}
-    {#if !activeEvent && !prevEvent && !nextEvent}
-      <h1 class="text-center">Nothing planned at the moment...</h1>
-      <a href="/planner" class="p-4 w-full font-bold text-center rounded-xl max-w-[600px] glass"
-        >Plan now!</a
-      >
-      <p class="text-xs sm:text-base text-slate-400/40">
-        Can't I get some time off? read <a href="/getting-started" class="underline">this</a>
-      </p>
-    {/if}
-  </div>
+            }, undefined);
+          }}
+          class="flex flex-col justify-between items-center w-full h-full rounded-2xl cursor-pointer glass"
+        >
+          <div class="flex flex-row gap-2 items-center text-lg sm:text-xl text-slate-100/40">
+            <EventTypeIcon type={activeEvent.type} svgClass="w-2 h-2 sm:w-4 sm:h-4" />
+            <span>{activeEvent.name}</span>
+          </div>
+          {#if !activeEvent.timerStartTime}
+            <p class="text-3xl font-bold sm:text-6xl text-slate-100/30">Start Event</p>
+          {:else if elapsed}
+            {@const elapsedDate = new Date(elapsed)}
+            <p class="text-3xl sm:text-6xl">
+              {counterFormatter.format({
+                hours: elapsedDate.getUTCHours(),
+                minutes: elapsedDate.getUTCMinutes(),
+                seconds: elapsedDate.getUTCSeconds(),
+              })}
+            </p>
+          {/if}
+          <span class="flex flex-row gap-1 text-sm sm:text-lg text-slate-100/40">
+            <span>{kitchenFormatter.format(new Date(Number(activeEvent.startTime) * 1000))}</span>
+            <span>-</span>
+            <span>{kitchenFormatter.format(new Date(Number(activeEvent.stopTime) * 1000))}</span>
+          </span>
+        </button>
+      {/if}
+      {#if nextEvent}
+        <div
+          class="flex flex-row gap-2 justify-start items-center p-4 w-full h-1/6 rounded-2xl opacity-30 glass"
+        >
+          <EventTypeIcon type={nextEvent.type} />
+          <span class="overflow-hidden text-nowrap">{nextEvent.name}</span>
+          <span class="flex flex-row gap-1 ml-auto">
+            <span>{kitchenFormatter.format(new Date(Number(nextEvent.startTime) * 1000))}</span>
+            <span>-</span>
+            <span>{kitchenFormatter.format(new Date(Number(nextEvent.stopTime) * 1000))}</span>
+          </span>
+        </div>
+      {/if}
+      {#if !activeEvent && !prevEvent && !nextEvent}
+        <h1 class="text-center">Nothing planned at the moment...</h1>
+        <a href="/planner" class="p-4 w-full font-bold text-center rounded-xl max-w-[600px] glass">
+          Plan now!
+        </a>
+        <p class="text-xs sm:text-base text-slate-400/40">
+          Can't I get some time off? read <a href="/getting-started" class="underline">this</a>
+        </p>
+      {/if}
+    </div>
+  {/if}
 </div>

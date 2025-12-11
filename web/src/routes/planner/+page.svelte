@@ -152,13 +152,15 @@
 
   let timelineHead = $state(Date.now());
 
-  onMount(() => {
+  $effect(() => {
     timeline?.scrollIntoView({
       behavior: 'smooth',
       block: 'center',
       inline: 'center',
     });
+  });
 
+  onMount(() => {
     let animateFrame = 0;
     function updateTimeline() {
       timelineHead = Date.now();
@@ -276,6 +278,14 @@
     }
   }
 </script>
+
+<svelte:head>
+  <title>Planner | Zen</title>
+  <link rel="canonical" href="https://zen.megakuul.com/planner" />
+  <meta property="og:title" content="Zen Planner" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://zen.megakuul.com/favicon.svg" />
+</svelte:head>
 
 <svelte:window onpointerup={handleUp} onpointercancel={handleUp} onpointermove={handleMove} />
 

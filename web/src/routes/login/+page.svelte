@@ -28,6 +28,14 @@
   let code = $state('');
 </script>
 
+<svelte:head>
+  <title>Login | Zen</title>
+  <link rel="canonical" href="https://zen.megakuul.com/login" />
+  <meta property="og:title" content="Zen Login" />
+  <meta property="og:type" content="website" />
+  <meta property="og:image" content="https://zen.megakuul.com/favicon.svg" />
+</svelte:head>
+
 <div class="flex justify-center items-center w-screen text-base sm:text-4xl h-[80dvh]">
   <div class="flex flex-col gap-4 items-center p-4 rounded-2xl sm:gap-8 sm:p-10 glass">
     <Logo class="p-3 sm:p-6" svgClass="w-12 h-12 sm:w-20 sm:h-20"></Logo>
