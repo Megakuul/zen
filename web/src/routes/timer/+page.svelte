@@ -42,7 +42,7 @@
         return i;
       }
     }
-    return -1;
+    return NaN;
   });
   let activeEvent = $derived(events[activeEventIdx]);
   let prevEvent = $derived(events[activeEventIdx - 1]);
@@ -113,16 +113,16 @@
     >
       {#if prevEvent}
         <div
-          class="flex flex-row gap-2 justify-start items-center p-4 w-full h-1/6 rounded-2xl opacity-10 glass"
+          class="flex flex-row gap-2 justify-start items-center p-4 w-full h-1/6 rounded-2xl opacity-40 glass"
         >
           <EventTypeIcon type={prevEvent.type} />
           <span class="overflow-hidden line-through text-nowrap">{prevEvent.name}</span>
-          <span>
+          <span class="brightness-200">
             (<span class={GetChangeDecorator(prevEvent.ratingChange)}>
               {scoreFormatter.format(prevEvent.ratingChange)}
             </span>)
           </span>
-          <span class="flex flex-row gap-1 ml-auto">
+          <span class="flex flex-row gap-1 ml-auto opacity-50">
             <span>{kitchenFormatter.format(new Date(Number(prevEvent.startTime) * 1000))}</span>
             <span>-</span>
             <span>{kitchenFormatter.format(new Date(Number(prevEvent.stopTime) * 1000))}</span>
@@ -153,13 +153,36 @@
             <p class="text-3xl font-bold sm:text-6xl text-slate-100/30">Start Event</p>
           {:else if elapsed}
             {@const elapsedDate = new Date(elapsed)}
-            <p class="text-3xl sm:text-6xl">
-              {counterFormatter.format({
-                hours: elapsedDate.getUTCHours(),
-                minutes: elapsedDate.getUTCMinutes(),
-                seconds: elapsedDate.getUTCSeconds(),
-              })}
-            </p>
+            {@const expectedDate = new Date(
+              Number(activeEvent.stopTime - activeEvent.startTime) * 1000,
+            )}
+            <div class="flex flex-col">
+              <svg class="h-full stroke-blue-200/40 [stroke-linecap:round]">
+                <circle
+                  cx="100"
+                  cy="100"
+                  r="90"
+                  stroke-width="10"
+                  fill="none"
+                  pathLength={expectedDate.getTime()}
+                  stroke-dasharray="{elapsedDate.getTime()} {expectedDate.getTime()}"
+                />
+              </svg>
+              <p class="text-3xl sm:text-6xl">
+                {counterFormatter.format({
+                  hours: elapsedDate.getUTCHours(),
+                  minutes: elapsedDate.getUTCMinutes(),
+                  seconds: elapsedDate.getUTCSeconds(),
+                })}
+              </p>
+              <p class="sm:text-2xl text-1xl text-slate-200/40">
+                {counterFormatter.format({
+                  hours: expectedDate.getUTCHours(),
+                  minutes: expectedDate.getUTCMinutes(),
+                  seconds: expectedDate.getUTCSeconds(),
+                })}
+              </p>
+            </div>
           {/if}
           <span class="flex flex-row gap-1 text-sm sm:text-lg text-slate-100/40">
             <span>{kitchenFormatter.format(new Date(Number(activeEvent.startTime) * 1000))}</span>
@@ -170,7 +193,7 @@
       {/if}
       {#if nextEvent}
         <div
-          class="flex flex-row gap-2 justify-start items-center p-4 w-full h-1/6 rounded-2xl opacity-30 glass"
+          class="flex flex-row gap-2 justify-start items-center p-4 w-full h-1/6 rounded-2xl opacity-50 glass"
         >
           <EventTypeIcon type={nextEvent.type} />
           <span class="overflow-hidden text-nowrap">{nextEvent.name}</span>
@@ -191,5 +214,27 @@
         </p>
       {/if}
     </div>
+    {#if activeEvent && activeEvent.musicUrl}
+      {@const hostname = URL.parse(activeEvent.musicUrl)?.hostname}
+      <a
+        class="flex flex-row gap-2 justify-center items-center p-2 w-full rounded-xl glass"
+        target="_blank"
+        rel="noopener noreferrer"
+        href={activeEvent.musicUrl}
+      >
+        <span>Music</span>
+
+        {#if hostname?.endsWith('spotify.com')}
+          <!-- prettier-ignore -->
+          <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none"><path fill="url(#SVG9DPAsdPE)" d="M9 7a1 1 0 0 1 .117 1.993L9 9H7a3 3 0 0 0-.176 5.995L7 15h2a1 1 0 0 1 .117 1.993L9 17H7a5 5 0 0 1-.217-9.995L7 7zm8 0a5 5 0 0 1 .217 9.995L17 17h-2a1 1 0 0 1-.117-1.993L15 15h2a3 3 0 0 0 .176-5.995L17 9h-2a1 1 0 0 1-.117-1.993L15 7zM7 11h10a1 1 0 0 1 .117 1.993L17 13H7a1 1 0 0 1-.117-1.993zh10z"/><defs><linearGradient id="SVG9DPAsdPE" x1="-4.429" x2="3.504" y1="2.625" y2="26.481" gradientUnits="userSpaceOnUse"><stop stop-color="#36dff1"/><stop offset="1" stop-color="#2764e7"/></linearGradient></defs></g></svg>
+        {:else if hostname?.endsWith('youtube.com') || hostname?.endsWith('youtu.be')}
+          <!-- prettier-ignore -->
+          <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 180"><path fill="#f00" d="M250.346 28.075A32.18 32.18 0 0 0 227.69 5.418C207.824 0 127.87 0 127.87 0S47.912.164 28.046 5.582A32.18 32.18 0 0 0 5.39 28.24c-6.009 35.298-8.34 89.084.165 122.97a32.18 32.18 0 0 0 22.656 22.657c19.866 5.418 99.822 5.418 99.822 5.418s79.955 0 99.82-5.418a32.18 32.18 0 0 0 22.657-22.657c6.338-35.348 8.291-89.1-.164-123.134"/><path fill="#fff" d="m102.421 128.06l66.328-38.418l-66.328-38.418z"/></svg>
+        {:else}
+          <!-- prettier-ignore -->
+          <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="none"><path fill="url(#SVGuv0AxdpE)" d="M10 18a8 8 0 1 0 0-16a8 8 0 0 0 0 16"/><path fill="url(#SVGhWhXiclN)" fill-rule="evenodd" d="M7.853 2.291a7 7 0 0 0-.816 1.51c-.368.906-.65 1.995-.826 3.199H2.58q-.195.485-.33 1h3.84a22 22 0 0 0 .001 4h-3.84q.135.515.33 1h3.63c.176 1.204.458 2.293.826 3.199a7 7 0 0 0 .816 1.51A8 8 0 0 0 10 18a8 8 0 0 0 2.147-.291a7 7 0 0 0 .816-1.51c.368-.906.65-1.995.826-3.199h3.63q.195-.485.329-1h-3.84a21.6 21.6 0 0 0 0-4h3.84a8 8 0 0 0-.33-1H13.79c-.176-1.204-.458-2.293-.826-3.199a7 7 0 0 0-.816-1.51A8 8 0 0 0 10 2a8 8 0 0 0-2.147.291M7.223 7c.166-1.076.42-2.035.74-2.822c.298-.733.642-1.292 1.003-1.66C9.324 2.153 9.672 2 10 2s.676.153 1.034.518c.36.368.705.927 1.003 1.66c.32.787.574 1.746.74 2.822zM10 18c.328 0 .676-.153 1.034-.518c.36-.368.705-.927 1.003-1.66c.32-.787.574-1.746.74-2.822H7.223c.167 1.076.421 2.035.741 2.822c.298.733.642 1.292 1.003 1.66c.358.365.706.518 1.034.518m-3-8c0 .692.033 1.362.096 2h5.808A21 21 0 0 0 13 10c0-.692-.033-1.362-.096-2H7.096A21 21 0 0 0 7 10" clip-rule="evenodd"/><defs><radialGradient id="SVGhWhXiclN" cx="0" cy="0" r="1" gradientTransform="rotate(225 10.4 3.895)scale(12.7313)" gradientUnits="userSpaceOnUse"><stop stop-color="#25a2f0"/><stop offset=".974" stop-color="#3bd5ff"/></radialGradient><linearGradient id="SVGuv0AxdpE" x1="5.556" x2="17.111" y1="4.667" y2="15.333" gradientUnits="userSpaceOnUse"><stop stop-color="#29c3ff"/><stop offset="1" stop-color="#2052cb"/></linearGradient></defs></g></svg>
+        {/if}
+      </a>
+    {/if}
   {/if}
 </div>

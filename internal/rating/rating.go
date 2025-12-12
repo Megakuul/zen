@@ -22,8 +22,8 @@ func CalculateRatingChange(start, stop, startTimer, stopTimer time.Time, streak 
 
 	// cap change at 3x anchor to avoid unrecoverable rating loss
 	// if someone e.g. forgets to stop the event before sleep.
-	if ratingChange > anchor.Seconds()*3 {
-		ratingChange = anchor.Seconds() * 3
+	if ratingChange < anchor.Seconds()*-3 {
+		ratingChange = anchor.Seconds() * -3
 	}
 
 	// streak is pushing the rating very strongly but this is intended to set a focus on streaks (discipline)
@@ -31,5 +31,5 @@ func CalculateRatingChange(start, stop, startTimer, stopTimer time.Time, streak 
 		ratingChange *= float64(streak / 10)
 	}
 
-	return fmt.Sprintf("v0.0.1-%s", anchor.String()), ratingChange
+	return fmt.Sprintf("v0.0.1-%s", anchor.String()), ratingChange / 4
 }

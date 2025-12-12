@@ -15,13 +15,13 @@ import (
 type Profile struct {
 	PK          string  `dynamodbav:"pk"`
 	SK          string  `dynamodbav:"sk"`
-	Username    string  `dynamodbav:"username,omitempty"`
-	Description string  `dynamodbav:"description,omitempty"`
-	Leaderboard bool    `dynamodbav:"leaderboard,omitempty"`
-	CreatedAt   int64   `dynamodbav:"created_at,omitempty"`
-	Streak      int64   `dynamodbav:"streak,omitempty"`
-	Score       float64 `dynamodbav:"score,omitempty"`
-	MaxStreak   int64   `dynamodbav:"max_streak,omitempty"`
+	Username    string  `dynamodbav:"username"`
+	Description string  `dynamodbav:"description"`
+	Leaderboard bool    `dynamodbav:"leaderboard"`
+	CreatedAt   int64   `dynamodbav:"created_at"`
+	Streak      int64   `dynamodbav:"streak"`
+	Score       float64 `dynamodbav:"score"`
+	MaxStreak   int64   `dynamodbav:"max_streak"`
 }
 
 func (m *Model) GetProfile(ctx context.Context, sub string) (*Profile, bool, error) {
@@ -86,9 +86,9 @@ func (m *Model) UpdateProfile(ctx context.Context, sub string, profile *Profile)
 }
 
 func (m *Model) UpdateProfileRating(ctx context.Context, sub string, ratingChange float64) error {
-	streakExpr := "streak = streak + 1"
+	streakExpr, streakChange := "streak = streak + :streak_change", 1
 	if ratingChange < 0 {
-		streakExpr = "streak = 0" // reset streak if negative
+		streakExpr, streakChange = "streak = :streak_change", 0 // reset streak if negative
 	}
 	result, err := m.client.UpdateItem(ctx, &dynamodb.UpdateItemInput{
 		TableName: aws.String(m.table),
@@ -97,10 +97,11 @@ func (m *Model) UpdateProfileRating(ctx context.Context, sub string, ratingChang
 			"sk": &types.AttributeValueMemberS{Value: "PROFILE"},
 		},
 		ExpressionAttributeValues: map[string]types.AttributeValue{
-			":change": &types.AttributeValueMemberN{Value: strconv.FormatFloat(ratingChange, 'f', 10, 64)},
+			":rating_change": &types.AttributeValueMemberN{Value: strconv.FormatFloat(ratingChange, 'f', 10, 64)},
+			":streak_change": &types.AttributeValueMemberN{Value: strconv.Itoa(streakChange)},
 		},
 		UpdateExpression: aws.String(fmt.Sprint("SET ",
-			"score = score + :change,",
+			"score = score + :rating_change,",
 			streakExpr,
 		)),
 		ConditionExpression: aws.String("attribute_exists(pk)"),
