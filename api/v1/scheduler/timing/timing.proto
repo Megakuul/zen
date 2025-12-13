@@ -18,6 +18,7 @@ message StopRequest {
 }
 
 message StopResponse {
+  double rating_change = 1;
 }
 
 service TimingService {

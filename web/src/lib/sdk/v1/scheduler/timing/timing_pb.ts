@@ -11,7 +11,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/scheduler/timing/timing.proto.
  */
 export const file_v1_scheduler_timing_timing: GenFile = /*@__PURE__*/
-  fileDesc("CiB2MS9zY2hlZHVsZXIvdGltaW5nL3RpbWluZy5wcm90bxITdjEuc2NoZWR1bGVyLnRpbWluZyIaCgxTdGFydFJlcXVlc3QSCgoCaWQYASABKAkiDwoNU3RhcnRSZXNwb25zZSIZCgtTdG9wUmVxdWVzdBIKCgJpZBgBIAEoCSIOCgxTdG9wUmVzcG9uc2UysAEKDVRpbWluZ1NlcnZpY2USUAoFU3RhcnQSIS52MS5zY2hlZHVsZXIudGltaW5nLlN0YXJ0UmVxdWVzdBoiLnYxLnNjaGVkdWxlci50aW1pbmcuU3RhcnRSZXNwb25zZSIAEk0KBFN0b3ASIC52MS5zY2hlZHVsZXIudGltaW5nLlN0b3BSZXF1ZXN0GiEudjEuc2NoZWR1bGVyLnRpbWluZy5TdG9wUmVzcG9uc2UiAEI1WjNnaXRodWIuY29tL21lZ2FrdXVsL3plbi9wa2cvYXBpL3YxL3NjaGVkdWxlci90aW1pbmdiBnByb3RvMw", [file_v1_scheduler_event]);
+  fileDesc("CiB2MS9zY2hlZHVsZXIvdGltaW5nL3RpbWluZy5wcm90bxITdjEuc2NoZWR1bGVyLnRpbWluZyIaCgxTdGFydFJlcXVlc3QSCgoCaWQYASABKAkiDwoNU3RhcnRSZXNwb25zZSIZCgtTdG9wUmVxdWVzdBIKCgJpZBgBIAEoCSIlCgxTdG9wUmVzcG9uc2USFQoNcmF0aW5nX2NoYW5nZRgBIAEoATKwAQoNVGltaW5nU2VydmljZRJQCgVTdGFydBIhLnYxLnNjaGVkdWxlci50aW1pbmcuU3RhcnRSZXF1ZXN0GiIudjEuc2NoZWR1bGVyLnRpbWluZy5TdGFydFJlc3BvbnNlIgASTQoEU3RvcBIgLnYxLnNjaGVkdWxlci50aW1pbmcuU3RvcFJlcXVlc3QaIS52MS5zY2hlZHVsZXIudGltaW5nLlN0b3BSZXNwb25zZSIAQjVaM2dpdGh1Yi5jb20vbWVnYWt1dWwvemVuL3BrZy9hcGkvdjEvc2NoZWR1bGVyL3RpbWluZ2IGcHJvdG8z", [file_v1_scheduler_event]);
 
 /**
  * @generated from message v1.scheduler.timing.StartRequest
@@ -64,6 +64,10 @@ export const StopRequestSchema: GenMessage<StopRequest> = /*@__PURE__*/
  * @generated from message v1.scheduler.timing.StopResponse
  */
 export type StopResponse = Message<"v1.scheduler.timing.StopResponse"> & {
+  /**
+   * @generated from field: double rating_change = 1;
+   */
+  ratingChange: number;
 };
 
 /**

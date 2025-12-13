@@ -11,7 +11,7 @@
   } from '$lib/sdk/v1/manager/management/management_pb';
   import { ClearToken, Logout } from '$lib/client/auth.svelte';
   import { VerifierStage } from '$lib/sdk/v1/manager/verifier_pb';
-  import { GetScoreDecorator } from '$lib/color/color';
+  import { GetScoreTextDecorator } from '$lib/color/color';
   import Streak from '$lib/components/Streak.svelte';
   import { Code, ConnectError } from '@connectrpc/connect';
   import { browser } from '$app/environment';
@@ -282,9 +282,9 @@
       </p>
     {/if}
     <div class="flex flex-row gap-4 justify-center items-center h-full">
-      <p class="text-5xl font-bold select-none sm:text-9xl">
+      <p class="text-5xl font-bold text-center select-none sm:text-9xl">
         Score
-        <span class={GetScoreDecorator(user.score)}>{user.score}</span>
+        <span class={GetScoreTextDecorator(user.score)}>{user.score}</span>
       </p>
       {#if user.streak > 0}
         <Streak streak={Number(user.streak)} enabled={true} title="current streak" />

@@ -1,7 +1,7 @@
 /**
- * GetScoreDecorator returns a text decorator for the provided score
+ * GetScoreTextDecorator returns a text decorator for the provided score
  */
-export function GetScoreDecorator(score: number): string {
+export function GetScoreTextDecorator(score: number): string {
   switch (true) {
     case score <= -1000:
       return 'text-red-950/90';
@@ -27,9 +27,9 @@ export function GetScoreDecorator(score: number): string {
 }
 
 /**
- * GetChangeDecorator returns a text decorator for the provided rating change
+ * GetChangeTextDecorator returns a text decorator for the provided rating change
  */
-export function GetChangeDecorator(change: number): string {
+export function GetChangeTextDecorator(change: number): string {
   switch (true) {
     case change <= -100:
       return 'text-red-950/90';
@@ -49,6 +49,34 @@ export function GetChangeDecorator(change: number): string {
       return 'text-emerald-400/80';
     case change > 0:
       return 'text-emerald-200/80';
+    default:
+      return '';
+  }
+}
+
+/**
+ * GetChangeBgDecorator returns a text decorator for the provided rating change
+ */
+export function GetChangeBgDecorator(change: number): string {
+  switch (true) {
+    case change <= -100:
+      return 'bg-red-950/90';
+    case change <= -50:
+      return 'bg-red-800/90';
+    case change <= -10:
+      return 'bg-red-200/80';
+    case change < 0:
+      return 'bg-orange-700/80';
+    case change == 0:
+      return 'bg-slate-50/90';
+    case change >= 100:
+      return 'bg-slate-100/40';
+    case change >= 50:
+      return 'bg-emerald-700/90';
+    case change >= 10:
+      return 'bg-emerald-400/80';
+    case change > 0:
+      return 'bg-emerald-200/80';
     default:
       return '';
   }

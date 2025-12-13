@@ -25,6 +25,7 @@
 	"dependencies": {
 		"@connectrpc/connect": "^2.1.0",
 		"@connectrpc/connect-web": "^2.1.0",
+		"@fireworks-js/svelte": "^2.10.8",
 		"jwt-decode": "^4.0.0",
 		"svelte-inview": "^4.0.4",
 		"svelte-motion": "^0.12.2",

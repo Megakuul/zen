@@ -3,11 +3,14 @@
   import { create } from '@bufbuild/protobuf';
   import { goto } from '$app/navigation';
   import { Exec } from '$lib/error/error.svelte';
-  import { PlanningClient, TimingClient } from '$lib/client/client.svelte';
-  import { GetRequestSchema } from '$lib/sdk/v1/scheduler/planning/planning_pb';
+  import { ManagementClient, PlanningClient, TimingClient } from '$lib/client/client.svelte';
+  import { GetRequestSchema as PlanningGetSchema } from '$lib/sdk/v1/scheduler/planning/planning_pb';
+  import { GetRequestSchema as ManagementGetSchema } from '$lib/sdk/v1/manager/management/management_pb';
   import { StartRequestSchema, StopRequestSchema } from '$lib/sdk/v1/scheduler/timing/timing_pb';
   import EventTypeIcon from '$lib/components/EventTypeIcon.svelte';
-  import { GetChangeDecorator } from '$lib/color/color';
+  import { GetChangeTextDecorator } from '$lib/color/color';
+  import Streak from '$lib/components/Streak.svelte';
+  import Fireworks from '@fireworks-js/svelte';
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -25,6 +28,20 @@
 
   let initialLoad = $state(false);
 
+  let ratingChange = $state(0);
+
+  /** @type {Fireworks} */
+  let fw;
+  $effect(() => {
+    const fireworks = fw.fireworksInstance();
+    if (ratingChange > 0) {
+      fireworks.start();
+      setTimeout(() => {
+        fireworks.waitStop();
+      }, 1000);
+    } else fireworks.waitStop();
+  });
+
   let day = new Date();
 
   let morning = $derived(new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate()));
@@ -33,12 +50,15 @@
     new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 23, 59, 59),
   );
 
+  /** @type {import('$lib/sdk/v1/manager/user_pb').User|undefined}*/
+  let user = $state();
+
   /** @type {import('$lib/sdk/v1/scheduler/event_pb').Event[]}*/
   let events = $state([]);
 
   let activeEventIdx = $derived.by(() => {
     for (let i = 0; i < events.length; i++) {
-      if (!events[i].timerStopTime) {
+      if (i !== 0 && !events[i].timerStopTime) {
         return i;
       }
     }
@@ -51,13 +71,16 @@
   async function loadEvents() {
     await Exec(
       async () => {
-        const response = await PlanningClient().get(
-          create(GetRequestSchema, {
+        const eventResponse = await PlanningClient().get(
+          create(PlanningGetSchema, {
             since: BigInt(morning.getTime() / 1000),
             until: BigInt(evening.getTime() / 1000),
           }),
         );
-        events = response.events;
+        events = eventResponse.events;
+        const userResponse = await ManagementClient().get(create(ManagementGetSchema, {}));
+        user = userResponse.user;
+        ratingChange = 0;
         initialLoad = true;
       },
       async () => {
@@ -99,6 +122,28 @@
   <meta property="og:image" content="https://zen.megakuul.com/favicon.svg" />
 </svelte:head>
 
+<Fireworks
+  bind:this={fw}
+  autostart={false}
+  class="fixed inset-0 w-full h-full"
+  options={{
+    opacity: 0.1,
+    hue: {
+      max: 186,
+      min: 128,
+    },
+    decay: {
+      max: 0.03,
+      min: 0.001,
+    },
+    intensity: 30,
+    traceSpeed: 1,
+    particles: 80,
+    friction: 0.99,
+    acceleration: 1.1,
+  }}
+/>
+
 <div
   class="flex flex-col gap-8 p-2 w-screen text-base rounded-2xl sm:p-8 sm:text-4xl h-[80dvh] max-w-[1000px]"
 >
@@ -118,7 +163,7 @@
           <EventTypeIcon type={prevEvent.type} />
           <span class="overflow-hidden line-through text-nowrap">{prevEvent.name}</span>
           <span class="brightness-200">
-            (<span class={GetChangeDecorator(prevEvent.ratingChange)}>
+            (<span class={GetChangeTextDecorator(prevEvent.ratingChange)}>
               {scoreFormatter.format(prevEvent.ratingChange)}
             </span>)
           </span>
@@ -134,61 +179,94 @@
           onclick={async () => {
             await Exec(async () => {
               if (activeEvent.timerStartTime) {
-                await TimingClient().stop(create(StopRequestSchema, { id: activeEvent.id }));
+                const response = await TimingClient().stop(
+                  create(StopRequestSchema, { id: activeEvent.id }),
+                );
+                ratingChange = response.ratingChange;
                 if (nextEvent)
                   await TimingClient().start(create(StartRequestSchema, { id: nextEvent.id }));
               } else {
                 await TimingClient().start(create(StartRequestSchema, { id: activeEvent.id }));
+                await loadEvents();
               }
-              await loadEvents();
             }, undefined);
           }}
-          class="flex flex-col justify-between items-center w-full h-full rounded-2xl cursor-pointer glass"
+          class="flex overflow-hidden flex-col justify-between items-center w-full h-full rounded-2xl cursor-pointer glass"
         >
-          <div class="flex flex-row gap-2 items-center text-lg sm:text-xl text-slate-100/40">
-            <EventTypeIcon type={activeEvent.type} svgClass="w-2 h-2 sm:w-4 sm:h-4" />
-            <span>{activeEvent.name}</span>
-          </div>
-          {#if !activeEvent.timerStartTime}
-            <p class="text-3xl font-bold sm:text-6xl text-slate-100/30">Start Event</p>
-          {:else if elapsed}
-            {@const elapsedDate = new Date(elapsed)}
-            {@const expectedDate = new Date(
-              Number(activeEvent.stopTime - activeEvent.startTime) * 1000,
-            )}
-            <div class="flex flex-col">
-              <svg class="h-full stroke-blue-200/40 [stroke-linecap:round]">
-                <circle
-                  cx="100"
-                  cy="100"
-                  r="90"
-                  stroke-width="10"
-                  fill="none"
-                  pathLength={expectedDate.getTime()}
-                  stroke-dasharray="{elapsedDate.getTime()} {expectedDate.getTime()}"
-                />
-              </svg>
-              <p class="text-3xl sm:text-6xl">
-                {counterFormatter.format({
-                  hours: elapsedDate.getUTCHours(),
-                  minutes: elapsedDate.getUTCMinutes(),
-                  seconds: elapsedDate.getUTCSeconds(),
-                })}
-              </p>
-              <p class="sm:text-2xl text-1xl text-slate-200/40">
-                {counterFormatter.format({
-                  hours: expectedDate.getUTCHours(),
-                  minutes: expectedDate.getUTCMinutes(),
-                  seconds: expectedDate.getUTCSeconds(),
-                })}
+          {#if !ratingChange}
+            <div class="flex flex-row gap-2 items-center text-lg sm:text-xl text-slate-100/40">
+              <EventTypeIcon type={activeEvent.type} svgClass="w-2 h-2 sm:w-4 sm:h-4" />
+              <span>{activeEvent.name}</span>
+            </div>
+            {#if !activeEvent.timerStartTime}
+              <p class="text-3xl font-bold sm:text-6xl text-slate-100/30">Start Event</p>
+            {:else if elapsed}
+              {@const elapsedDate = new Date(elapsed)}
+              {@const expectedDate = new Date(
+                Number(activeEvent.stopTime - activeEvent.startTime) * 1000,
+              )}
+              <div class="flex relative flex-col justify-center items-center w-full h-full">
+                <svg
+                  class="stroke-slate-100/20 [stroke-linecap:round] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px]"
+                >
+                  <circle
+                    class="[cx:150px] [cy:150px] [r:120px] sm:[cx:250px] sm:[cy:250px] sm:[r:240px]"
+                    stroke-width="10"
+                    fill="none"
+                    pathLength={expectedDate.getTime()}
+                    stroke-dasharray={expectedDate.getTime()}
+                  />
+                </svg>
+                <svg
+                  class="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] stroke-slate-100/60 [stroke-linecap:round] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px]"
+                >
+                  <circle
+                    class="[cx:150px] [cy:150px] [r:120px] sm:[cx:250px] sm:[cy:250px] sm:[r:240px]"
+                    stroke-width="10"
+                    fill="none"
+                    pathLength={expectedDate.getTime()}
+                    stroke-dashoffset={+expectedDate / 4}
+                    stroke-dasharray="{+elapsedDate} {+expectedDate - +elapsedDate}"
+                  />
+                </svg>
+                <div
+                  class="flex flex-col justify-center items-center absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%]"
+                >
+                  {#if user?.streak}
+                    <Streak streak={Number(user?.streak)} enabled={true} title="current streak" />
+                  {/if}
+                  <p class="text-3xl sm:text-6xl">
+                    {counterFormatter.format({
+                      hours: elapsedDate.getUTCHours(),
+                      minutes: elapsedDate.getUTCMinutes(),
+                      seconds: elapsedDate.getUTCSeconds(),
+                    })}
+                  </p>
+                  <p class="sm:text-2xl text-1xl text-slate-200/40">
+                    {counterFormatter.format({
+                      hours: expectedDate.getUTCHours(),
+                      minutes: expectedDate.getUTCMinutes(),
+                      seconds: expectedDate.getUTCSeconds(),
+                    })}
+                  </p>
+                </div>
+              </div>
+            {/if}
+            <span class="flex flex-row gap-1 text-sm sm:text-lg text-slate-100/40">
+              <span>{kitchenFormatter.format(new Date(Number(activeEvent.startTime) * 1000))}</span>
+              <span>-</span>
+              <span>{kitchenFormatter.format(new Date(Number(activeEvent.stopTime) * 1000))}</span>
+            </span>
+          {:else}
+            <div
+              class="flex justify-center items-center w-full h-full
+                {ratingChange < 0 ? 'missed-magic' : 'success-magic'}"
+            >
+              <p class="text-4xl sm:text-8xl {GetChangeTextDecorator(ratingChange)}">
+                {scoreFormatter.format(ratingChange)}
               </p>
             </div>
           {/if}
-          <span class="flex flex-row gap-1 text-sm sm:text-lg text-slate-100/40">
-            <span>{kitchenFormatter.format(new Date(Number(activeEvent.startTime) * 1000))}</span>
-            <span>-</span>
-            <span>{kitchenFormatter.format(new Date(Number(activeEvent.stopTime) * 1000))}</span>
-          </span>
         </button>
       {/if}
       {#if nextEvent}
@@ -238,3 +316,56 @@
     {/if}
   {/if}
 </div>
+
+<style>
+  .success-magic {
+    background-image: linear-gradient(
+      to bottom right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(0, 255, 0, 0.1) 75%
+    );
+    background-size: 400% 400%;
+    animation: move-magic 2s ease forwards;
+  }
+
+  .missed-magic {
+    background-image: linear-gradient(
+      to bottom right,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0) 50%,
+      rgba(255, 0, 0, 0.1) 75%
+    );
+    background-size: 400% 400%;
+    animation: move-magic 1s ease forwards;
+  }
+
+  @keyframes move-magic {
+    0% {
+      background-position: 0% 0%;
+    }
+    50% {
+    }
+    100% {
+      background-position: 100% 100%;
+    }
+  }
+
+  .success-magic * {
+    animation: popup-magic 2s ease forwards;
+  }
+
+  .missed-magic * {
+    animation: popup-magic 1s ease forwards;
+  }
+
+  @keyframes popup-magic {
+    0%,
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+</style>

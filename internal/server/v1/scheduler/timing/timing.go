@@ -114,5 +114,7 @@ func (s *Service) Stop(ctx context.Context, r *connect.Request[timing.StopReques
 		}
 	}
 
-	return connect.NewResponse(&timing.StopResponse{}), nil
+	return connect.NewResponse(&timing.StopResponse{
+		RatingChange: ratingChange,
+	}), nil
 }

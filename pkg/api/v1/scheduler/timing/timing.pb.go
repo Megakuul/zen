@@ -148,6 +148,7 @@ func (x *StopRequest) GetId() string {
 
 type StopResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
+	RatingChange  float64                `protobuf:"fixed64,1,opt,name=rating_change,json=ratingChange,proto3" json:"rating_change,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -182,6 +183,13 @@ func (*StopResponse) Descriptor() ([]byte, []int) {
 	return file_v1_scheduler_timing_timing_proto_rawDescGZIP(), []int{3}
 }
 
+func (x *StopResponse) GetRatingChange() float64 {
+	if x != nil {
+		return x.RatingChange
+	}
+	return 0
+}
+
 var File_v1_scheduler_timing_timing_proto protoreflect.FileDescriptor
 
 const file_v1_scheduler_timing_timing_proto_rawDesc = "" +
@@ -191,8 +199,9 @@ const file_v1_scheduler_timing_timing_proto_rawDesc = "" +
 	"\x02id\x18\x01 \x01(\tR\x02id\"\x0f\n" +
 	"\rStartResponse\"\x1d\n" +
 	"\vStopRequest\x12\x0e\n" +
-	"\x02id\x18\x01 \x01(\tR\x02id\"\x0e\n" +
-	"\fStopResponse2\xb0\x01\n" +
+	"\x02id\x18\x01 \x01(\tR\x02id\"3\n" +
+	"\fStopResponse\x12#\n" +
+	"\rrating_change\x18\x01 \x01(\x01R\fratingChange2\xb0\x01\n" +
 	"\rTimingService\x12P\n" +
 	"\x05Start\x12!.v1.scheduler.timing.StartRequest\x1a\".v1.scheduler.timing.StartResponse\"\x00\x12M\n" +
 	"\x04Stop\x12 .v1.scheduler.timing.StopRequest\x1a!.v1.scheduler.timing.StopResponse\"\x00B5Z3github.com/megakuul/zen/pkg/api/v1/scheduler/timingb\x06proto3"
