@@ -55,7 +55,7 @@
 
 <AgentTable class="mt-24 sm:mt-64"></AgentTable>
 
-<footer class="flex flex-col gap-2 justify-center items-center mt-20 mb-40 text-2xl">
+<footer class="flex flex-col gap-2 justify-center items-center mt-20 mb-40 text-lg sm:text-2xl">
   <p>
     <a class="font-bold" href="https://github.com/megakuul/zen">Opensource Project</a> made with ⏳
     and ❤️ by <a class="font-bold" href="https://github.com/megakuul">Megakuul</a>

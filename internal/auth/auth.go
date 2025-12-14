@@ -81,9 +81,7 @@ func (c *Controller) processEmailStage(ctx context.Context, emailAddr string) er
 				Data: aws.String("Verification Code"), Charset: aws.String("UTF-8"),
 			},
 			Body: &sestypes.Body{Text: &sestypes.Content{
-				Data: aws.String(fmt.Sprintf(
-					"Your application verification code is '%s'", code.String(),
-				)),
+				Data:    aws.String(code.String()),
 				Charset: aws.String("UTF-8"),
 			}},
 		},

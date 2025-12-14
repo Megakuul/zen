@@ -195,7 +195,7 @@
           }}
           class="flex overflow-hidden flex-col justify-between items-center w-full h-full rounded-2xl cursor-pointer glass"
         >
-          {#if ratingChange}
+          {#if !ratingChange}
             <div class="flex flex-row gap-2 items-center text-lg sm:text-xl text-slate-100/40">
               <EventTypeIcon type={activeEvent.type} svgClass="w-2 h-2 sm:w-4 sm:h-4" />
               <span>{activeEvent.name}</span>
@@ -306,8 +306,6 @@
         rel="noopener noreferrer"
         href={activeEvent.musicUrl}
       >
-        <span>Music</span>
-
         {#if hostname?.endsWith('spotify.com')}
           <!-- prettier-ignore -->
           <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><g fill="none"><path fill="url(#SVG9DPAsdPE)" d="M9 7a1 1 0 0 1 .117 1.993L9 9H7a3 3 0 0 0-.176 5.995L7 15h2a1 1 0 0 1 .117 1.993L9 17H7a5 5 0 0 1-.217-9.995L7 7zm8 0a5 5 0 0 1 .217 9.995L17 17h-2a1 1 0 0 1-.117-1.993L15 15h2a3 3 0 0 0 .176-5.995L17 9h-2a1 1 0 0 1-.117-1.993L15 7zM7 11h10a1 1 0 0 1 .117 1.993L17 13H7a1 1 0 0 1-.117-1.993zh10z"/><defs><linearGradient id="SVG9DPAsdPE" x1="-4.429" x2="3.504" y1="2.625" y2="26.481" gradientUnits="userSpaceOnUse"><stop stop-color="#36dff1"/><stop offset="1" stop-color="#2764e7"/></linearGradient></defs></g></svg>
@@ -318,6 +316,7 @@
           <!-- prettier-ignore -->
           <svg class="w-5 h-5 sm:w-8 sm:h-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><g fill="none"><path fill="url(#SVGuv0AxdpE)" d="M10 18a8 8 0 1 0 0-16a8 8 0 0 0 0 16"/><path fill="url(#SVGhWhXiclN)" fill-rule="evenodd" d="M7.853 2.291a7 7 0 0 0-.816 1.51c-.368.906-.65 1.995-.826 3.199H2.58q-.195.485-.33 1h3.84a22 22 0 0 0 .001 4h-3.84q.135.515.33 1h3.63c.176 1.204.458 2.293.826 3.199a7 7 0 0 0 .816 1.51A8 8 0 0 0 10 18a8 8 0 0 0 2.147-.291a7 7 0 0 0 .816-1.51c.368-.906.65-1.995.826-3.199h3.63q.195-.485.329-1h-3.84a21.6 21.6 0 0 0 0-4h3.84a8 8 0 0 0-.33-1H13.79c-.176-1.204-.458-2.293-.826-3.199a7 7 0 0 0-.816-1.51A8 8 0 0 0 10 2a8 8 0 0 0-2.147.291M7.223 7c.166-1.076.42-2.035.74-2.822c.298-.733.642-1.292 1.003-1.66C9.324 2.153 9.672 2 10 2s.676.153 1.034.518c.36.368.705.927 1.003 1.66c.32.787.574 1.746.74 2.822zM10 18c.328 0 .676-.153 1.034-.518c.36-.368.705-.927 1.003-1.66c.32-.787.574-1.746.74-2.822H7.223c.167 1.076.421 2.035.741 2.822c.298.733.642 1.292 1.003 1.66c.358.365.706.518 1.034.518m-3-8c0 .692.033 1.362.096 2h5.808A21 21 0 0 0 13 10c0-.692-.033-1.362-.096-2H7.096A21 21 0 0 0 7 10" clip-rule="evenodd"/><defs><radialGradient id="SVGhWhXiclN" cx="0" cy="0" r="1" gradientTransform="rotate(225 10.4 3.895)scale(12.7313)" gradientUnits="userSpaceOnUse"><stop stop-color="#25a2f0"/><stop offset=".974" stop-color="#3bd5ff"/></radialGradient><linearGradient id="SVGuv0AxdpE" x1="5.556" x2="17.111" y1="4.667" y2="15.333" gradientUnits="userSpaceOnUse"><stop stop-color="#29c3ff"/><stop offset="1" stop-color="#2052cb"/></linearGradient></defs></g></svg>
         {/if}
+        <span class="font-bold">Music</span>
       </a>
     {/if}
   {/if}

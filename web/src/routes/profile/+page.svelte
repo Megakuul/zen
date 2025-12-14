@@ -33,7 +33,7 @@
       return;
     }
 
-    dayStartHour = Number(localStorage.getItem(`default_day_start`) ?? dayStartHour);
+    dayStartHour = Number(localStorage.getItem(`default_day_start`) || dayStartHour);
 
     eventTypes = [];
     // remove typescript enum double mapping (only keep string keys)

@@ -175,6 +175,8 @@
   /** @type {HTMLDivElement|undefined} */
   let trashZone = $state();
 
+  let maybeDrag = $state(0);
+
   /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event | undefined} */
   let dragged = $state(undefined);
 
@@ -184,37 +186,52 @@
   let initialDragY = $state(0);
 
   onMount(() => {
-    // the following touchstart interceptor is required to prevent mobile browsers
-    // from cancelling the pointer event because they believe you are trying to scroll.
-    // Basically we set the touch-action: none; to prevent this, but it doesnt work properly
-    // as the browser already tries to interpret the touch as scroll/longpress/etc.
-    // by adding a passive eventListener we disable this behavior forcing every touch
-    // through the interceptTouch (where it is prevented eventually) before the browser does its logic.
+    // the following interceptors are required because the browser dragging api is completely retarded.
+    // first of all they must be implemented in js because they must not be "passive"
+    // (which makes the browser bypass the eventbubbling in the decision phase (to get smoother scrolling)).
+    // besides we want to allow scroll OR dragndrop so we cannot preventDefault ontouchstart (as we maybe need default scroll behavior).
+    // therefore we just hijack and cancel operations that could be used by the browser to cancel the event (scroll or contextmenu).
     /** @param {TouchEvent} e  */
-    function interceptTouch(e) {
+    function interceptStart(e) {
       if (dragged) e.preventDefault();
     }
-    window.addEventListener('touchstart', interceptTouch, { passive: false });
+    /** @param {TouchEvent} e  */
+    function interceptMove(e) {
+      if (maybeDrag || dragged) e.preventDefault();
+    }
+    /** @param {PointerEvent} e  */
+    function interceptContext(e) {
+      if (maybeDrag || dragged) e.preventDefault();
+    }
+    window.addEventListener('touchstart', interceptStart, { passive: false });
+    window.addEventListener('touchmove', interceptMove, { passive: false });
+    window.addEventListener('contextmenu', interceptContext, { passive: false });
     return () => {
-      window.removeEventListener('touchstart', interceptTouch);
+      window.removeEventListener('touchstart', interceptStart);
+      window.removeEventListener('touchmove', interceptMove);
+      window.removeEventListener('contextmenu', interceptContext);
     };
   });
 
   /** @param {PointerEvent} e @param {import("$lib/sdk/v1/scheduler/event_pb").Event} event  */
   function handleDown(e, event) {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.target instanceof Element) {
-      e.target?.setPointerCapture(e.pointerId);
-    }
-    dragged = event;
-    dragX = e.x - dragWidth / 2;
-    dragY = e.y - (Number(dragged.stopTime - dragged.startTime) * shrinkFactor) / 2;
-    initialDragY = dragY;
+    maybeDrag = setTimeout(() => {
+      maybeDrag = 0;
+      if (e.target instanceof Element) {
+        e.target?.setPointerCapture(e.pointerId);
+      }
+      dragged = event;
+      dragX = e.x - dragWidth / 2;
+      dragY = e.y - (Number(dragged.stopTime - dragged.startTime) * shrinkFactor) / 2;
+      initialDragY = dragY;
+    }, 200);
   }
 
   /** @param {PointerEvent} e */
   async function handleUp(e) {
+    clearTimeout(maybeDrag);
+    maybeDrag = 0;
+
     e.preventDefault();
     e.stopPropagation();
     const event = dragged;
@@ -267,9 +284,12 @@
 
   /** @param {PointerEvent} e */
   function handleMove(e) {
-    e.preventDefault();
-    e.stopPropagation();
+    clearTimeout(maybeDrag);
+    maybeDrag = 0;
+
     if (dragged) {
+      e.preventDefault();
+      e.stopPropagation();
       dragX = e.x - dragWidth / 2;
       dragY = e.y - (Number(dragged.stopTime - dragged.startTime) * shrinkFactor) / 2;
       dragged.startTime += BigInt(Math.floor((dragY - initialDragY) / shrinkFactor));
@@ -369,6 +389,10 @@
       {/if}
     </button>
   </div>
+  <span class="mt-2 text-slate-400/80">
+    {kitchenFormatter.format(Number(newEventStart) * 1000)} -
+    {kitchenFormatter.format(Number(newEventStop) * 1000)}
+  </span>
   <input
     type="range"
     name="duration"
@@ -376,11 +400,11 @@
     step="300"
     min={newEventStart}
     max={evening.getTime() / 1000}
-    class="my-3 w-full"
+    class="w-full"
   />
 
   <div class="flex flex-row justify-between w-full h-[60dvh]">
-    <div class="px-5 w-full h-full overflow-scroll-hidden">
+    <div class="w-full h-full overflow-scroll-hidden">
       {#if !initialLoad}
         <div class="flex justify-center items-center w-full h-full">
           <!-- prettier-ignore -->
@@ -417,7 +441,7 @@
             {@const immutable = i <= immutablePivot}
             <div
               style={event.id === dragged?.id
-                ? `position: fixed; width: ${dragWidth}px; top: ${dragY}px; left: ${dragX}px; z-index: 10; touch-action: none;`
+                ? `position: fixed; width: ${dragWidth}px; top: ${dragY}px; left: ${dragX}px; z-index: 10`
                 : 'width: 100%;'}
               role="row"
               tabindex={0}
@@ -443,6 +467,22 @@
         </div>
       {/if}
     </div>
+    <input
+      type="range"
+      name="scale"
+      bind:value={shrinkFactor}
+      onchange={() => {
+        timeline?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'center',
+        });
+      }}
+      step="any"
+      min={0.007}
+      max={0.04}
+      class="ml-3 [writing-mode:vertical-lr]"
+    />
   </div>
 
   {#if dragged}
