@@ -11,6 +11,7 @@
   import { GetChangeTextDecorator } from '$lib/color/color';
   import Streak from '$lib/components/Streak.svelte';
   import Fireworks from '@fireworks-js/svelte';
+  import Countup from '$lib/components/Countup.svelte';
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -105,7 +106,7 @@
     animateFrame = requestAnimationFrame(updateCounter);
 
     const interval = setInterval(async () => {
-      await loadEvents();
+      if (!ratingChange) await loadEvents();
     }, 10000);
     return () => {
       cancelAnimationFrame(animateFrame);
@@ -145,7 +146,7 @@
 />
 
 <div
-  class="flex flex-col gap-8 p-2 w-screen text-base rounded-2xl sm:p-8 sm:text-4xl h-[80dvh] max-w-[1000px]"
+  class="flex flex-col gap-8 p-2 w-screen text-base rounded-2xl sm:p-8 sm:text-4xl h-[85dvh] max-w-[1000px]"
 >
   {#if !initialLoad}
     <div class="flex justify-center items-center w-full h-full">
@@ -183,6 +184,7 @@
                   create(StopRequestSchema, { id: activeEvent.id }),
                 );
                 ratingChange = response.ratingChange;
+                setTimeout(async () => await loadEvents(), 3000);
                 if (nextEvent)
                   await TimingClient().start(create(StartRequestSchema, { id: nextEvent.id }));
               } else {
@@ -193,7 +195,7 @@
           }}
           class="flex overflow-hidden flex-col justify-between items-center w-full h-full rounded-2xl cursor-pointer glass"
         >
-          {#if !ratingChange}
+          {#if ratingChange}
             <div class="flex flex-row gap-2 items-center text-lg sm:text-xl text-slate-100/40">
               <EventTypeIcon type={activeEvent.type} svgClass="w-2 h-2 sm:w-4 sm:h-4" />
               <span>{activeEvent.name}</span>
@@ -207,10 +209,10 @@
               )}
               <div class="flex relative flex-col justify-center items-center w-full h-full">
                 <svg
-                  class="stroke-slate-100/20 [stroke-linecap:round] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px]"
+                  class="stroke-slate-100/20 [stroke-linecap:round] w-[240px] h-[240px] sm:w-[400px] sm:h-[400px]"
                 >
                   <circle
-                    class="[cx:150px] [cy:150px] [r:120px] sm:[cx:250px] sm:[cy:250px] sm:[r:240px]"
+                    class="[cx:120px] [cy:120px] [r:100px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
                     stroke-width="10"
                     fill="none"
                     pathLength={expectedDate.getTime()}
@@ -218,10 +220,10 @@
                   />
                 </svg>
                 <svg
-                  class="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] stroke-slate-100/60 [stroke-linecap:round] w-[300px] h-[300px] sm:w-[500px] sm:h-[500px]"
+                  class="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] stroke-slate-100/60 [stroke-linecap:round] w-[240px] h-[240px] sm:w-[400px] sm:h-[400px]"
                 >
                   <circle
-                    class="[cx:150px] [cy:150px] [r:120px] sm:[cx:250px] sm:[cy:250px] sm:[r:240px]"
+                    class="[cx:120px] [cy:120px] [r:100px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
                     stroke-width="10"
                     fill="none"
                     pathLength={expectedDate.getTime()}
@@ -262,8 +264,12 @@
               class="flex justify-center items-center w-full h-full
                 {ratingChange < 0 ? 'missed-magic' : 'success-magic'}"
             >
-              <p class="text-4xl sm:text-8xl {GetChangeTextDecorator(ratingChange)}">
-                {scoreFormatter.format(ratingChange)}
+              <p
+                class="text-4xl sm:text-8xl px-8 py-2 rounded-2xl shadow-inner min-w-64 shadow-slate-800/20 bg-stone-950/80 brightness-200 {GetChangeTextDecorator(
+                  ratingChange,
+                )}"
+              >
+                <Countup value={scoreFormatter.format(ratingChange)} />
               </p>
             </div>
           {/if}
@@ -337,14 +343,12 @@
       rgba(255, 0, 0, 0.1) 75%
     );
     background-size: 400% 400%;
-    animation: move-magic 1s ease forwards;
+    background-position: 100% 100%;
   }
 
   @keyframes move-magic {
     0% {
       background-position: 0% 0%;
-    }
-    50% {
     }
     100% {
       background-position: 100% 100%;
@@ -353,19 +357,5 @@
 
   .success-magic * {
     animation: popup-magic 2s ease forwards;
-  }
-
-  .missed-magic * {
-    animation: popup-magic 1s ease forwards;
-  }
-
-  @keyframes popup-magic {
-    0%,
-    50% {
-      opacity: 0;
-    }
-    100% {
-      opacity: 1;
-    }
   }
 </style>

@@ -28,7 +28,7 @@
   });
 
   // factor applied to event seconds to get the pixels on the canvas.
-  let shrinkFactor = $state(0.007);
+  let shrinkFactor = $state(0.02);
 
   let loading = $state(false);
 
@@ -380,7 +380,7 @@
   />
 
   <div class="flex flex-row justify-between w-full h-[60dvh]">
-    <div class="w-full h-full overflow-scroll-hidden">
+    <div class="px-5 w-full h-full overflow-scroll-hidden">
       {#if !initialLoad}
         <div class="flex justify-center items-center w-full h-full">
           <!-- prettier-ignore -->
@@ -443,15 +443,6 @@
         </div>
       {/if}
     </div>
-    <input
-      type="range"
-      name="scale"
-      bind:value={shrinkFactor}
-      step="any"
-      min={0.007}
-      max={0.04}
-      class="ml-3 [writing-mode:vertical-lr]"
-    />
   </div>
 
   {#if dragged}
