@@ -50,7 +50,7 @@
 {#if collapsed}
   <nav
     transition:fade
-    class="fixed w-full flex flex-row justify-center {hidden
+    class="fixed z-40 w-full flex flex-row justify-center {hidden
       ? 'bottom-[-35px]'
       : 'bottom-10'} transition-all duration-700"
   >

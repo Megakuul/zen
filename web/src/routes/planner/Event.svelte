@@ -1,7 +1,6 @@
 <script>
   import { GetChangeTextDecorator } from '$lib/color/color';
   import EventTypeIcon from '$lib/components/EventTypeIcon.svelte';
-  import { EventType } from '$lib/sdk/v1/scheduler/event_pb';
 
   /**
     @type {{

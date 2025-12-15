@@ -39,18 +39,14 @@
 
   let day = $state(new Date());
 
-  // dayStartHour defines when the calendar day starts. Changes to this value only apply for empty calendars.
-  let dayStartHour = $derived.by(() => {
-    if (events.length > 0) {
-      return new Date(Number(events[0].startTime) * 1000).getHours();
-    } else if (browser) {
-      return Number(localStorage.getItem(`default_day_start`) ?? 6) || 6;
-    } else return 6;
-  });
+  // morningOffset defines when the calendar day starts. Changes to this value only apply for empty calendars.
+  let morningOffset = $state(0);
 
-  let morning = $derived(
-    new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), dayStartHour),
+  let visualMorning = $derived(
+    new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), morningOffset),
   );
+
+  let morning = $derived(new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 0));
 
   let evening = $derived(
     new Date(day.getUTCFullYear(), day.getUTCMonth(), day.getUTCDate(), 23, 59, 59),
@@ -82,6 +78,14 @@
           }),
         );
         events = response.events;
+        if (!initialLoad) {
+          // initially define when the calendar starts (if an event is already present, it starts there)
+          if (events.length > 0) {
+            morningOffset = new Date(Number(events[0].startTime) * 1000).getHours();
+          } else if (browser) {
+            morningOffset = Number(localStorage.getItem(`default_day_start`) || 6) || 6;
+          }
+        }
         initialLoad = true;
       },
       async () => {
@@ -103,7 +107,7 @@
   });
   let newEventStart = $derived.by(() => {
     if (events.length > 0) return Number(events.at(-1)?.stopTime);
-    else return morning.getTime() / 1000;
+    else return visualMorning.getTime() / 1000;
   });
   let newEventStop = $derived(newEventStart + 3600);
 
@@ -113,7 +117,7 @@
       name: newEventName,
       musicUrl: newEventMusic,
       startTime: BigInt(newEventStart),
-      stopTime: BigInt(newEventStop),
+      stopTime: BigInt(Math.min(newEventStop, evening.getTime() / 1000)),
     }),
   );
 
@@ -176,6 +180,7 @@
   let trashZone = $state();
 
   let maybeDrag = $state(0);
+  let maybeDragY = $state(0);
 
   /** @type {import("$lib/sdk/v1/scheduler/event_pb").Event | undefined} */
   let dragged = $state(undefined);
@@ -215,6 +220,7 @@
 
   /** @param {PointerEvent} e @param {import("$lib/sdk/v1/scheduler/event_pb").Event} event  */
   function handleDown(e, event) {
+    maybeDragY = e.y;
     maybeDrag = setTimeout(() => {
       maybeDrag = 0;
       if (e.target instanceof Element) {
@@ -224,7 +230,7 @@
       dragX = e.x - dragWidth / 2;
       dragY = e.y - (Number(dragged.stopTime - dragged.startTime) * shrinkFactor) / 2;
       initialDragY = dragY;
-    }, 200);
+    }, 100);
   }
 
   /** @param {PointerEvent} e */
@@ -284,8 +290,10 @@
 
   /** @param {PointerEvent} e */
   function handleMove(e) {
-    clearTimeout(maybeDrag);
-    maybeDrag = 0;
+    if (Math.abs(maybeDragY - e.y) > 8) {
+      clearTimeout(maybeDrag);
+      maybeDrag = 0;
+    }
 
     if (dragged) {
       e.preventDefault();
@@ -318,6 +326,7 @@
       onclick={() => {
         const previous = new Date(day);
         previous.setDate(day.getDate() - 1);
+        initialLoad = false;
         day = previous;
       }}>&lt;</button
     >
@@ -329,6 +338,7 @@
       onclick={() => {
         const next = new Date(day);
         next.setDate(day.getDate() + 1);
+        initialLoad = false;
         day = next;
       }}>&gt;</button
     >
@@ -412,54 +422,59 @@
         </div>
       {:else}
         <div
-          style="height: {((+evening - +morning + 1 * 60 * 60 * 1000) / 1000) * shrinkFactor}px"
+          style="height: {((+evening - +visualMorning + 1 * 60 * 60 * 1000) / 1000) *
+            shrinkFactor}px"
           class="flex relative flex-col gap-1 items-center pr-4 pl-10 my-3 w-full py-[4px]"
         >
-          {#each { length: evening.getHours() - morning.getHours() }, i}
+          {#each { length: evening.getHours() - visualMorning.getHours() }, i}
             {@const hour = (1 + i) * 60 * 60 * 1000}
             <div
               style="top: {(hour / 1000) * shrinkFactor}px"
               class="flex absolute right-0 flex-row gap-2 items-center w-full"
             >
               <span class="text-xs select-none text-slate-50/20">
-                {kitchenFormatter.format(new Date(morning.getTime() + hour))}
+                {kitchenFormatter.format(new Date(visualMorning.getTime() + hour))}
               </span>
               <hr class="w-full rounded-full border-none h-[2px] bg-slate-50/5" />
             </div>
           {/each}
 
-          <div
-            bind:this={timeline}
-            style="top: {((timelineHead - morning.getTime()) / 1000) * shrinkFactor}px"
-            class="flex absolute right-0 left-8 flex-row justify-center items-center z-[5]"
-          >
-            <hr class="w-full rounded-full border-none h-[3px] bg-red-800/40" />
-            <div class="w-3 h-2 rounded-2xl bg-red-800/40"></div>
-          </div>
+          {#if day.getUTCDay() === new Date().getUTCDay()}
+            <div
+              bind:this={timeline}
+              style="top: {((timelineHead - visualMorning.getTime()) / 1000) * shrinkFactor}px"
+              class="flex absolute right-0 left-8 flex-row justify-center items-center z-[5]"
+            >
+              <hr class="w-full rounded-full border-none h-[3px] bg-red-800/40" />
+              <div class="w-3 h-2 rounded-2xl bg-red-800/40"></div>
+            </div>
+          {/if}
 
           {#each events as event, i}
-            {@const immutable = i <= immutablePivot}
-            <div
-              style={event.id === dragged?.id
-                ? `position: fixed; width: ${dragWidth}px; top: ${dragY}px; left: ${dragX}px; z-index: 10`
-                : 'width: 100%;'}
-              role="row"
-              tabindex={0}
-              onpointerdown={e => {
-                if (!immutable) {
-                  handleDown(e, event);
-                }
-              }}
-            >
-              <Event
-                {event}
-                {immutable}
-                height={Number(event.stopTime - event.startTime) * shrinkFactor - 2}
-              />
-              {#if dragged && !immutable && dragged.startTime > event.startTime && (events.length - 1 === i || dragged.startTime < events[i + 1].startTime)}
-                <hr class="mt-1 w-full rounded-full border-2 border-slate-100/40" />
-              {/if}
-            </div>
+            {#if event.startTime >= BigInt(visualMorning.getTime() / 1000)}
+              {@const immutable = i <= immutablePivot}
+              <div
+                style={event.id === dragged?.id
+                  ? `position: fixed; width: ${dragWidth}px; top: ${dragY}px; left: ${dragX}px; z-index: 10`
+                  : 'width: 100%;'}
+                role="row"
+                tabindex={0}
+                onpointerdown={e => {
+                  if (!immutable) {
+                    handleDown(e, event);
+                  }
+                }}
+              >
+                <Event
+                  {event}
+                  {immutable}
+                  height={Number(event.stopTime - event.startTime) * shrinkFactor - 2}
+                />
+                {#if dragged && !immutable && dragged.startTime > event.startTime && (events.length - 1 === i || dragged.startTime < events[i + 1].startTime)}
+                  <hr class="mt-1 w-full rounded-full border-2 border-slate-100/40" />
+                {/if}
+              </div>
+            {/if}
           {/each}
           {#if newEventName}
             <Event event={newEvent} height={Number(newEventStop - newEventStart) * shrinkFactor} />

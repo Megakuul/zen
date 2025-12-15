@@ -21,7 +21,7 @@
   }}
 ></Toaster>
 
-<div class="flex overflow-hidden relative flex-col items-center p-4 mt-10 sm:mt-24">
+<div class="flex overflow-hidden relative flex-col items-center p-4 mt-5 sm:mt-12">
   {@render children?.()}
 </div>
 

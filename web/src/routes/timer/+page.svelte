@@ -11,7 +11,6 @@
   import { GetChangeTextDecorator } from '$lib/color/color';
   import Streak from '$lib/components/Streak.svelte';
   import Fireworks from '@fireworks-js/svelte';
-  import Countup from '$lib/components/Countup.svelte';
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -94,23 +93,35 @@
   let animateFrame = 0;
 
   onMount(() => {
-    loadEvents();
-
     function updateCounter() {
       if (activeEvent?.timerStartTime) {
         elapsed = Date.now() - Number(activeEvent.timerStartTime) * 1000;
       }
-
       animateFrame = requestAnimationFrame(updateCounter);
     }
     animateFrame = requestAnimationFrame(updateCounter);
 
-    const interval = setInterval(async () => {
-      if (!ratingChange) await loadEvents();
-    }, 10000);
+    let refreshInterval = 0;
+    function refreshEvents() {
+      if (!ratingChange) loadEvents();
+      refreshInterval = setInterval(async () => {
+        if (!ratingChange) await loadEvents();
+      }, 10000);
+    }
+    refreshEvents();
+    // android / ios tend to keep the js running while cutting the network access.
+    // this shuts down the interval when the document is hidden.
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden) {
+        refreshEvents();
+      } else {
+        clearInterval(refreshInterval);
+        refreshInterval = 0;
+      }
+    });
     return () => {
+      clearInterval(refreshInterval);
       cancelAnimationFrame(animateFrame);
-      clearInterval(interval);
     };
   });
 </script>
@@ -146,7 +157,7 @@
 />
 
 <div
-  class="flex flex-col gap-8 p-2 w-screen text-base rounded-2xl sm:p-8 sm:text-4xl h-[85dvh] max-w-[1000px]"
+  class="flex flex-col gap-4 p-2 w-screen text-base rounded-2xl sm:gap-8 sm:p-8 sm:text-4xl h-[85dvh] max-w-[1000px]"
 >
   {#if !initialLoad}
     <div class="flex justify-center items-center w-full h-full">
@@ -179,12 +190,13 @@
         <button
           onclick={async () => {
             await Exec(async () => {
+              if (ratingChange) return;
               if (activeEvent.timerStartTime) {
                 const response = await TimingClient().stop(
                   create(StopRequestSchema, { id: activeEvent.id }),
                 );
                 ratingChange = response.ratingChange;
-                setTimeout(async () => await loadEvents(), 3000);
+                setTimeout(async () => await loadEvents(), 10000);
                 if (nextEvent)
                   await TimingClient().start(create(StartRequestSchema, { id: nextEvent.id }));
               } else {
@@ -265,11 +277,11 @@
                 {ratingChange < 0 ? 'missed-magic' : 'success-magic'}"
             >
               <p
-                class="text-4xl sm:text-8xl px-8 py-2 rounded-2xl shadow-inner min-w-64 shadow-slate-800/20 bg-stone-950/80 brightness-200 {GetChangeTextDecorator(
+                class="rating text-4xl sm:text-8xl px-8 py-2 rounded-2xl shadow-inner min-w-64 shadow-slate-800/20 bg-stone-950/80 brightness-200 {GetChangeTextDecorator(
                   ratingChange,
                 )}"
               >
-                <Countup value={scoreFormatter.format(ratingChange)} />
+                {scoreFormatter.format(ratingChange)}
               </p>
             </div>
           {/if}
@@ -343,6 +355,7 @@
     );
     background-size: 400% 400%;
     background-position: 100% 100%;
+    animation: move-magic 2s ease forwards;
   }
 
   @keyframes move-magic {
@@ -354,7 +367,17 @@
     }
   }
 
-  .success-magic * {
-    animation: popup-magic 2s ease forwards;
+  .rating {
+    animation: popup 2s linear forwards;
+  }
+
+  @keyframes popup {
+    0%,
+    50% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 100%;
+    }
   }
 </style>
