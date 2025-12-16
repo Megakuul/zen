@@ -19,6 +19,7 @@ func CalculateRatingChange(start, stop, startTimer, stopTimer time.Time, streak 
 	ratingChange += anchor.Seconds() - math.Abs(startDeviation)
 	ratingChange += anchor.Seconds() - math.Abs(stopDeviation)
 	ratingChange += 2 * (anchor.Seconds() - math.Abs(durationDeviation))
+	ratingChange /= 8
 
 	// cap change at 3x anchor to avoid unrecoverable rating loss
 	// if someone e.g. forgets to stop the event before sleep.
@@ -31,5 +32,5 @@ func CalculateRatingChange(start, stop, startTimer, stopTimer time.Time, streak 
 		ratingChange *= float64(streak / 10)
 	}
 
-	return fmt.Sprintf("v0.0.1-%s", anchor.String()), ratingChange / 4
+	return fmt.Sprintf("v0.0.2-%s", anchor.String()), ratingChange
 }

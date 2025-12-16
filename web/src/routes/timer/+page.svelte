@@ -102,8 +102,8 @@
     animateFrame = requestAnimationFrame(updateCounter);
 
     let refreshInterval = 0;
-    function refreshEvents() {
-      if (!ratingChange) loadEvents();
+    async function refreshEvents() {
+      if (!ratingChange) await loadEvents();
       refreshInterval = setInterval(async () => {
         if (!ratingChange) await loadEvents();
       }, 10000);
@@ -111,9 +111,11 @@
     refreshEvents();
     // android / ios tend to keep the js running while cutting the network access.
     // this shuts down the interval when the document is hidden.
-    document.addEventListener('visibilitychange', () => {
+    document.addEventListener('visibilitychange', async () => {
       if (!document.hidden) {
-        refreshEvents();
+        initialLoad = false;
+        await refreshEvents();
+        initialLoad = true;
       } else {
         clearInterval(refreshInterval);
         refreshInterval = 0;
@@ -157,7 +159,7 @@
 />
 
 <div
-  class="flex flex-col gap-4 p-2 w-screen text-base rounded-2xl sm:gap-8 sm:p-8 sm:text-4xl h-[85dvh] max-w-[1000px]"
+  class="flex flex-col gap-2 p-2 w-screen text-base rounded-2xl sm:gap-8 sm:p-8 sm:text-4xl h-[85dvh] max-w-[1000px]"
 >
   {#if !initialLoad}
     <div class="flex justify-center items-center w-full h-full">
@@ -166,7 +168,7 @@
     </div>
   {:else}
     <div
-      class="flex flex-col gap-5 justify-center items-center p-8 w-full h-full rounded-2xl glass"
+      class="flex flex-col gap-2 justify-center items-center p-4 w-full h-full rounded-2xl sm:gap-5 sm:p-8 glass"
     >
       {#if prevEvent}
         <div
@@ -221,10 +223,10 @@
               )}
               <div class="flex relative flex-col justify-center items-center w-full h-full">
                 <svg
-                  class="stroke-slate-100/20 [stroke-linecap:round] w-[240px] h-[240px] sm:w-[400px] sm:h-[400px]"
+                  class="stroke-slate-100/20 [stroke-linecap:round] w-[200px] h-[200px] sm:w-[400px] sm:h-[400px]"
                 >
                   <circle
-                    class="[cx:120px] [cy:120px] [r:100px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
+                    class="[cx:100px] [cy:100px] [r:80px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
                     stroke-width="10"
                     fill="none"
                     pathLength={expectedDate.getTime()}
@@ -232,10 +234,10 @@
                   />
                 </svg>
                 <svg
-                  class="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] stroke-slate-100/60 [stroke-linecap:round] w-[240px] h-[240px] sm:w-[400px] sm:h-[400px]"
+                  class="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] stroke-slate-100/60 [stroke-linecap:round] w-[200px] h-[200px] sm:w-[400px] sm:h-[400px]"
                 >
                   <circle
-                    class="[cx:120px] [cy:120px] [r:100px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
+                    class="[cx:100px] [cy:100px] [r:80px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
                     stroke-width="10"
                     fill="none"
                     pathLength={expectedDate.getTime()}
