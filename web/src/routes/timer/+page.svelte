@@ -229,8 +229,8 @@
                     class="[cx:100px] [cy:100px] [r:80px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
                     stroke-width="10"
                     fill="none"
-                    pathLength={expectedDate.getTime()}
-                    stroke-dasharray={expectedDate.getTime()}
+                    pathLength={+expectedDate}
+                    stroke-dasharray={+expectedDate}
                   />
                 </svg>
                 <svg
@@ -240,7 +240,7 @@
                     class="[cx:100px] [cy:100px] [r:80px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
                     stroke-width="10"
                     fill="none"
-                    pathLength={expectedDate.getTime()}
+                    pathLength={+expectedDate}
                     stroke-dashoffset={+expectedDate / 4}
                     stroke-dasharray="{+elapsedDate} {+expectedDate - +elapsedDate}"
                   />

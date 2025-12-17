@@ -100,7 +100,7 @@
   });
 
   let newEventName = $state('');
-  let newEventType = $state(EventType.CHILL);
+  let newEventType = $derived(EventType.CHILL);
   let newEventMusic = $derived.by(() => {
     if (browser) return localStorage.getItem(`default_music_${newEventType.toString()}`) ?? '';
     else '';
@@ -371,7 +371,7 @@
         }
       }}
     >
-      <EventTypeIcon type={newEventType} />
+      <EventTypeIcon type={newEventType} startup={events.length < 1} />
     </button>
     <button
       onclick={async () =>
@@ -424,7 +424,7 @@
         <div
           style="height: {((+evening - +visualMorning + 1 * 60 * 60 * 1000) / 1000) *
             shrinkFactor}px"
-          class="flex relative flex-col gap-1 items-center pr-4 pl-10 my-3 w-full py-[4px]"
+          class="flex relative flex-col gap-1 items-center pr-4 pl-10 my-3 w-full"
         >
           {#each { length: evening.getHours() - visualMorning.getHours() }, i}
             {@const hour = (1 + i) * 60 * 60 * 1000}
@@ -468,7 +468,8 @@
                 <Event
                   {event}
                   {immutable}
-                  height={Number(event.stopTime - event.startTime) * shrinkFactor - 2}
+                  startup={i < 1}
+                  height={Number(event.stopTime - event.startTime) * shrinkFactor - 4}
                 />
                 {#if dragged && !immutable && dragged.startTime > event.startTime && (events.length - 1 === i || dragged.startTime < events[i + 1].startTime)}
                   <hr class="mt-1 w-full rounded-full border-2 border-slate-100/40" />
@@ -477,7 +478,11 @@
             {/if}
           {/each}
           {#if newEventName}
-            <Event event={newEvent} height={Number(newEventStop - newEventStart) * shrinkFactor} />
+            <Event
+              event={newEvent}
+              startup={events.length < 1}
+              height={Number(newEventStop - newEventStart) * shrinkFactor}
+            />
           {/if}
         </div>
       {/if}

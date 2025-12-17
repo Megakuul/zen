@@ -6,11 +6,12 @@
     @type {{
       event: import("$lib/sdk/v1/scheduler/event_pb").Event
       height: number
+      startup?: boolean
       immutable?: boolean
       [key: string]: any
     }}
   */
-  let { event, immutable, height, ...others } = $props();
+  let { event, height, startup, immutable, ...others } = $props();
 
   const kitchenFormatter = new Intl.DateTimeFormat(undefined, {
     hour: 'numeric',
@@ -38,6 +39,7 @@
     </span>
     <EventTypeIcon
       type={event.type}
+      {startup}
       class="w-3 h-3 sm:w-5 sm:h-5"
       svgClass="w-3 h-3 sm:w-5 sm:h-5"
     />
