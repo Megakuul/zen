@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -11,6 +12,7 @@ import (
 	"connectrpc.com/connect"
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 )
 
 type Board struct {
@@ -37,6 +39,10 @@ func (m *Model) GetBoard(ctx context.Context, date time.Time) (*Board, bool, err
 		Key:    aws.String(fmt.Sprint(m.prefix, key)),
 	})
 	if err != nil {
+		var nsk *types.NoSuchKey
+		if errors.As(err, &nsk) {
+			return nil, false, nil
+		}
 		return nil, false, connect.NewError(connect.CodeInternal, err)
 	}
 	defer result.Body.Close()

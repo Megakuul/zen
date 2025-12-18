@@ -32,5 +32,5 @@ func CalculateRatingChange(start, stop, startTimer, stopTimer time.Time, streak 
 		ratingChange *= float64(streak / 10)
 	}
 
-	return fmt.Sprintf("v0.0.3-%s", anchor.String()), ratingChange / 7
+	return fmt.Sprintf("v0.0.3-%s", anchor.String()), math.Round(ratingChange / 8)
 }
