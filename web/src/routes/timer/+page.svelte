@@ -105,6 +105,8 @@
     async function refreshEvents() {
       if (!ratingChange) await loadEvents();
       refreshInterval = setInterval(async () => {
+        const conn = navigator.connection;
+        if (conn && (conn.saveData || conn.effectiveType === 'slow-2g')) return;
         if (!ratingChange) await loadEvents();
       }, 10000);
     }
@@ -198,7 +200,8 @@
                   create(StopRequestSchema, { id: activeEvent.id }),
                 );
                 ratingChange = response.ratingChange;
-                setTimeout(async () => await loadEvents(), 10000);
+                if (ratingChange === 0) await loadEvents();
+                else setTimeout(async () => await loadEvents(), 8000); // do reward magic
                 if (nextEvent)
                   await TimingClient().start(create(StartRequestSchema, { id: nextEvent.id }));
               } else {
@@ -210,12 +213,22 @@
           class="flex overflow-hidden flex-col justify-between items-center w-full h-full rounded-2xl cursor-pointer glass"
         >
           {#if !ratingChange}
-            <div class="flex flex-row gap-2 items-center text-lg sm:text-xl text-slate-100/40">
+            <div class="flex flex-row gap-2 items-center text-lg sm:text-xl text-slate-100/50">
               <EventTypeIcon type={activeEvent.type} svgClass="w-2 h-2 sm:w-4 sm:h-4" />
               <span>{activeEvent.name}</span>
+              (<span class="flex flex-row gap-1 text-lg sm:text-xl text-slate-100/30">
+                <span>
+                  {kitchenFormatter.format(new Date(Number(activeEvent.startTime) * 1000))}
+                </span>
+                <span>-</span>
+                <span>
+                  {kitchenFormatter.format(new Date(Number(activeEvent.stopTime) * 1000))}
+                </span>
+              </span>)
             </div>
             {#if !activeEvent.timerStartTime}
               <p class="text-3xl font-bold sm:text-6xl text-slate-100/30">Start Event</p>
+              <br />
             {:else if elapsed}
               {@const elapsedDate = new Date(elapsed)}
               {@const expectedDate = new Date(
@@ -223,10 +236,10 @@
               )}
               <div class="flex relative flex-col justify-center items-center w-full h-full">
                 <svg
-                  class="stroke-slate-100/20 [stroke-linecap:round] w-[200px] h-[200px] sm:w-[400px] sm:h-[400px]"
+                  class="stroke-slate-100/20 [stroke-linecap:round] w-[200px] h-[200px] lg:w-[320px] lg:h-[320px]"
                 >
                   <circle
-                    class="[cx:100px] [cy:100px] [r:80px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
+                    class="[cx:100px] [cy:100px] [r:80px] lg:[cx:160px] lg:[cy:160px] lg:[r:140px]"
                     stroke-width="10"
                     fill="none"
                     pathLength={+expectedDate}
@@ -234,10 +247,10 @@
                   />
                 </svg>
                 <svg
-                  class="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] stroke-slate-100/60 [stroke-linecap:round] w-[200px] h-[200px] sm:w-[400px] sm:h-[400px]"
+                  class="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] stroke-slate-100/60 [stroke-linecap:round] w-[200px] h-[200px] lg:w-[320px] lg:h-[320px]"
                 >
                   <circle
-                    class="[cx:100px] [cy:100px] [r:80px] sm:[cx:200px] sm:[cy:200px] sm:[r:180px]"
+                    class="[cx:100px] [cy:100px] [r:80px] lg:[cx:160px] lg:[cy:160px] lg:[r:140px]"
                     stroke-width="10"
                     fill="none"
                     pathLength={+expectedDate}
@@ -250,15 +263,20 @@
                 >
                   {#if user?.streak}
                     <Streak streak={Number(user?.streak)} enabled={true} title="current streak" />
+                  {:else}
+                    <Streak streak={0} enabled={false} title="current streak" />
                   {/if}
-                  <p class="text-3xl sm:text-6xl">
+                </div>
+
+                <div class="absolute bottom-0 p-2 w-full">
+                  <p class="text-3xl lg:text-4xl">
                     {counterFormatter.format({
                       hours: elapsedDate.getUTCHours(),
                       minutes: elapsedDate.getUTCMinutes(),
                       seconds: elapsedDate.getUTCSeconds(),
                     })}
                   </p>
-                  <p class="sm:text-2xl text-1xl text-slate-200/40">
+                  <p class="text-xl lg:text-2xl text-slate-200/40">
                     {counterFormatter.format({
                       hours: expectedDate.getUTCHours(),
                       minutes: expectedDate.getUTCMinutes(),
@@ -268,18 +286,13 @@
                 </div>
               </div>
             {/if}
-            <span class="flex flex-row gap-1 text-sm sm:text-lg text-slate-100/40">
-              <span>{kitchenFormatter.format(new Date(Number(activeEvent.startTime) * 1000))}</span>
-              <span>-</span>
-              <span>{kitchenFormatter.format(new Date(Number(activeEvent.stopTime) * 1000))}</span>
-            </span>
           {:else}
             <div
               class="flex justify-center items-center w-full h-full
                 {ratingChange < 0 ? 'missed-magic' : 'success-magic'}"
             >
               <p
-                class="rating text-4xl sm:text-8xl px-8 py-2 rounded-2xl shadow-inner min-w-64 shadow-slate-800/20 bg-stone-950/80 brightness-200 {GetChangeTextDecorator(
+                class="rating text-4xl lg:text-8xl px-8 py-2 rounded-2xl shadow-inner min-w-64 shadow-slate-800/20 bg-stone-950/80 brightness-200 {GetChangeTextDecorator(
                   ratingChange,
                 )}"
               >

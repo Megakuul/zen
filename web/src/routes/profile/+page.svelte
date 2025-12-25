@@ -81,7 +81,7 @@
 </svelte:head>
 
 <div
-  class="flex flex-col gap-3 p-8 w-full text-base rounded-2xl sm:gap-4 sm:text-4xl overflow-scroll-hidden glass h-[85dvh] max-w-[1800px] sm:p-15"
+  class="flex flex-col gap-3 p-8 w-full text-base rounded-2xl sm:gap-4 sm:text-4xl overflow-scroll-hidden glass h-[85dvh] max-w-[1600px] sm:p-15"
 >
   {#if user && edit}
     <input
@@ -284,7 +284,7 @@
     <div class="flex flex-row gap-4 justify-center items-center h-full">
       <p class="text-5xl font-bold text-center select-none sm:text-9xl">
         Score
-        <span class={GetScoreTextDecorator(user.score)}>{user.score}</span>
+        <span class={GetScoreTextDecorator(user.score)}>{Math.floor(user.score)}</span>
       </p>
       {#if user.streak > 0}
         <Streak streak={Number(user.streak)} enabled={true} title="current streak" />

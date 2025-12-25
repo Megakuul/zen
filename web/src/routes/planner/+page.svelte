@@ -27,6 +27,10 @@
     year: 'numeric',
   });
 
+  const durationFormatter = new Intl.DurationFormat(undefined, {
+    style: 'narrow',
+  });
+
   // factor applied to event seconds to get the pixels on the canvas.
   let shrinkFactor = $state(0.02);
 
@@ -399,10 +403,23 @@
       {/if}
     </button>
   </div>
-  <span class="mt-2 text-slate-400/80">
-    {kitchenFormatter.format(Number(newEventStart) * 1000)} -
-    {kitchenFormatter.format(Number(newEventStop) * 1000)}
-  </span>
+  {#if newEventName}
+    {@const start = Number(newEventStart) * 1000}
+    {@const stop = Number(newEventStop) * 1000}
+    {@const diff = new Date(stop - start)}
+    <span class="mt-2 text-slate-400/80">
+      {kitchenFormatter.format(start)} -
+      {kitchenFormatter.format(stop)}
+      (<span class="text-slate-200/80">
+        {durationFormatter.format({
+          hours: diff.getUTCHours(),
+        })}
+        {durationFormatter.format({
+          minutes: diff.getUTCMinutes(),
+        })}
+      </span>)
+    </span>
+  {/if}
   <input
     type="range"
     name="duration"
