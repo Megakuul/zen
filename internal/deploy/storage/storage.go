@@ -100,12 +100,11 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				"Resource": "%s/*"
 			}, {
 				"Effect": "Allow",
-					"Action": "s3:ListBucket",
-					"Resource": "%s",
-					"Condition": {
-						"StringLike": {
-							"s3:prefix": "%s/*"
-						}
+				"Action": "s3:ListBucket",
+				"Resource": "%s",
+				"Condition": {
+					"StringLike": {
+						"s3:prefix": "%s/*"
 					}
 				}
 			}]
