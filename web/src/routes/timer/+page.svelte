@@ -237,9 +237,12 @@
               <div class="flex relative flex-col justify-center items-center w-full h-full">
                 <svg
                   class="stroke-slate-100/20 [stroke-linecap:round] w-[200px] h-[200px] lg:w-[320px] lg:h-[320px]"
+                  viewBox="0 0 200 200"
                 >
                   <circle
-                    class="[cx:100px] [cy:100px] [r:80px] lg:[cx:160px] lg:[cy:160px] lg:[r:140px]"
+                    cx="100"
+                    cy="100"
+                    r="80"
                     stroke-width="10"
                     fill="none"
                     pathLength={+expectedDate}
@@ -248,9 +251,12 @@
                 </svg>
                 <svg
                   class="absolute top-1/2 left-1/2 translate-x-[-50%] translate-y-[-50%] stroke-slate-100/60 [stroke-linecap:round] w-[200px] h-[200px] lg:w-[320px] lg:h-[320px]"
+                  viewBox="0 0 200 200"
                 >
                   <circle
-                    class="[cx:100px] [cy:100px] [r:80px] lg:[cx:160px] lg:[cy:160px] lg:[r:140px]"
+                    cx="100"
+                    cy="100"
+                    r="80"
                     stroke-width="10"
                     fill="none"
                     pathLength={+expectedDate}

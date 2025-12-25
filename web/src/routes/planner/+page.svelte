@@ -60,7 +60,7 @@
   // items <= pivot cannot be changed by the planner anymore.
   let immutablePivot = $derived(
     events.findLastIndex(event => {
-      return event.immutable || event.stopTime < Date.now() / 1000;
+      return event.immutable;
     }),
   );
 
@@ -103,27 +103,30 @@
     loadEvents();
   });
 
-  let newEventName = $state('');
-  let newEventType = $derived(EventType.CHILL);
-  let newEventMusic = $derived.by(() => {
-    if (browser) return localStorage.getItem(`default_music_${newEventType.toString()}`) ?? '';
-    else '';
-  });
-  let newEventStart = $derived.by(() => {
-    if (events.length > 0) return Number(events.at(-1)?.stopTime);
-    else return visualMorning.getTime() / 1000;
-  });
-  let newEventStop = $derived(newEventStart + 3600);
+  let editMode = $state(false);
 
-  let newEvent = $derived(
+  let editableEvent = $state(
     create(EventSchema, {
-      type: newEventType,
-      name: newEventName,
-      musicUrl: newEventMusic,
-      startTime: BigInt(newEventStart),
-      stopTime: BigInt(Math.min(newEventStop, evening.getTime() / 1000)),
+      type: EventType.CHILL,
+      name: '',
+      musicUrl: '',
     }),
   );
+
+  $effect(() => {
+    if (browser) {
+      editableEvent.musicUrl =
+        localStorage.getItem(`default_music_${editableEvent.type.toString()}`) ?? '';
+    }
+  });
+
+  $effect(() => {
+    if (!editMode) {
+      if (events.length > 0) editableEvent.startTime = events.at(-1)?.stopTime || BigInt(0);
+      else editableEvent.startTime = BigInt(visualMorning.getTime() / 1000);
+      editableEvent.stopTime = editableEvent.startTime + BigInt(3600);
+    }
+  });
 
   // updateEvents applies the user modified event list to the database.
   // the server automatically drops the old events that are still referenced by the event.id
@@ -354,7 +357,7 @@
       autocomplete="off"
       autocapitalize="off"
       spellcheck="false"
-      bind:value={newEventName}
+      bind:value={editableEvent.name}
       placeholder="Next Event"
       class="p-2 text-center rounded-xl sm:p-4 sm:max-w-full glass max-w-40 focus:outline-0"
       onkeydown={/** @type {KeyboardEvent} e */ e => {
@@ -368,14 +371,14 @@
       aria-label="type"
       class="p-3 text-center rounded-xl cursor-pointer sm:p-5 glass"
       onclick={() => {
-        if (newEventType + 1 > (Number(Object.values(EventType).at(-1)) ?? 0)) {
-          newEventType = EventType.CHILL;
+        if (editableEvent.type + 1 > (Number(Object.values(EventType).at(-1)) ?? 0)) {
+          editableEvent.type = EventType.CHILL;
         } else {
-          newEventType++;
+          editableEvent.type++;
         }
       }}
     >
-      <EventTypeIcon type={newEventType} startup={events.length < 1} />
+      <EventTypeIcon type={editableEvent.type} startup={events.length < 1} />
     </button>
     <button
       onclick={async () =>
@@ -383,10 +386,10 @@
           async () => {
             await PlanningClient().upsert(
               create(UpsertRequestSchema, {
-                events: [newEvent],
+                events: [editableEvent],
               }),
             );
-            newEventName = '';
+            editableEvent.name = '';
             await loadEvents();
           },
           undefined,
@@ -403,9 +406,9 @@
       {/if}
     </button>
   </div>
-  {#if newEventName}
-    {@const start = Number(newEventStart) * 1000}
-    {@const stop = Number(newEventStop) * 1000}
+  {#if editableEvent.name}
+    {@const start = Number(editableEvent.startTime) * 1000}
+    {@const stop = Number(editableEvent.stopTime) * 1000}
     {@const diff = new Date(stop - start)}
     <span class="mt-2 text-slate-400/80">
       {kitchenFormatter.format(start)} -
@@ -423,9 +426,9 @@
   <input
     type="range"
     name="duration"
-    bind:value={newEventStop}
+    oninput={e => (editableEvent.stopTime = BigInt(e.currentTarget.value || 0))}
     step="300"
-    min={newEventStart}
+    min={Number(editableEvent.startTime)}
     max={evening.getTime() / 1000}
     class="w-full"
   />
@@ -494,11 +497,11 @@
               </div>
             {/if}
           {/each}
-          {#if newEventName}
+          {#if editableEvent.name}
             <Event
-              event={newEvent}
+              event={editableEvent}
               startup={events.length < 1}
-              height={Number(newEventStop - newEventStart) * shrinkFactor}
+              height={Number(editableEvent.stopTime - editableEvent.startTime) * shrinkFactor}
             />
           {/if}
         </div>

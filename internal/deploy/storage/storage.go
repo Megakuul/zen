@@ -98,8 +98,18 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 					"s3:DeleteObject"
 				],
 				"Resource": "%s/*"
+			}, {
+				"Effect": "Allow",
+					"Action": "s3:ListBucket",
+					"Resource": "%s",
+					"Condition": {
+						"StringLike": {
+							"s3:prefix": "%s/*"
+						}
+					}
+				}
 			}]
-		}`, bucket.Arn),
+		}`, bucket.Arn, bucket.Arn),
 	})
 	if err != nil {
 		return nil, err
