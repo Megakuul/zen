@@ -99,7 +99,6 @@ func (m *Model) PutEvents(ctx context.Context, sub string, events []Event, oldEv
 				TableName: aws.String(m.table),
 				Item:      item,
 				ExpressionAttributeValues: map[string]types.AttributeValue{
-					":now":   &types.AttributeValueMemberN{Value: strconv.Itoa(int(time.Now().Unix()))},
 					":false": &types.AttributeValueMemberBOOL{Value: false},
 				},
 				ConditionExpression: aws.String("attribute_not_exists(pk) OR immutable = :false"),

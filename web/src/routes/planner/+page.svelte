@@ -184,6 +184,9 @@
   });
 
   /** @type {HTMLDivElement|undefined} */
+  let editZone = $state();
+
+  /** @type {HTMLDivElement|undefined} */
   let trashZone = $state();
 
   let maybeDrag = $state(0);
