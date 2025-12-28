@@ -484,7 +484,7 @@
           {/if}
 
           {#each events as event, i}
-            {#if event.startTime >= BigInt(visualMorning.getTime() / 1000)}
+            {#if event.id === dragged?.id || event.startTime >= BigInt(visualMorning.getTime() / 1000)}
               {@const immutable = i <= immutablePivot}
               <div
                 style={event.id === dragged?.id
