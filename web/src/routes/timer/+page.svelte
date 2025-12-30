@@ -1,7 +1,7 @@
 <script>
   import { onMount } from 'svelte';
   import { create } from '@bufbuild/protobuf';
-  import { goto } from '$app/navigation';
+  import { goto, refreshAll } from '$app/navigation';
   import { Exec } from '$lib/error/error.svelte';
   import { ManagementClient, PlanningClient, TimingClient } from '$lib/client/client.svelte';
   import { GetRequestSchema as PlanningGetSchema } from '$lib/sdk/v1/scheduler/planning/planning_pb';
@@ -93,38 +93,33 @@
   let animateFrame = 0;
 
   onMount(() => {
-    function updateCounter() {
+    const baseTitle = document.title;
+    function updateState() {
       if (activeEvent?.timerStartTime) {
         elapsed = Date.now() - Number(activeEvent.timerStartTime) * 1000;
       }
-      animateFrame = requestAnimationFrame(updateCounter);
+      // change title to trigger notification ping on desktop browsers
+      if (document.title !== 'ALARM' && elapsed && +elapsed > Number(nextEvent.startTime) * 1000) {
+        document.title = 'ALARM';
+      } else if (document.title === 'ALARM') {
+        document.title = baseTitle;
+      }
+      animateFrame = requestAnimationFrame(updateState);
     }
-    animateFrame = requestAnimationFrame(updateCounter);
+    animateFrame = requestAnimationFrame(updateState);
 
-    let refreshInterval = 0;
-    async function refreshEvents() {
-      if (!ratingChange) await loadEvents();
-      refreshInterval = setInterval(async () => {
-        const conn = navigator.connection;
-        if (conn && (conn.saveData || conn.effectiveType === 'slow-2g')) return;
-        if (!ratingChange) await loadEvents();
-      }, 10000);
-    }
-    refreshEvents();
-    // android / ios tend to keep the js running while cutting the network access.
-    // this shuts down the interval when the document is hidden.
-    document.addEventListener('visibilitychange', async () => {
+    async function refreshPage() {
       if (!document.hidden) {
         initialLoad = false;
-        await refreshEvents();
+        await loadEvents();
         initialLoad = true;
-      } else {
-        clearInterval(refreshInterval);
-        refreshInterval = 0;
       }
-    });
+    }
+    refreshPage();
+
+    document.addEventListener('visibilitychange', refreshPage);
     return () => {
-      clearInterval(refreshInterval);
+      document.removeEventListener('visibilitychange', refreshPage);
       cancelAnimationFrame(animateFrame);
     };
   });

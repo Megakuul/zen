@@ -27,6 +27,7 @@
   let eventTypes = $state([]);
 
   let dayStartHour = $state(6);
+  let calendarSteps = $state(15);
 
   $effect.root(() => {
     if (!browser) {
@@ -34,6 +35,7 @@
     }
 
     dayStartHour = Number(localStorage.getItem(`default_day_start`) || dayStartHour);
+    calendarSteps = Number(localStorage.getItem(`default_slider_steps`)) / 60 || calendarSteps;
 
     eventTypes = [];
     // remove typescript enum double mapping (only keep string keys)
@@ -117,16 +119,27 @@
           />
         </div>
       {/each}
-      <label class="flex flex-row gap-3 justify-center items-center py-2">
+      <label class="flex flex-row gap-3 justify-center items-center pt-2">
         <span class="text-xs sm:max-w-full sm:text-base lg:text-xl max-w-48">
           Calendar day starts at
         </span>
         <input
           bind:value={dayStartHour}
           type="number"
-          class="p-1 text-xs text-center rounded-lg sm:p-3 sm:rounded-xl lg:text-xl max-w-12 glass focus:outline-0"
+          class="p-1 text-xs text-center rounded-lg sm:p-3 sm:rounded-xl lg:text-xl max-w-14 glass focus:outline-0"
         />
         <span class="text-xs sm:max-w-full sm:text-base lg:text-xl max-w-48"> o'clock </span>
+      </label>
+      <label class="flex flex-row gap-3 justify-center items-center pb-2">
+        <span class="text-xs sm:max-w-full sm:text-base lg:text-xl max-w-48">
+          and operates in
+        </span>
+        <input
+          bind:value={calendarSteps}
+          type="number"
+          class="p-1 text-xs text-center rounded-lg sm:p-3 sm:rounded-xl lg:text-xl max-w-12 glass focus:outline-0"
+        />
+        <span class="text-xs sm:max-w-full sm:text-base lg:text-xl max-w-48"> minute steps</span>
       </label>
     </div>
 
@@ -144,6 +157,8 @@
         onclick={async () =>
           Exec(
             async () => {
+              if (browser)
+                localStorage.setItem(`default_slider_steps`, (calendarSteps * 60).toString());
               if (browser) localStorage.setItem(`default_day_start`, dayStartHour.toString());
               for (const type of eventTypes) {
                 if (browser) localStorage.setItem(`default_music_${type.id}`, type.url);

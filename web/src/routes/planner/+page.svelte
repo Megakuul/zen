@@ -105,10 +105,21 @@
 
   let editMode = $state(false);
 
+  let editSliderStep = $state(900); // 15 minutes
   let editableEvent = $state(create(EventSchema, {}));
+  // proxy to transform the stopTime (required as slider value) from BigInt to a supported Number type.
+  let editableSliderProxy = {
+    get num() {
+      return Number(editableEvent.stopTime);
+    },
+    set num(v) {
+      editableEvent.stopTime = BigInt(v);
+    },
+  };
 
   $effect(() => {
     if (browser) {
+      editSliderStep = Number(localStorage.getItem('default_slider_steps')) || 900;
       editableEvent.musicUrl =
         localStorage.getItem(`default_music_${editableEvent.type.toString()}`) ?? '';
     }
@@ -436,12 +447,12 @@
   <input
     type="range"
     name="duration"
-    oninput={e => {
-      editableEvent.stopTime = BigInt(e.currentTarget.value || 0);
+    bind:value={editableSliderProxy.num}
+    oninput={() => {
       snapAlignEvents();
     }}
-    step="300"
-    min={Number(editableEvent.startTime) + 300}
+    step={editSliderStep}
+    min={Number(editableEvent.startTime) + editSliderStep}
     max={evening.getTime() / 1000}
     class="w-full"
   />

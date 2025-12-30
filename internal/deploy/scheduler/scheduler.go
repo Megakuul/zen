@@ -146,7 +146,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 				"TOKEN_ISSUER":      pulumi.Sprintf(input.Issuer),
 				"TOKEN_KMS_KEY_ID":  input.KmsName,
 				"LEADERBOARD_QUEUE": input.QueueName,
-				"RATING_ANCHOR":     pulumi.Sprintf("5m"),
+				"RATING_ANCHOR":     pulumi.Sprintf("10m"),
 			}),
 		},
 	})
