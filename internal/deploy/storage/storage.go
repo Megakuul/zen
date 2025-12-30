@@ -108,7 +108,7 @@ func Deploy(ctx *pulumi.Context, input *DeployInput) (*DeployOutput, error) {
 					}
 				}
 			}]
-		}`, bucket.Arn, bucket.Arn),
+		}`, bucket.Arn, bucket.Arn, bucket.Arn),
 	})
 	if err != nil {
 		return nil, err

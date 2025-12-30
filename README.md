@@ -37,10 +37,11 @@ go run cmd/monk/monk.go
 ## Technical Information
 ---
 
-Zen was built to solve a specific problem while running on high available but extremly low-cost cloud-infrastructure.
+Zen was built to run highly available on an extremely low-cost cloud-infrastructure while allowing *me* to ship changes very quickly.
 This comes with certain drawbacks: 
 
 - Zen is based on various eventually consistent mechanisms (e.g. timing updates from the weekend might be added to next weeks leaderboard). Certain operations might seem to be magically swallowed or disappear in hyperedgecases.
 - The leaderboard cannot be queried server-side; you must load the full json and sort it client-side (+ the json is aggressively cached by cloudfront).
+- The frontend planner is dogwater spaghetti code. Right now this keeps it very simple and maintainable for **me*** (due to very loosely requirements).
 
 For this particular scope, this is totally fine; however, please do NOT take this as an example or argument of how to correctly implement business-critical software!
