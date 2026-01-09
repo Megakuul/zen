@@ -29,8 +29,8 @@ func CalculateRatingChange(start, stop, startTimer, stopTimer time.Time, streak 
 
 	// streak is pushing the rating very strongly but this is intended to set a focus on streaks (discipline)
 	if ratingChange > 0 && streak > 0 {
-		ratingChange *= float64(streak / 10)
+		ratingChange *= 1 + float64(streak/10)
 	}
 
-	return fmt.Sprintf("v0.0.4-%s", anchor.String()), math.Round(ratingChange / 8)
+	return fmt.Sprintf("v0.0.5-%s", anchor.String()), math.Round(ratingChange / 8)
 }

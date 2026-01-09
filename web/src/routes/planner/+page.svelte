@@ -388,7 +388,7 @@
       class="p-3 text-center rounded-xl cursor-pointer sm:p-5 glass"
       onclick={() => {
         if (editableEvent.type + 1 > (Number(Object.values(EventType).at(-1)) ?? 0)) {
-          editableEvent.type = EventType.CHILL;
+          editableEvent.type = EventType.AUTOPILOT;
         } else {
           editableEvent.type++;
         }
