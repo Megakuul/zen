@@ -5,12 +5,31 @@ package v1.scheduler;
 option go_package = "github.com/megakuul/zen/pkg/api/v1/scheduler";
 
 enum EventType {
-  CHILL = 0;
-  PAUSE = 1;
-  MIN_FOCUS = 2;
-  MAX_FOCUS = 3;
-  SPORT = 4;
-  SOCIAL = 5;
+  // AUTOPILOT is useful for basic repetitive tasks where you do not need focus
+  // trigger: defaults whenever you throw focus (e.g. looking around, thinking about different things).
+  // driver: serotonin (requires l-tryptophan)
+  AUTOPILOT = 0; 
+  // AUDITOR is useful for short and strong focus with complete awareness
+  // trigger: stress (task must be finished in 30 minutes with high stakes) -> battery hack
+  // driver: noradrenaline (requires l-tyrosin)
+  // reset: requires nsdr reset to switch to other modes (1-4).
+  AUDITOR = 1; 
+  // EXPLORER (learning) is useful for tasks you don't know how to approach (learning things)
+  // trigger: stare at a point for 30 seconds without blinking (triggers acetylcholine)
+  // driver: acetylcholine (requires cholin (alpha-gpc)) and noradrenaline (requires l-tyrosin)
+  // reset: requires nsdr reset to switch to other modes (1-4).
+  EXPLORER = 2; 
+  // EXECUTOR (flow) is useful for tasks you already know how to approach exactly but with 5-10x speed
+  // trigger: shut all external factors immediately and start working on exactly defined tasks.
+  // driver: noradrenaline and dopamine (requires l-tyrosin)
+  // reset: requires nsdr reset to switch to other modes (1-4).
+  EXECUTOR = 3; 
+  // WARRIOR is useful for tasks you need physical and mental power (sports)
+  // trigger: starting intensive workout automatically triggers this
+  // driver: adrenalin and endorphin (requires l-tyrosin)
+  // note: requires carbs for energy and BCAA amino acids to counter the insulin flush from those carbs (to avoid l-tryptophan entrance)
+  // reset: requires nsdr reset to switch to other modes (1-4).
+  WARRIOR = 4; 
 }
 
 message Event {

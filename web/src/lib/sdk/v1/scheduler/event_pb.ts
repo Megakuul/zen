@@ -10,7 +10,7 @@ import type { Message } from "@bufbuild/protobuf";
  * Describes the file v1/scheduler/event.proto.
  */
 export const file_v1_scheduler_event: GenFile = /*@__PURE__*/
-  fileDesc("Chh2MS9zY2hlZHVsZXIvZXZlbnQucHJvdG8SDHYxLnNjaGVkdWxlciKOAgoFRXZlbnQSCgoCaWQYASABKAkSJQoEdHlwZRgCIAEoDjIXLnYxLnNjaGVkdWxlci5FdmVudFR5cGUSDAoEbmFtZRgDIAEoCRISCgpzdGFydF90aW1lGAQgASgDEhEKCXN0b3BfdGltZRgFIAEoAxIYChB0aW1lcl9zdGFydF90aW1lGAYgASgDEhcKD3RpbWVyX3N0b3BfdGltZRgHIAEoAxIVCg1yYXRpbmdfY2hhbmdlGAggASgBEhgKEHJhdGluZ19hbGdvcml0aG0YCSABKAkSEQoJaW1tdXRhYmxlGAogASgIEhMKC2Rlc2NyaXB0aW9uGAsgASgJEhEKCW11c2ljX3VybBgMIAEoCSpWCglFdmVudFR5cGUSCQoFQ0hJTEwQABIJCgVQQVVTRRABEg0KCU1JTl9GT0NVUxACEg0KCU1BWF9GT0NVUxADEgkKBVNQT1JUEAQSCgoGU09DSUFMEAVCLlosZ2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9zY2hlZHVsZXJiBnByb3RvMw");
+  fileDesc("Chh2MS9zY2hlZHVsZXIvZXZlbnQucHJvdG8SDHYxLnNjaGVkdWxlciKOAgoFRXZlbnQSCgoCaWQYASABKAkSJQoEdHlwZRgCIAEoDjIXLnYxLnNjaGVkdWxlci5FdmVudFR5cGUSDAoEbmFtZRgDIAEoCRISCgpzdGFydF90aW1lGAQgASgDEhEKCXN0b3BfdGltZRgFIAEoAxIYChB0aW1lcl9zdGFydF90aW1lGAYgASgDEhcKD3RpbWVyX3N0b3BfdGltZRgHIAEoAxIVCg1yYXRpbmdfY2hhbmdlGAggASgBEhgKEHJhdGluZ19hbGdvcml0aG0YCSABKAkSEQoJaW1tdXRhYmxlGAogASgIEhMKC2Rlc2NyaXB0aW9uGAsgASgJEhEKCW11c2ljX3VybBgMIAEoCSpQCglFdmVudFR5cGUSDQoJQVVUT1BJTE9UEAASCwoHQVVESVRPUhABEgwKCEVYUExPUkVSEAISDAoIRVhFQ1VUT1IQAxILCgdXQVJSSU9SEARCLlosZ2l0aHViLmNvbS9tZWdha3V1bC96ZW4vcGtnL2FwaS92MS9zY2hlZHVsZXJiBnByb3RvMw");
 
 /**
  * @generated from message v1.scheduler.Event
@@ -89,34 +89,54 @@ export const EventSchema: GenMessage<Event> = /*@__PURE__*/
  */
 export enum EventType {
   /**
-   * @generated from enum value: CHILL = 0;
+   * AUTOPILOT is useful for basic repetitive tasks where you do not need focus
+   * trigger: defaults whenever you throw focus (e.g. looking around, thinking about different things).
+   * driver: serotonin (requires l-tryptophan)
+   *
+   * @generated from enum value: AUTOPILOT = 0;
    */
-  CHILL = 0,
+  AUTOPILOT = 0,
 
   /**
-   * @generated from enum value: PAUSE = 1;
+   * AUDITOR is useful for short and strong focus with complete awareness
+   * trigger: stress (task must be finished in 30 minutes with high stakes) -> battery hack
+   * driver: noradrenaline (requires l-tyrosin)
+   * reset: requires nsdr reset to switch to other modes (1-4).
+   *
+   * @generated from enum value: AUDITOR = 1;
    */
-  PAUSE = 1,
+  AUDITOR = 1,
 
   /**
-   * @generated from enum value: MIN_FOCUS = 2;
+   * EXPLORER (learning) is useful for tasks you don't know how to approach (learning things)
+   * trigger: stare at a point for 30 seconds without blinking (triggers acetylcholine)
+   * driver: acetylcholine (requires cholin (alpha-gpc)) and noradrenaline (requires l-tyrosin)
+   * reset: requires nsdr reset to switch to other modes (1-4).
+   *
+   * @generated from enum value: EXPLORER = 2;
    */
-  MIN_FOCUS = 2,
+  EXPLORER = 2,
 
   /**
-   * @generated from enum value: MAX_FOCUS = 3;
+   * EXECUTOR (flow) is useful for tasks you already know how to approach exactly but with 5-10x speed
+   * trigger: shut all external factors immediately and start working on exactly defined tasks.
+   * driver: noradrenaline and dopamine (requires l-tyrosin)
+   * reset: requires nsdr reset to switch to other modes (1-4).
+   *
+   * @generated from enum value: EXECUTOR = 3;
    */
-  MAX_FOCUS = 3,
+  EXECUTOR = 3,
 
   /**
-   * @generated from enum value: SPORT = 4;
+   * WARRIOR is useful for tasks you need physical and mental power (sports)
+   * trigger: starting intensive workout automatically triggers this
+   * driver: adrenalin and endorphin (requires l-tyrosin)
+   * note: requires carbs for energy and BCAA amino acids to counter the insulin flush from those carbs (to avoid l-tryptophan entrance)
+   * reset: requires nsdr reset to switch to other modes (1-4).
+   *
+   * @generated from enum value: WARRIOR = 4;
    */
-  SPORT = 4,
-
-  /**
-   * @generated from enum value: SOCIAL = 5;
-   */
-  SOCIAL = 5,
+  WARRIOR = 4,
 }
 
 /**

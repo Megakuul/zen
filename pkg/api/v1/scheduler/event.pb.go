@@ -24,31 +24,48 @@ const (
 type EventType int32
 
 const (
-	EventType_CHILL     EventType = 0
-	EventType_PAUSE     EventType = 1
-	EventType_MIN_FOCUS EventType = 2
-	EventType_MAX_FOCUS EventType = 3
-	EventType_SPORT     EventType = 4
-	EventType_SOCIAL    EventType = 5
+	// AUTOPILOT is useful for basic repetitive tasks where you do not need focus
+	// trigger: defaults whenever you throw focus (e.g. looking around, thinking about different things).
+	// driver: serotonin (requires l-tryptophan)
+	EventType_AUTOPILOT EventType = 0
+	// AUDITOR is useful for short and strong focus with complete awareness
+	// trigger: stress (task must be finished in 30 minutes with high stakes) -> battery hack
+	// driver: noradrenaline (requires l-tyrosin)
+	// reset: requires nsdr reset to switch to other modes (1-4).
+	EventType_AUDITOR EventType = 1
+	// EXPLORER (learning) is useful for tasks you don't know how to approach (learning things)
+	// trigger: stare at a point for 30 seconds without blinking (triggers acetylcholine)
+	// driver: acetylcholine (requires cholin (alpha-gpc)) and noradrenaline (requires l-tyrosin)
+	// reset: requires nsdr reset to switch to other modes (1-4).
+	EventType_EXPLORER EventType = 2
+	// EXECUTOR (flow) is useful for tasks you already know how to approach exactly but with 5-10x speed
+	// trigger: shut all external factors immediately and start working on exactly defined tasks.
+	// driver: noradrenaline and dopamine (requires l-tyrosin)
+	// reset: requires nsdr reset to switch to other modes (1-4).
+	EventType_EXECUTOR EventType = 3
+	// WARRIOR is useful for tasks you need physical and mental power (sports)
+	// trigger: starting intensive workout automatically triggers this
+	// driver: adrenalin and endorphin (requires l-tyrosin)
+	// note: requires carbs for energy and BCAA amino acids to counter the insulin flush from those carbs (to avoid l-tryptophan entrance)
+	// reset: requires nsdr reset to switch to other modes (1-4).
+	EventType_WARRIOR EventType = 4
 )
 
 // Enum value maps for EventType.
 var (
 	EventType_name = map[int32]string{
-		0: "CHILL",
-		1: "PAUSE",
-		2: "MIN_FOCUS",
-		3: "MAX_FOCUS",
-		4: "SPORT",
-		5: "SOCIAL",
+		0: "AUTOPILOT",
+		1: "AUDITOR",
+		2: "EXPLORER",
+		3: "EXECUTOR",
+		4: "WARRIOR",
 	}
 	EventType_value = map[string]int32{
-		"CHILL":     0,
-		"PAUSE":     1,
-		"MIN_FOCUS": 2,
-		"MAX_FOCUS": 3,
-		"SPORT":     4,
-		"SOCIAL":    5,
+		"AUTOPILOT": 0,
+		"AUDITOR":   1,
+		"EXPLORER":  2,
+		"EXECUTOR":  3,
+		"WARRIOR":   4,
 	}
 )
 
@@ -138,7 +155,7 @@ func (x *Event) GetType() EventType {
 	if x != nil {
 		return x.Type
 	}
-	return EventType_CHILL
+	return EventType_AUTOPILOT
 }
 
 func (x *Event) GetName() string {
@@ -230,15 +247,13 @@ const file_v1_scheduler_event_proto_rawDesc = "" +
 	"\timmutable\x18\n" +
 	" \x01(\bR\timmutable\x12 \n" +
 	"\vdescription\x18\v \x01(\tR\vdescription\x12\x1b\n" +
-	"\tmusic_url\x18\f \x01(\tR\bmusicUrl*V\n" +
-	"\tEventType\x12\t\n" +
-	"\x05CHILL\x10\x00\x12\t\n" +
-	"\x05PAUSE\x10\x01\x12\r\n" +
-	"\tMIN_FOCUS\x10\x02\x12\r\n" +
-	"\tMAX_FOCUS\x10\x03\x12\t\n" +
-	"\x05SPORT\x10\x04\x12\n" +
-	"\n" +
-	"\x06SOCIAL\x10\x05B.Z,github.com/megakuul/zen/pkg/api/v1/schedulerb\x06proto3"
+	"\tmusic_url\x18\f \x01(\tR\bmusicUrl*P\n" +
+	"\tEventType\x12\r\n" +
+	"\tAUTOPILOT\x10\x00\x12\v\n" +
+	"\aAUDITOR\x10\x01\x12\f\n" +
+	"\bEXPLORER\x10\x02\x12\f\n" +
+	"\bEXECUTOR\x10\x03\x12\v\n" +
+	"\aWARRIOR\x10\x04B.Z,github.com/megakuul/zen/pkg/api/v1/schedulerb\x06proto3"
 
 var (
 	file_v1_scheduler_event_proto_rawDescOnce sync.Once
